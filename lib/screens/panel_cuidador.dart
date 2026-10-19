@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../core/tema.dart';
+
 import 'pestana_medicamentos.dart';
+import '../widgets/ajustes_texto.dart';
 
 class PanelCuidador extends StatelessWidget {
   const PanelCuidador({super.key});
@@ -13,6 +15,14 @@ class PanelCuidador extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Panel del cuidador'),
+          actions: [
+          IconButton(
+            icon: const Icon(Icons.text_fields, size: 28),
+            tooltip: 'Tamaño de letra',
+            onPressed: () => mostrarAjustesTexto(context),
+          ),
+          const SizedBox(width: 8),
+        ],
           bottom: const TabBar(
             labelColor: ColoresNana.morado,
             unselectedLabelColor: Color(0xFF8A82A3),
@@ -149,7 +159,7 @@ class _Evento extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           SizedBox(
-            width: 56,
+            width: 68,
             child: Padding(
               padding: const EdgeInsets.only(top: 8),
               child: Text(

@@ -57,12 +57,15 @@ class CaritasAnimo extends StatelessWidget {
                       color: activa ? colores[i] : const Color(0xFFB9B2CC),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      etiquetas[i],
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: activa ? FontWeight.bold : FontWeight.normal,
-                        color: activa ? colores[i] : ColoresNana.tinta,
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        etiquetas[i],
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: activa ? FontWeight.bold : FontWeight.normal,
+                          color: activa ? colores[i] : ColoresNana.tinta,
+                        ),
                       ),
                     ),
                   ],
