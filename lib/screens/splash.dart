@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../core/tema.dart';
 import '../widgets/mascota_nana.dart';
 import 'seleccion_rol.dart';
@@ -22,32 +23,36 @@ class _SplashScreenState extends State<SplashScreen>
     super.initState();
     _c = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2600),
+      duration: const Duration(milliseconds: 4200),
     );
     _escala = CurvedAnimation(
       parent: _c,
-      curve: const Interval(0.0, 0.45, curve: Curves.elasticOut),
+      curve: const Interval(0.0, 0.3, curve: Curves.elasticOut),
     );
     _opacidadMascota = CurvedAnimation(
       parent: _c,
-      curve: const Interval(0.0, 0.2, curve: Curves.easeOut),
+      curve: const Interval(0.0, 0.15, curve: Curves.easeOut),
     );
     _opacidadTexto = CurvedAnimation(
       parent: _c,
-      curve: const Interval(0.4, 0.7, curve: Curves.easeOut),
+      curve: const Interval(0.3, 0.5, curve: Curves.easeOut),
     );
 
-    _c.forward().then((_) {
+    // Pequeña pausa para que la app termine de cargar antes de animar
+    Future.delayed(const Duration(milliseconds: 400), () {
       if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        PageRouteBuilder(
-          transitionDuration: const Duration(milliseconds: 500),
-          pageBuilder: (_, __, ___) => const SeleccionRol(),
-          transitionsBuilder: (_, animacion, __, child) =>
-              FadeTransition(opacity: animacion, child: child),
-        ),
-      );
+      _c.forward().then((_) {
+        if (!mounted) return;
+        Navigator.pushReplacement(
+          context,
+          PageRouteBuilder(
+            transitionDuration: const Duration(milliseconds: 500),
+            pageBuilder: (_, __, ___) => const SeleccionRol(),
+            transitionsBuilder: (_, animacion, __, child) =>
+                FadeTransition(opacity: animacion, child: child),
+          ),
+        );
+      });
     });
   }
 
