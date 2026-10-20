@@ -1,45 +1,172 @@
 import 'package:flutter/material.dart';
 
 import '../core/tema.dart';
-
-import 'pestana_medicamentos.dart';
+import '../data/datos_ejemplo.dart';
 import '../widgets/ajustes_texto.dart';
+import 'familia_alertas.dart';
+import 'pestana_historial.dart';
+import 'pestana_inicio.dart';
+import 'pestana_medicamentos.dart';
+import 'pestana_rutinas.dart';
+import 'pestana_semana.dart';
 
-class PanelCuidador extends StatelessWidget {
+class PanelCuidador extends StatefulWidget {
   const PanelCuidador({super.key});
 
   @override
+  State<PanelCuidador> createState() => _PanelCuidadorState();
+}
+
+class _PanelCuidadorState extends State<PanelCuidador> {
+  int _pestana = 0;
+  int _adulto = 0;
+
+  Future<void> _cambiarAdulto() async {
+    final elegido = await showModalBottomSheet<int>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      ),
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('¿A quién quieres ver?',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 12),
+              for (var i = 0; i < DatosEjemplo.adultosACargo.length; i++)
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(vertical: 4),
+                  leading: _Avatar(DatosEjemplo.adultosACargo[i].$1),
+                  title: Text(DatosEjemplo.adultosACargo[i].$1,
+                      style: const TextStyle(
+                          fontSize: 20, fontWeight: FontWeight.bold)),
+                  subtitle: Text(DatosEjemplo.adultosACargo[i].$2,
+                      style: const TextStyle(fontSize: 16)),
+                  trailing: i == _adulto
+                      ? const Icon(Icons.check_circle,
+                          color: ColoresNana.morado)
+                      : null,
+                  onTap: () => Navigator.pop(context, i),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (elegido != null) setState(() => _adulto = elegido);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 3,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Panel del cuidador'),
-          actions: [
+    final (nombre, relacion) = DatosEjemplo.adultosACargo[_adulto];
+
+    return Scaffold(
+      appBar: AppBar(
+        titleSpacing: 12,
+        title: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: _cambiarAdulto,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _Avatar(nombre),
+                const SizedBox(width: 10),
+                Flexible(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('$nombre · $relacion',
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: ColoresNana.morado)),
+                      const Text('● Activa hace 12 min',
+                          style:
+                              TextStyle(fontSize: 13, color: ColoresNana.ok)),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.expand_more, color: ColoresNana.morado),
+              ],
+            ),
+          ),
+        ),
+        actions: [
           IconButton(
             icon: const Icon(Icons.text_fields, size: 28),
             tooltip: 'Tamaño de letra',
             onPressed: () => mostrarAjustesTexto(context),
           ),
-          const SizedBox(width: 8),
+          IconButton(
+            icon: const Icon(Icons.settings_outlined, size: 28),
+            tooltip: 'Familia y alertas',
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => FamiliaAlertas(adulto: nombre)),
+            ),
+          ),
+          const SizedBox(width: 4),
         ],
-          bottom: const TabBar(
-            labelColor: ColoresNana.morado,
-            unselectedLabelColor: Color(0xFF8A82A3),
-            indicatorColor: ColoresNana.morado,
-            labelStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            tabs: [
-              Tab(text: 'Resumen'),
-              Tab(text: 'Medicamentos'),
-              Tab(text: 'Historial'),
-            ],
+      ),
+      // IndexedStack para no perder lo que se hizo al cambiar de pestaña
+      body: IndexedStack(
+        index: _pestana,
+        children: [
+          PestanaInicio(adulto: nombre),
+          const PestanaMedicamentos(),
+          const PestanaRutinas(),
+          PestanaSemana(adulto: nombre),
+          PestanaHistorial(adulto: nombre),
+        ],
+      ),
+      bottomNavigationBar: NavigationBarTheme(
+        data: NavigationBarThemeData(
+          backgroundColor: Colors.white,
+          indicatorColor: ColoresNana.moradoClaro,
+          labelTextStyle: WidgetStateProperty.resolveWith(
+            (s) => TextStyle(
+              fontSize: 13,
+              fontWeight: s.contains(WidgetState.selected)
+                  ? FontWeight.bold
+                  : FontWeight.normal,
+              color: s.contains(WidgetState.selected)
+                  ? ColoresNana.morado
+                  : const Color(0xFF6B6485),
+            ),
           ),
         ),
-        body: const TabBarView(
-          children: [
-            _Resumen(),
-            PestanaMedicamentos(),
-            _Pendiente('Historial médico'),
+        child: NavigationBar(
+          selectedIndex: _pestana,
+          onDestinationSelected: (i) => setState(() => _pestana = i),
+          destinations: const [
+            NavigationDestination(
+                icon: Icon(Icons.home_outlined),
+                selectedIcon: Icon(Icons.home, color: ColoresNana.morado),
+                label: 'Inicio'),
+            NavigationDestination(
+                icon: Icon(Icons.medication_outlined),
+                selectedIcon: Icon(Icons.medication, color: ColoresNana.morado),
+                label: 'Medicinas'),
+            NavigationDestination(
+                icon: Icon(Icons.event_note_outlined),
+                selectedIcon: Icon(Icons.event_note, color: ColoresNana.morado),
+                label: 'Rutinas'),
+            NavigationDestination(
+                icon: Icon(Icons.bar_chart_outlined),
+                selectedIcon: Icon(Icons.bar_chart, color: ColoresNana.morado),
+                label: 'Semana'),
+            NavigationDestination(
+                icon: Icon(Icons.folder_outlined),
+                selectedIcon: Icon(Icons.folder, color: ColoresNana.morado),
+                label: 'Historial'),
           ],
         ),
       ),
@@ -47,174 +174,20 @@ class PanelCuidador extends StatelessWidget {
   }
 }
 
-class _Resumen extends StatelessWidget {
-  const _Resumen();
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
-      children: [
-        Container(
-          padding: const EdgeInsets.all(22),
-          decoration: BoxDecoration(
-            color: ColoresNana.okClaro,
-            borderRadius: BorderRadius.circular(28),
-          ),
-          child: const Row(
-            children: [
-              Icon(Icons.check_circle, color: ColoresNana.ok, size: 44),
-              SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Rosa va bien hoy',
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 2),
-                    Text('Activa hace 12 min', style: TextStyle(fontSize: 17)),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 28),
-        const Text(
-          'Su día',
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 16),
-        const _Evento(
-          hora: '8:00',
-          texto: 'Tomó el Losartán (50 mg)',
-          icono: Icons.medication,
-          color: ColoresNana.ok,
-        ),
-        const _Evento(
-          hora: '9:10',
-          texto: 'Dijo que se siente bien',
-          icono: Icons.mood,
-          color: ColoresNana.azul,
-        ),
-        const _Evento(
-          hora: '15:00',
-          texto: 'Falta registrar la comida de la tarde. Suele hacerlo a esta hora.',
-          icono: Icons.restaurant,
-          color: ColoresNana.alerta,
-          ultimo: true,
-        ),
-        const SizedBox(height: 24),
-        SizedBox(
-          height: 60,
-          child: FilledButton.icon(
-            onPressed: () {},
-            icon: const Icon(Icons.call),
-            label: const Text('Llamar a Rosa'),
-            style: FilledButton.styleFrom(
-              backgroundColor: ColoresNana.azul,
-              shape: const StadiumBorder(),
-              textStyle: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        const Text(
-          'NANA solo registra, recuerda y alerta. No da recomendaciones médicas.',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 13, color: Color(0xFF6B6485)),
-        ),
-      ],
-    );
-  }
-}
-
-class _Evento extends StatelessWidget {
-  final String hora;
-  final String texto;
-  final IconData icono;
-  final Color color;
-  final bool ultimo;
-
-  const _Evento({
-    required this.hora,
-    required this.texto,
-    required this.icono,
-    required this.color,
-    this.ultimo = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SizedBox(
-            width: 68,
-            child: Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(
-                hora,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ),
-          Column(
-            children: [
-              CircleAvatar(
-                radius: 20,
-                backgroundColor: color.withValues(alpha: 0.15),
-                child: Icon(icono, color: color, size: 22),
-              ),
-              if (!ultimo)
-                Expanded(
-                  child: Container(width: 2, color: ColoresNana.moradoClaro),
-                ),
-            ],
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.only(top: 9, bottom: ultimo ? 0 : 24),
-              child: Text(
-                texto,
-                style: TextStyle(
-                  fontSize: 18,
-                  color: ultimo ? ColoresNana.alerta : ColoresNana.tinta,
-                  fontWeight: ultimo ? FontWeight.w600 : FontWeight.normal,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Pendiente extends StatelessWidget {
+class _Avatar extends StatelessWidget {
   final String nombre;
-  const _Pendiente(this.nombre);
+  const _Avatar(this.nombre);
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        '$nombre: pendiente de construir',
-        style: const TextStyle(fontSize: 18),
-      ),
+    return CircleAvatar(
+      radius: 20,
+      backgroundColor: ColoresNana.moradoClaro,
+      child: Text(nombre[0],
+          style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: ColoresNana.morado)),
     );
   }
 }

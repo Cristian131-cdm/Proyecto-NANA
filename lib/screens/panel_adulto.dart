@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import '../core/tema.dart';
+import '../data/datos_ejemplo.dart';
+import '../models/actividad.dart';
 import '../widgets/ajustes_texto.dart';
+import '../widgets/aviso.dart';
 import '../widgets/caritas_animo.dart';
+import '../widgets/hoja_frases.dart';
 import '../widgets/mascota_nana.dart';
-import '../widgets/tarjeta_medicamento.dart';
+import 'nana_escucha.dart';
 
 class PanelAdulto extends StatefulWidget {
   const PanelAdulto({super.key});
@@ -13,16 +17,18 @@ class PanelAdulto extends StatefulWidget {
 }
 
 class _PanelAdultoState extends State<PanelAdulto> {
-  bool medicamentoTomado = false;
+  final List<Actividad> dia = List.of(DatosEjemplo.diaRosa);
   int? animo;
 
   final frases = const [
     'Ya tomé mi medicina',
-    'Me siento bien',
-    'Me siento mal',
     'Ya comí',
+    'Me siento mal',
     '¿Qué sigue hoy?',
   ];
+
+  int get _hechas =>
+      dia.where((a) => a.estado == EstadoActividad.hecha).length;
 
   String _saludo() {
     final h = DateTime.now().hour;
@@ -44,10 +50,35 @@ class _PanelAdultoState extends State<PanelAdulto> {
     return '${texto[0].toUpperCase()}${texto.substring(1)}';
   }
 
-  void _aviso(String texto) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(texto, style: const TextStyle(fontSize: 20))),
+  // Marca la actividad como hecha y pasa la siguiente pendiente a "ahora"
+  void _marcarHecha(int i) {
+    setState(() {
+      dia[i] = dia[i].conEstado(EstadoActividad.hecha);
+      final siguiente =
+          dia.indexWhere((a) => a.estado == EstadoActividad.pendiente);
+      if (siguiente != -1) {
+        dia[siguiente] = dia[siguiente].conEstado(EstadoActividad.ahora);
+      }
+    });
+    mostrarAviso(
+      context,
+      dia[i].tipo == TipoActividad.medicina
+          ? 'Listo, anoté tu medicina'
+          : 'Listo, lo anoté',
     );
+  }
+
+  void _decir(String frase) {
+    if (frase == 'Necesito ayuda') {
+      _confirmarAviso();
+    } else {
+      mostrarAviso(context, 'Anotado: $frase');
+    }
+  }
+
+  Future<void> _masFrases() async {
+    final f = await mostrarHojaFrases(context);
+    if (f != null && mounted) _decir(f);
   }
 
   Future<void> _confirmarAviso() async {
@@ -55,12 +86,12 @@ class _PanelAdultoState extends State<PanelAdulto> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        title: const Text('¿Avisar a tu familia?',
+        title: const Text('¿Le aviso a tu familia?',
             style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Le mandaré un aviso para que sepan que necesitas ayuda.',
+            const Text('Les mando un mensaje para que sepan que necesitas ayuda.',
                 style: TextStyle(fontSize: 20)),
             const SizedBox(height: 20),
             SizedBox(
@@ -93,7 +124,7 @@ class _PanelAdultoState extends State<PanelAdulto> {
         ),
       ),
     );
-    if (si == true) _aviso('Aquí se enviará el aviso a la familia');
+    if (si == true && mounted) avisoPendiente(context);
   }
 
   Widget _titulo(String texto) => Padding(
@@ -108,6 +139,11 @@ class _PanelAdultoState extends State<PanelAdulto> {
       appBar: AppBar(
         title: const Text('Mi día'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.sign_language, size: 30),
+            tooltip: 'Lengua de señas',
+            onPressed: () => avisoPendiente(context),
+          ),
           IconButton(
             icon: const Icon(Icons.text_fields, size: 30),
             tooltip: 'Tamaño de letra',
@@ -134,7 +170,7 @@ class _PanelAdultoState extends State<PanelAdulto> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(_saludo(), style: const TextStyle(fontSize: 22)),
-                      const Text('Rosa',
+                      const Text(DatosEjemplo.adulto,
                           style: TextStyle(
                               fontSize: 40,
                               fontWeight: FontWeight.bold,
@@ -146,44 +182,52 @@ class _PanelAdultoState extends State<PanelAdulto> {
               ],
             ),
           ),
-          const SizedBox(height: 20),
-          TarjetaMedicamento(
-            nombre: 'Losartán',
-            dosis: '50 mg',
-            hora: '8:00 am',
-            tomada: medicamentoTomado,
-            onTomar: () {
-              setState(() => medicamentoTomado = true);
-              _aviso('¡Muy bien! Registré tu medicina');
-            },
-          ),
+          _titulo('Hoy llevas $_hechas de ${dia.length}'),
+          for (var i = 0; i < dia.length; i++)
+            _FilaDia(actividad: dia[i], onHecha: () => _marcarHecha(i)),
           _titulo('¿Cómo te sientes hoy?'),
           CaritasAnimo(
             seleccionado: animo,
             onSeleccion: (i) {
               setState(() => animo = i);
-              _aviso('Gracias por contarme');
+              mostrarAviso(context, 'Gracias por contarme');
             },
           ),
           _titulo('Frases rápidas'),
           Wrap(
             spacing: 10,
             runSpacing: 10,
-            children: frases.map((f) {
-              return ActionChip(
-                label: Text(f,
-                    style: const TextStyle(
+            children: [
+              for (final f in frases)
+                BotonFrase(frase: f, onTap: () => _decir(f)),
+              ActionChip(
+                avatar: const Icon(Icons.add, color: ColoresNana.morado),
+                label: const Text('Más frases',
+                    style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w600,
                         color: ColoresNana.morado)),
-                backgroundColor: ColoresNana.moradoClaro,
-                side: BorderSide.none,
+                backgroundColor: Colors.white,
+                side: const BorderSide(color: ColoresNana.lila, width: 2),
                 shape: const StadiumBorder(),
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-                onPressed: () => _aviso('NANA recibió: $f'),
-              );
-            }).toList(),
+                onPressed: _masFrases,
+              ),
+            ],
+          ),
+          _titulo('Mi familia'),
+          Row(
+            children: [
+              for (final f in DatosEjemplo.familia)
+                Expanded(
+                  child: _Contacto(
+                    nombre: f.$1,
+                    parentesco: f.$2,
+                    onTap: () => avisoPendiente(context),
+                  ),
+                ),
+            ],
           ),
         ],
       ),
@@ -206,7 +250,10 @@ class _PanelAdultoState extends State<PanelAdulto> {
                   texto: 'Hablar con NANA',
                   fondo: ColoresNana.azul,
                   frente: Colors.white,
-                  onTap: () => _aviso('Aquí se activará el micrófono'),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const NanaEscucha()),
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -214,7 +261,7 @@ class _PanelAdultoState extends State<PanelAdulto> {
                 flex: 2,
                 child: _BotonGrande(
                   icono: Icons.notifications_active,
-                  texto: 'Avisar a mi familia',
+                  texto: 'Necesito ayuda',
                   fondo: ColoresNana.alertaClaro,
                   frente: ColoresNana.alerta,
                   borde: ColoresNana.alerta,
@@ -223,6 +270,144 @@ class _PanelAdultoState extends State<PanelAdulto> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FilaDia extends StatelessWidget {
+  final Actividad actividad;
+  final VoidCallback onHecha;
+
+  const _FilaDia({required this.actividad, required this.onHecha});
+
+  @override
+  Widget build(BuildContext context) {
+    final estado = actividad.estado;
+    final hecha = estado == EstadoActividad.hecha;
+    final ahora = estado == EstadoActividad.ahora;
+    final apagada = estado == EstadoActividad.pendiente;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      constraints: const BoxConstraints(minHeight: 80),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: ahora
+              ? ColoresNana.morado
+              : hecha
+                  ? ColoresNana.okClaro
+                  : ColoresNana.moradoClaro,
+          width: ahora ? 3 : 2,
+        ),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 26,
+            backgroundColor: hecha
+                ? ColoresNana.okClaro
+                : ahora
+                    ? ColoresNana.moradoClaro
+                    : const Color(0xFFF2F0F7),
+            child: Icon(
+              hecha ? Icons.check : actividad.tipo.icono,
+              size: 28,
+              color: estado.color,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${actividad.titulo} · ${actividad.hora}',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: apagada ? const Color(0xFF6B6485) : ColoresNana.tinta,
+                  ),
+                ),
+                Text(
+                  hecha
+                      ? 'Listo'
+                      : ahora
+                          ? 'Toca ahora · ${actividad.detalle}'
+                          : actividad.detalle,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: ahora ? ColoresNana.morado : const Color(0xFF6B6485),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (ahora) ...[
+            const SizedBox(width: 8),
+            SizedBox(
+              height: 56,
+              child: FilledButton(
+                onPressed: onHecha,
+                style: FilledButton.styleFrom(
+                  backgroundColor: ColoresNana.morado,
+                  shape: const StadiumBorder(),
+                  padding: const EdgeInsets.symmetric(horizontal: 22),
+                  textStyle: const TextStyle(
+                      fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                child: const Text('Ya'),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _Contacto extends StatelessWidget {
+  final String nombre;
+  final String parentesco;
+  final VoidCallback onTap;
+
+  const _Contacto({
+    required this.nombre,
+    required this.parentesco,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(20),
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Column(
+          children: [
+            CircleAvatar(
+              radius: 36,
+              backgroundColor: ColoresNana.moradoClaro,
+              child: Text(nombre[0],
+                  style: const TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                      color: ColoresNana.morado)),
+            ),
+            const SizedBox(height: 6),
+            Text(nombre,
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(parentesco, style: const TextStyle(fontSize: 15)),
+            const SizedBox(height: 4),
+            const Icon(Icons.call, color: ColoresNana.azul, size: 26),
+          ],
         ),
       ),
     );
@@ -262,9 +447,11 @@ class _BotonGrande extends StatelessWidget {
         child: Container(
           constraints: const BoxConstraints(minHeight: 88),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-          alignment: Alignment.center,
+          // Sin "alignment": con él, el Container se estira a toda la
+          // altura disponible y la barra de abajo tapa la pantalla.
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(icono, size: 34, color: frente),
               const SizedBox(height: 4),

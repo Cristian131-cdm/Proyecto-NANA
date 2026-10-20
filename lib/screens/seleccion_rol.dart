@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../core/ajustes.dart';
 import '../core/tema.dart';
 import '../widgets/mascota_nana.dart';
+import 'encuesta_apariencia.dart';
 import 'panel_adulto.dart';
 import 'panel_cuidador.dart';
 
@@ -37,7 +39,11 @@ class SeleccionRol extends StatelessWidget {
               ElevatedButton(
                 onPressed: () => Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const PanelAdulto()),
+                  MaterialPageRoute(
+                    builder: (_) => Ajustes.encuestaHecha
+                        ? const PanelAdulto()
+                        : const EncuestaApariencia(),
+                  ),
                 ),
                 child: const Text('Soy adulto mayor'),
               ),

@@ -1,0 +1,123 @@
+import 'package:flutter/material.dart';
+
+import '../core/tema.dart';
+import '../data/datos_ejemplo.dart';
+import '../widgets/aviso.dart';
+import '../widgets/caritas_animo.dart';
+import '../widgets/tarjeta_dato.dart';
+
+class PestanaSemana extends StatelessWidget {
+  final String adulto;
+  const PestanaSemana({super.key, required this.adulto});
+
+  static const dias = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+
+  @override
+  Widget build(BuildContext context) {
+    const tomas = DatosEjemplo.tomasSemana;
+    final total = tomas.fold(0, (a, b) => a + b);
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+      children: [
+        const Text('Del 13 al 19 de octubre',
+            style: TextStyle(fontSize: 16, color: Color(0xFF6B6485))),
+        const TituloSeccion('Medicinas a tiempo'),
+        Container(
+          height: 170,
+          padding: const EdgeInsets.fromLTRB(12, 16, 12, 10),
+          decoration: _caja,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              for (var i = 0; i < tomas.length; i++)
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text('${tomas[i]}/2',
+                          style: const TextStyle(
+                              fontSize: 13, color: Color(0xFF6B6485))),
+                      const SizedBox(height: 4),
+                      Container(
+                        width: 26,
+                        height: 90.0 * tomas[i] / 2,
+                        decoration: BoxDecoration(
+                          color: tomas[i] == 2
+                              ? ColoresNana.lila
+                              : const Color(0xFFE8B260),
+                          borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(8)),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(dias[i],
+                          style: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const TituloSeccion('Cómo se sintió'),
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: _caja,
+          child: Row(
+            children: [
+              for (var i = 0; i < dias.length; i++)
+                Expanded(
+                  child: Column(
+                    children: [
+                      Icon(
+                        CaritasAnimo.iconos[DatosEjemplo.animoSemana[i]],
+                        size: 32,
+                        color:
+                            CaritasAnimo.colores[DatosEjemplo.animoSemana[i]],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(dias[i],
+                          style: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const TituloSeccion('Lo importante'),
+        TarjetaDato(
+          icono: Icons.medication,
+          titulo: '$total de ${tomas.length * 2} tomas',
+          subtitulo: 'Se le pasaron la del miércoles y la del domingo',
+          color: ColoresNana.alerta,
+        ),
+        const TarjetaDato(
+          icono: Icons.sentiment_dissatisfied,
+          titulo: 'El domingo dijo "Me siento mal"',
+          subtitulo: 'A las 7:40 pm',
+          color: ColoresNana.alerta,
+        ),
+        const TarjetaDato(
+          icono: Icons.directions_walk,
+          titulo: 'Caminó 4 de 5 días',
+          subtitulo: 'El viernes no salió',
+          color: ColoresNana.azul,
+        ),
+        const SizedBox(height: 12),
+        BotonSecundario(
+          icono: Icons.share,
+          texto: 'Mandar resumen a la familia',
+          onPressed: () => avisoPendiente(context),
+        ),
+      ],
+    );
+  }
+
+  static final _caja = BoxDecoration(
+    color: Colors.white,
+    borderRadius: BorderRadius.circular(20),
+    border: Border.all(color: ColoresNana.moradoClaro, width: 2),
+  );
+}

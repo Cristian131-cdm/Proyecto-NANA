@@ -1,30 +1,47 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'package:nana_app/main.dart';
+import 'package:nana_app/screens/panel_adulto.dart';
+import 'package:nana_app/screens/panel_cuidador.dart';
+
+// Las pruebas no tienen internet; usa la fuente del sistema.
+Widget _envolver(Widget pantalla) => MaterialApp(home: pantalla);
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  setUpAll(() => GoogleFonts.config.allowRuntimeFetching = false);
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  testWidgets('Después del splash aparece la selección de rol',
+      (tester) async {
+    await tester.pumpWidget(const NanaApp());
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+    expect(find.text('Soy adulto mayor'), findsOneWidget);
+    expect(find.text('Soy cuidador o familiar'), findsOneWidget);
+  });
+
+  testWidgets('El adulto marca su medicina con "Ya"', (tester) async {
+    await tester.pumpWidget(_envolver(const PanelAdulto()));
+
+    expect(find.text('Hoy llevas 1 de 4'), findsOneWidget);
+    await tester.tap(find.text('Ya'));
     await tester.pump();
+    expect(find.text('Hoy llevas 2 de 4'), findsOneWidget);
+  });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  testWidgets('El cuidador resuelve la alerta y cambia de pestaña',
+      (tester) async {
+    await tester.pumpWidget(_envolver(const PanelCuidador()));
+
+    expect(find.text('Losartán de las 8:00 sin confirmar'), findsOneWidget);
+    await tester.tap(find.text('Ya lo resolví'));
+    await tester.pumpAndSettle();
+    expect(find.text('Rosa va bien hoy'), findsOneWidget);
+
+    await tester.tap(find.text('Historial'));
+    await tester.pumpAndSettle();
+    expect(find.text('Recetas'), findsOneWidget);
   });
 }
