@@ -31,7 +31,7 @@ class _PestanaInicioState extends State<PestanaInicio> {
               ? _EstadoBien(adulto: adulto)
               : _Alerta(
                   adulto: adulto,
-                  onLlamar: () => avisoPendiente(context),
+                  onLlamar: () => llamar(context, DatosEjemplo.telefonoAdulto),
                   onResuelta: () => setState(() => _alertaResuelta = true),
                 ),
         ),
@@ -91,7 +91,7 @@ class _PestanaInicioState extends State<PestanaInicio> {
         SizedBox(
           height: 60,
           child: FilledButton.icon(
-            onPressed: () => avisoPendiente(context),
+            onPressed: () => llamar(context, DatosEjemplo.telefonoAdulto),
             icon: const Icon(Icons.call),
             label: Text('Llamar a $adulto'),
             style: FilledButton.styleFrom(

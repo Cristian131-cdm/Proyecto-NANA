@@ -224,7 +224,7 @@ class _PanelAdultoState extends State<PanelAdulto> {
                   child: _Contacto(
                     nombre: f.$1,
                     parentesco: f.$2,
-                    onTap: () => avisoPendiente(context),
+                    onTap: () => llamar(context, f.$4),
                   ),
                 ),
             ],

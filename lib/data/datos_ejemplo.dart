@@ -107,11 +107,14 @@ class DatosEjemplo {
     ),
   ];
 
-  // (nombre, parentesco, rol)
+  // Números de prueba: solo abren el marcador, no llaman solos.
+  static const telefonoAdulto = '5500000001';
+
+  // (nombre, parentesco, rol, teléfono)
   static const familia = [
-    ('Ana', 'hija', 'Administradora · recibe todas las alertas'),
-    ('Luis', 'hijo', 'Solo ve el resumen'),
-    ('Sofía', 'nieta', 'Solo ve el resumen'),
+    ('Ana', 'hija', 'Administradora · recibe todas las alertas', '5500000002'),
+    ('Luis', 'hijo', 'Solo ve el resumen', '5500000003'),
+    ('Sofía', 'nieta', 'Solo ve el resumen', '5500000004'),
   ];
 
   // (nombre, relación) de otros adultos que cuida la misma persona

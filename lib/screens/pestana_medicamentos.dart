@@ -1,6 +1,39 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../core/tema.dart';
 import '../models/medicamento.dart';
+
+const unidadesDosis = ['mg', 'mcg', 'g', 'ml', 'UI', 'gotas', 'tabletas'];
+
+// Reglas para escribir dosis sin que se lean mal: siempre un cero antes del
+// punto (0.5, no .5) y nunca un cero al final (5, no 5.0, que se lee 50).
+String? errorDosis(String texto) {
+  final t = texto.trim();
+  if (t.isEmpty) return 'Escribe la dosis';
+  if (t.startsWith('.')) return 'Pon un cero antes del punto: 0$t';
+  if (t.endsWith('.')) return 'Termina el número o quita el punto';
+  if (t.length > 1 && t.startsWith('0') && !t.startsWith('0.')) {
+    return 'Quita el cero del inicio';
+  }
+  if (t.contains('.') && t.endsWith('0')) {
+    final limpio = t.replaceFirst(RegExp(r'\.?0+$'), '');
+    return 'Quita el cero final: escribe $limpio';
+  }
+  if (double.parse(t) == 0) return 'La dosis debe ser mayor que cero';
+  return null;
+}
+
+// Solo deja escribir números con un punto decimal. La coma se cambia por
+// punto porque muchos teclados en español la ponen.
+class _FormatoDosis extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue anterior, TextEditingValue nuevo) {
+    final texto = nuevo.text.replaceAll(',', '.');
+    if (!RegExp(r'^\d{0,4}(\.\d{0,3})?$').hasMatch(texto)) return anterior;
+    return nuevo.copyWith(text: texto);
+  }
+}
 
 class PestanaMedicamentos extends StatefulWidget {
   const PestanaMedicamentos({super.key});
@@ -84,6 +117,7 @@ class FormularioMedicamento extends StatefulWidget {
 class _FormularioMedicamentoState extends State<FormularioMedicamento> {
   final _nombre = TextEditingController();
   final _dosis = TextEditingController();
+  String _unidad = unidadesDosis.first;
   TimeOfDay _hora = const TimeOfDay(hour: 8, minute: 0);
   int _ventana = 30;
   bool _intento = false;
@@ -102,10 +136,10 @@ class _FormularioMedicamentoState extends State<FormularioMedicamento> {
 
   void _guardar() {
     setState(() => _intento = true);
-    if (_nombre.text.trim().isEmpty || _dosis.text.trim().isEmpty) return;
+    if (_nombre.text.trim().isEmpty || errorDosis(_dosis.text) != null) return;
     widget.onGuardar(Medicamento(
       nombre: _nombre.text.trim(),
-      dosis: _dosis.text.trim(),
+      dosis: '${_dosis.text.trim()} $_unidad',
       hora: _hora,
       ventanaMin: _ventana,
     ));
@@ -145,15 +179,45 @@ class _FormularioMedicamentoState extends State<FormularioMedicamento> {
               ),
             ),
             const SizedBox(height: 12),
-            TextField(
-              controller: _dosis,
-              decoration: InputDecoration(
-                labelText: 'Dosis (ej. 50 mg)',
-                border: const OutlineInputBorder(),
-                errorText: _intento && _dosis.text.trim().isEmpty
-                    ? 'Escribe la dosis'
-                    : null,
-              ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: TextField(
+                    controller: _dosis,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [_FormatoDosis()],
+                    onChanged: (_) => setState(() {}),
+                    decoration: InputDecoration(
+                      labelText: 'Dosis',
+                      hintText: 'ej. 0.5 o 50',
+                      helperText: 'Escribe 0.5, no .5 · 5, no 5.0',
+                      helperMaxLines: 2,
+                      errorMaxLines: 2,
+                      border: const OutlineInputBorder(),
+                      errorText: _intento ? errorDosis(_dosis.text) : null,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 2,
+                  child: DropdownButtonFormField<String>(
+                    initialValue: _unidad,
+                    decoration: const InputDecoration(
+                      labelText: 'Unidad',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: [
+                      for (final u in unidadesDosis)
+                        DropdownMenuItem(value: u, child: Text(u)),
+                    ],
+                    onChanged: (u) => setState(() => _unidad = u!),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 12),
             OutlinedButton.icon(

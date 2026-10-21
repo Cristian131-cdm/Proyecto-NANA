@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../core/tema.dart';
 import '../data/datos_ejemplo.dart';
-import '../widgets/aviso.dart';
 import '../widgets/caritas_animo.dart';
 import '../widgets/tarjeta_dato.dart';
 
@@ -11,6 +11,32 @@ class PestanaSemana extends StatelessWidget {
   const PestanaSemana({super.key, required this.adulto});
 
   static const dias = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+
+  static const _nombresDias = [
+    'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'
+  ];
+
+  // Texto que se comparte por WhatsApp, SMS, etc. Solo datos, sin consejos.
+  static String resumen(String adulto) {
+    const tomas = DatosEjemplo.tomasSemana;
+    const animo = DatosEjemplo.animoSemana;
+    final total = tomas.fold(0, (a, b) => a + b);
+    final faltas = [
+      for (var i = 0; i < tomas.length; i++)
+        if (tomas[i] < 2) _nombresDias[i],
+    ];
+    final animos = [
+      for (var i = 0; i < animo.length; i++)
+        '${_nombresDias[i]} ${CaritasAnimo.etiquetas[animo[i]].toLowerCase()}',
+    ];
+    return [
+      'Resumen de la semana de $adulto (NANA)',
+      'Medicinas a tiempo: $total de ${tomas.length * 2}'
+          '${faltas.isEmpty ? '' : ' · faltó el ${faltas.join(' y el ')}'}',
+      'Cómo se sintió: ${animos.join(', ')}',
+      'NANA solo registra, recuerda y alerta. No da recomendaciones médicas.',
+    ].join('\n');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -109,7 +135,8 @@ class PestanaSemana extends StatelessWidget {
         BotonSecundario(
           icono: Icons.share,
           texto: 'Mandar resumen a la familia',
-          onPressed: () => avisoPendiente(context),
+          onPressed: () => SharePlus.instance
+              .share(ShareParams(text: resumen(adulto))),
         ),
       ],
     );
