@@ -49,8 +49,9 @@ class PestanaSemana extends StatelessWidget {
         const Text('Del 13 al 19 de octubre',
             style: TextStyle(fontSize: 16, color: Color(0xFF6B6485))),
         const TituloSeccion('Medicinas a tiempo'),
+        // Sin altura fija: la caja crece con la letra. Con una altura fija,
+        // la letra grande del celular desbordaba las columnas.
         Container(
-          height: 170,
           padding: const EdgeInsets.fromLTRB(12, 16, 12, 10),
           decoration: _caja,
           child: Row(
@@ -59,7 +60,7 @@ class PestanaSemana extends StatelessWidget {
               for (var i = 0; i < tomas.length; i++)
                 Expanded(
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Text('${tomas[i]}/2',
                           style: const TextStyle(

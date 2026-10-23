@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:nana_app/core/ajustes.dart';
 import 'package:nana_app/screens/encuesta_apariencia.dart';
 import 'package:nana_app/screens/panel_adulto.dart';
+import 'package:nana_app/screens/pestana_semana.dart';
 import 'package:nana_app/screens/senas.dart';
 
 // Un celular alto, para que las pantallas largas quepan sin desplazar tanto.
@@ -39,6 +40,24 @@ void main() {
       Ajustes.queMeHable.value = false;
     },
   );
+
+  testWidgets('La gráfica de la semana aguanta la letra muy grande',
+      (tester) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(360, 1600);
+    addTearDown(tester.view.reset);
+    // Letra del celular grande por 1.5 de NANA ("Muy grande").
+    await tester.pumpWidget(MaterialApp(
+      home: MediaQuery(
+        data: const MediaQueryData(
+            size: Size(360, 1600), textScaler: TextScaler.linear(2.0)),
+        child: const Scaffold(body: PestanaSemana(adulto: 'Rosa')),
+      ),
+    ));
+    // Un desbordamiento lanza una excepción y haría fallar la prueba.
+    expect(tester.takeException(), isNull);
+    expect(find.text('Medicinas a tiempo'), findsOneWidget);
+  });
 
   testWidgets('Sin el "sí" de la persona la cámara no se abre', (tester) async {
     _celular(tester);
