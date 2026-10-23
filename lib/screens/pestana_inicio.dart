@@ -265,9 +265,24 @@ class _Recuadro extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 4),
-          Text(valor,
-              style: TextStyle(
-                  fontSize: 26, fontWeight: FontWeight.bold, color: color)),
+          // El ícono repite lo que dice el color, para quien no distingue
+          // el verde del naranja.
+          Row(
+            children: [
+              if (color == ColoresNana.ok)
+                const Icon(Icons.check_circle, color: ColoresNana.ok, size: 22)
+              else if (color == ColoresNana.alerta)
+                const Icon(Icons.warning_amber_rounded,
+                    color: ColoresNana.alerta, size: 22),
+              if (color == ColoresNana.ok || color == ColoresNana.alerta)
+                const SizedBox(width: 6),
+              Flexible(
+                child: Text(valor,
+                    style: TextStyle(
+                        fontSize: 26, fontWeight: FontWeight.bold, color: color)),
+              ),
+            ],
+          ),
         ],
       ),
     );

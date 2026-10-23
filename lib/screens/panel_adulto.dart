@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../core/tema.dart';
 import '../data/datos_ejemplo.dart';
 import '../models/actividad.dart';
@@ -8,6 +9,8 @@ import '../widgets/caritas_animo.dart';
 import '../widgets/hoja_frases.dart';
 import '../widgets/mascota_nana.dart';
 import 'nana_escucha.dart';
+import 'recordatorio_alarma.dart';
+import 'senas.dart';
 
 class PanelAdulto extends StatefulWidget {
   const PanelAdulto({super.key});
@@ -27,8 +30,7 @@ class _PanelAdultoState extends State<PanelAdulto> {
     '¿Qué sigue hoy?',
   ];
 
-  int get _hechas =>
-      dia.where((a) => a.estado == EstadoActividad.hecha).length;
+  int get _hechas => dia.where((a) => a.estado == EstadoActividad.hecha).length;
 
   String _saludo() {
     final h = DateTime.now().hour;
@@ -39,11 +41,27 @@ class _PanelAdultoState extends State<PanelAdulto> {
 
   String _fecha() {
     const dias = [
-      'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'
+      'lunes',
+      'martes',
+      'miércoles',
+      'jueves',
+      'viernes',
+      'sábado',
+      'domingo',
     ];
     const meses = [
-      'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio',
-      'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+      'enero',
+      'febrero',
+      'marzo',
+      'abril',
+      'mayo',
+      'junio',
+      'julio',
+      'agosto',
+      'septiembre',
+      'octubre',
+      'noviembre',
+      'diciembre',
     ];
     final n = DateTime.now();
     final texto = '${dias[n.weekday - 1]} ${n.day} de ${meses[n.month - 1]}';
@@ -54,8 +72,9 @@ class _PanelAdultoState extends State<PanelAdulto> {
   void _marcarHecha(int i) {
     setState(() {
       dia[i] = dia[i].conEstado(EstadoActividad.hecha);
-      final siguiente =
-          dia.indexWhere((a) => a.estado == EstadoActividad.pendiente);
+      final siguiente = dia.indexWhere(
+        (a) => a.estado == EstadoActividad.pendiente,
+      );
       if (siguiente != -1) {
         dia[siguiente] = dia[siguiente].conEstado(EstadoActividad.ahora);
       }
@@ -66,6 +85,16 @@ class _PanelAdultoState extends State<PanelAdulto> {
           ? 'Listo, anoté tu medicina'
           : 'Listo, lo anoté',
     );
+  }
+
+  // Abre el recordatorio a pantalla completa (el que en la fase de función
+  // suena como alarma y se contesta con la voz).
+  Future<void> _abrirRecordatorio(int i) async {
+    final hecho = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => RecordatorioAlarma(actividad: dia[i])),
+    );
+    if (hecho == true && mounted) _marcarHecha(i);
   }
 
   void _decir(String frase) {
@@ -86,13 +115,17 @@ class _PanelAdultoState extends State<PanelAdulto> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        title: const Text('¿Le aviso a tu familia?',
-            style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
+        title: const Text(
+          '¿Le aviso a tu familia?',
+          style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Les mando un mensaje para que sepan que necesitas ayuda.',
-                style: TextStyle(fontSize: 20)),
+            const Text(
+              'Les mando un mensaje para que sepan que necesitas ayuda.',
+              style: TextStyle(fontSize: 20),
+            ),
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
@@ -103,7 +136,9 @@ class _PanelAdultoState extends State<PanelAdulto> {
                   backgroundColor: ColoresNana.alerta,
                   shape: const StadiumBorder(),
                   textStyle: const TextStyle(
-                      fontSize: 20, fontWeight: FontWeight.bold),
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 child: const Text('Sí, avisar'),
               ),
@@ -127,11 +162,24 @@ class _PanelAdultoState extends State<PanelAdulto> {
     if (si == true && mounted) avisoPendiente(context);
   }
 
-  Widget _titulo(String texto) => Padding(
-        padding: const EdgeInsets.only(top: 28, bottom: 12),
-        child: Text(texto,
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-      );
+  Widget _titulo(IconData icono, String texto) => Padding(
+    padding: const EdgeInsets.only(top: 28, bottom: 12),
+    child: Semantics(
+      header: true,
+      child: Row(
+        children: [
+          Icon(icono, color: ColoresNana.morado, size: 28),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              texto,
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -139,17 +187,23 @@ class _PanelAdultoState extends State<PanelAdulto> {
       appBar: AppBar(
         title: const Text('Mi día'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.sign_language, size: 30),
-            tooltip: 'Lengua de señas',
-            onPressed: () => avisoPendiente(context),
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: FilledButton.tonalIcon(
+              onPressed: () => mostrarAjustesTexto(context),
+              icon: const Icon(Icons.accessibility_new, size: 26),
+              label: const Text('Aa'),
+              style: FilledButton.styleFrom(
+                backgroundColor: ColoresNana.moradoClaro,
+                foregroundColor: ColoresNana.morado,
+                minimumSize: const Size(0, 48),
+                textStyle: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
           ),
-          IconButton(
-            icon: const Icon(Icons.text_fields, size: 30),
-            tooltip: 'Tamaño de letra',
-            onPressed: () => mostrarAjustesTexto(context),
-          ),
-          const SizedBox(width: 8),
         ],
       ),
       body: ListView(
@@ -161,31 +215,65 @@ class _PanelAdultoState extends State<PanelAdulto> {
               color: ColoresNana.moradoClaro,
               borderRadius: BorderRadius.circular(32),
             ),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const MascotaNana(tamano: 76),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(_saludo(), style: const TextStyle(fontSize: 22)),
-                      const Text(DatosEjemplo.adulto,
-                          style: TextStyle(
+                Row(
+                  children: [
+                    const MascotaNana(tamano: 76),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(_saludo(), style: const TextStyle(fontSize: 22)),
+                          const Text(
+                            DatosEjemplo.adulto,
+                            style: TextStyle(
                               fontSize: 40,
                               fontWeight: FontWeight.bold,
-                              color: ColoresNana.morado)),
-                      Text(_fecha(), style: const TextStyle(fontSize: 17)),
-                    ],
+                              color: ColoresNana.morado,
+                            ),
+                          ),
+                          Text(_fecha(), style: const TextStyle(fontSize: 17)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Hoy llevas $_hechas de ${dia.length}',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: TweenAnimationBuilder<double>(
+                    tween: Tween(end: _hechas / dia.length),
+                    duration: const Duration(milliseconds: 400),
+                    builder: (context, v, _) => LinearProgressIndicator(
+                      value: v,
+                      minHeight: 14,
+                      backgroundColor: Colors.white,
+                      color: ColoresNana.ok,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-          _titulo('Hoy llevas $_hechas de ${dia.length}'),
+          _titulo(Icons.today, 'Lo de hoy'),
           for (var i = 0; i < dia.length; i++)
-            _FilaDia(actividad: dia[i], onHecha: () => _marcarHecha(i)),
-          _titulo('¿Cómo te sientes hoy?'),
+            _FilaDia(
+              actividad: dia[i],
+              onHecha: () => _marcarHecha(i),
+              onAbrir: () => _abrirRecordatorio(i),
+            ),
+          _titulo(Icons.mood, '¿Cómo te sientes hoy?'),
           CaritasAnimo(
             seleccionado: animo,
             onSeleccion: (i) {
@@ -193,7 +281,7 @@ class _PanelAdultoState extends State<PanelAdulto> {
               mostrarAviso(context, 'Gracias por contarme');
             },
           ),
-          _titulo('Frases rápidas'),
+          _titulo(Icons.chat_bubble_outline, 'Frases rápidas'),
           Wrap(
             spacing: 10,
             runSpacing: 10,
@@ -202,21 +290,48 @@ class _PanelAdultoState extends State<PanelAdulto> {
                 BotonFrase(frase: f, onTap: () => _decir(f)),
               ActionChip(
                 avatar: const Icon(Icons.add, color: ColoresNana.morado),
-                label: const Text('Más frases',
-                    style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                        color: ColoresNana.morado)),
+                label: const Text(
+                  'Más frases',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    color: ColoresNana.morado,
+                  ),
+                ),
                 backgroundColor: Colors.white,
                 side: const BorderSide(color: ColoresNana.lila, width: 2),
                 shape: const StadiumBorder(),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 16,
+                ),
                 onPressed: _masFrases,
               ),
             ],
           ),
-          _titulo('Mi familia'),
+          _titulo(Icons.sign_language, 'Otras formas de hablar con NANA'),
+          Row(
+            children: [
+              Expanded(
+                child: _TarjetaForma(
+                  icono: Icons.ondemand_video,
+                  titulo: 'Ver en señas',
+                  detalle: 'NANA te habla en señas',
+                  onTap: () => abrirVerEnSenas(context),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _TarjetaForma(
+                  icono: Icons.videocam_outlined,
+                  titulo: 'Hablar con señas',
+                  detalle: 'Usa la cámara, solo si tú quieres',
+                  onTap: () => abrirHablarConSenas(context),
+                ),
+              ),
+            ],
+          ),
+          _titulo(Icons.family_restroom, 'Mi familia'),
           Row(
             children: [
               for (final f in DatosEjemplo.familia)
@@ -279,8 +394,13 @@ class _PanelAdultoState extends State<PanelAdulto> {
 class _FilaDia extends StatelessWidget {
   final Actividad actividad;
   final VoidCallback onHecha;
+  final VoidCallback onAbrir;
 
-  const _FilaDia({required this.actividad, required this.onHecha});
+  const _FilaDia({
+    required this.actividad,
+    required this.onHecha,
+    required this.onAbrir,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -288,10 +408,14 @@ class _FilaDia extends StatelessWidget {
     final hecha = estado == EstadoActividad.hecha;
     final ahora = estado == EstadoActividad.ahora;
     final apagada = estado == EstadoActividad.pendiente;
+    final queEs = hecha
+        ? 'listo'
+        : ahora
+        ? 'toca ahora'
+        : 'más tarde';
 
-    return AnimatedContainer(
+    final fila = AnimatedContainer(
       duration: const Duration(milliseconds: 300),
-      margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       constraints: const BoxConstraints(minHeight: 80),
       decoration: BoxDecoration(
@@ -301,8 +425,8 @@ class _FilaDia extends StatelessWidget {
           color: ahora
               ? ColoresNana.morado
               : hecha
-                  ? ColoresNana.okClaro
-                  : ColoresNana.moradoClaro,
+              ? ColoresNana.okClaro
+              : ColoresNana.moradoClaro,
           width: ahora ? 3 : 2,
         ),
       ),
@@ -313,8 +437,8 @@ class _FilaDia extends StatelessWidget {
             backgroundColor: hecha
                 ? ColoresNana.okClaro
                 : ahora
-                    ? ColoresNana.moradoClaro
-                    : const Color(0xFFF2F0F7),
+                ? ColoresNana.moradoClaro
+                : const Color(0xFFF2F0F7),
             child: Icon(
               hecha ? Icons.check : actividad.tipo.icono,
               size: 28,
@@ -331,15 +455,17 @@ class _FilaDia extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: apagada ? const Color(0xFF6B6485) : ColoresNana.tinta,
+                    color: apagada
+                        ? const Color(0xFF6B6485)
+                        : ColoresNana.tinta,
                   ),
                 ),
                 Text(
                   hecha
                       ? 'Listo'
                       : ahora
-                          ? 'Toca ahora · ${actividad.detalle}'
-                          : actividad.detalle,
+                      ? 'Toca ahora · ${actividad.detalle}'
+                      : actividad.detalle,
                   style: TextStyle(
                     fontSize: 16,
                     color: ahora ? ColoresNana.morado : const Color(0xFF6B6485),
@@ -352,20 +478,99 @@ class _FilaDia extends StatelessWidget {
             const SizedBox(width: 8),
             SizedBox(
               height: 56,
-              child: FilledButton(
-                onPressed: onHecha,
-                style: FilledButton.styleFrom(
-                  backgroundColor: ColoresNana.morado,
-                  shape: const StadiumBorder(),
-                  padding: const EdgeInsets.symmetric(horizontal: 22),
-                  textStyle: const TextStyle(
-                      fontSize: 20, fontWeight: FontWeight.bold),
+              child: Semantics(
+                button: true,
+                label: 'Marcar ${actividad.titulo} como hecho',
+                excludeSemantics: true,
+                child: FilledButton(
+                  onPressed: onHecha,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: ColoresNana.morado,
+                    shape: const StadiumBorder(),
+                    padding: const EdgeInsets.symmetric(horizontal: 22),
+                    textStyle: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  child: const Text('Ya'),
                 ),
-                child: const Text('Ya'),
               ),
             ),
           ],
         ],
+      ),
+    );
+
+    return Semantics(
+      container: true,
+      label: '${actividad.titulo}, ${actividad.hora}, $queEs',
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        // Tocar lo que toca ahora abre el recordatorio a pantalla completa.
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(24),
+            onTap: ahora ? onAbrir : null,
+            child: fila,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TarjetaForma extends StatelessWidget {
+  final IconData icono;
+  final String titulo;
+  final String detalle;
+  final VoidCallback onTap;
+
+  const _TarjetaForma({
+    required this.icono,
+    required this.titulo,
+    required this.detalle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24),
+        side: const BorderSide(color: ColoresNana.lila, width: 2),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 150),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CircleAvatar(
+                radius: 26,
+                backgroundColor: ColoresNana.moradoClaro,
+                child: Icon(icono, color: ColoresNana.morado, size: 30),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                titulo,
+                style: const TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                detalle,
+                style: const TextStyle(fontSize: 15, color: Color(0xFF6B6485)),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -384,30 +589,42 @@ class _Contacto extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(20),
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Column(
-          children: [
-            CircleAvatar(
-              radius: 36,
-              backgroundColor: ColoresNana.moradoClaro,
-              child: Text(nombre[0],
+    return Semantics(
+      button: true,
+      label: 'Llamar a $nombre, $parentesco',
+      excludeSemantics: true,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            children: [
+              CircleAvatar(
+                radius: 36,
+                backgroundColor: ColoresNana.moradoClaro,
+                child: Text(
+                  nombre[0],
                   style: const TextStyle(
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold,
-                      color: ColoresNana.morado)),
-            ),
-            const SizedBox(height: 6),
-            Text(nombre,
-                style:
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            Text(parentesco, style: const TextStyle(fontSize: 15)),
-            const SizedBox(height: 4),
-            const Icon(Icons.call, color: ColoresNana.azul, size: 26),
-          ],
+                    fontSize: 30,
+                    fontWeight: FontWeight.bold,
+                    color: ColoresNana.morado,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                nombre,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(parentesco, style: const TextStyle(fontSize: 15)),
+              const SizedBox(height: 4),
+              const Icon(Icons.call, color: ColoresNana.azul, size: 26),
+            ],
+          ),
         ),
       ),
     );
@@ -459,7 +676,10 @@ class _BotonGrande extends StatelessWidget {
                 texto,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    fontSize: 18, fontWeight: FontWeight.bold, color: frente),
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: frente,
+                ),
               ),
             ],
           ),

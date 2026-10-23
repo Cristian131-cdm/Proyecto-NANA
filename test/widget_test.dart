@@ -26,9 +26,12 @@ void main() {
     await tester.pumpWidget(_envolver(const PanelAdulto()));
 
     expect(find.text('Hoy llevas 1 de 4'), findsOneWidget);
+    await tester.ensureVisible(find.text('Ya'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Ya'));
     await tester.pump();
-    expect(find.text('Hoy llevas 2 de 4'), findsOneWidget);
+    // El contador quedó arriba, fuera de la vista tras desplazar.
+    expect(find.text('Hoy llevas 2 de 4', skipOffstage: false), findsOneWidget);
   });
 
   testWidgets('El cuidador resuelve la alerta y cambia de pestaña',
