@@ -3,7 +3,18 @@ import '../core/tema.dart';
 
 class MascotaNana extends StatelessWidget {
   final double tamano;
-  const MascotaNana({super.key, this.tamano = 84});
+
+  // Para animarla: 0 = ojos abiertos, 1 = cerrados; y qué tan grande late
+  // el corazón (1 = normal).
+  final double ojosCerrados;
+  final double escalaCorazon;
+
+  const MascotaNana({
+    super.key,
+    this.tamano = 84,
+    this.ojosCerrados = 0,
+    this.escalaCorazon = 1,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -27,12 +38,15 @@ class MascotaNana extends StatelessWidget {
               color: const Color(0xFF1A1426),
               borderRadius: BorderRadius.circular(tamano * 0.2),
             ),
-            child: CustomPaint(painter: _CaraPainter()),
+            child: CustomPaint(painter: _CaraPainter(ojosCerrados)),
           ),
           Positioned(
             bottom: tamano * 0.02,
-            child: Icon(Icons.favorite,
-                color: ColoresNana.lila, size: tamano * 0.2),
+            child: Transform.scale(
+              scale: escalaCorazon,
+              child: Icon(Icons.favorite,
+                  color: ColoresNana.lila, size: tamano * 0.2),
+            ),
           ),
         ],
       ),
@@ -41,12 +55,25 @@ class MascotaNana extends StatelessWidget {
 }
 
 class _CaraPainter extends CustomPainter {
+  final double ojosCerrados;
+  _CaraPainter(this.ojosCerrados);
+
   @override
   void paint(Canvas canvas, Size size) {
     final ojo = Paint()..color = Colors.white;
     final r = size.width * 0.06;
-    canvas.drawCircle(Offset(size.width * 0.33, size.height * 0.38), r, ojo);
-    canvas.drawCircle(Offset(size.width * 0.67, size.height * 0.38), r, ojo);
+    // Al parpadear el ojo se aplana en vertical hasta quedar como una línea.
+    final alto = (2 * r * (1 - ojosCerrados)).clamp(r * 0.25, 2 * r);
+    for (final x in [0.33, 0.67]) {
+      canvas.drawOval(
+        Rect.fromCenter(
+          center: Offset(size.width * x, size.height * 0.38),
+          width: 2 * r,
+          height: alto,
+        ),
+        ojo,
+      );
+    }
 
     final sonrisa = Paint()
       ..color = Colors.white
@@ -62,5 +89,6 @@ class _CaraPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _CaraPainter old) =>
+      old.ojosCerrados != ojosCerrados;
 }
