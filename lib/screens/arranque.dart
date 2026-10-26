@@ -11,6 +11,7 @@ import 'candado.dart';
 import 'encuesta_apariencia.dart';
 import 'panel_adulto.dart';
 import 'panel_cuidador.dart';
+import 'recordatorio_alarma.dart';
 
 // Decide a dónde va la persona según su sesión y su rol.
 Future<Widget> destinoInicial() async {
@@ -70,7 +71,10 @@ class _ArranqueState extends State<Arranque> {
         MaterialPageRoute<bool>(builder: (_) => const Candado()),
       );
     }
-    if (mounted) entrarA(context, destino);
+    if (!mounted) return;
+    entrarA(context, destino);
+    final alarma = Servicios.alarmas.abiertaDesde;
+    if (alarma != null) await abrirDesdeAlarma(alarma);
   }
 
   @override

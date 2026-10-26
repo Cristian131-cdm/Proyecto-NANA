@@ -1,14 +1,57 @@
 import 'package:flutter/material.dart';
 
+import '../core/dia.dart';
+import '../core/servicios.dart';
 import '../core/tema.dart';
 import '../models/actividad.dart';
+import '../models/registro.dart';
 import '../widgets/aviso.dart';
 import '../widgets/mascota_nana.dart';
+import 'candado.dart';
+
+// Se llama al tocar la alarma de una medicina: abre su recordatorio sin
+// pedir la huella y, si dice que ya la tomó, lo anota.
+Future<void> abrirDesdeAlarma(String idMedicamento) async {
+  final vigilante = VigilanteCandado.instancia;
+  vigilante.vieneDeAlarma = true;
+  final repo = Servicios.repo;
+  final yo = await repo.adultoPropio();
+  if (yo == null) return;
+  final meds = await repo.medicamentos(yo.folio).first;
+  final m = meds.where((x) => x.id == idMedicamento).firstOrNull;
+  final nav = vigilante.navegador.currentState;
+  if (m == null || nav == null) return;
+  final ok = await nav.push<bool>(
+    MaterialPageRoute(
+      builder: (_) => RecordatorioAlarma(
+        actividad: Actividad(
+          hora: horaCorta(m.hora),
+          titulo: '${m.nombre} ${m.dosis}',
+          detalle: 'Tu medicina',
+          tipo: TipoActividad.medicina,
+          estado: EstadoActividad.ahora,
+          idMedicamento: m.id,
+        ),
+      ),
+    ),
+  );
+  if (ok != true) return;
+  await repo.registrar(
+    yo.folio,
+    Registro(
+      tipo: TipoActividad.medicina,
+      titulo: '${m.nombre} ${m.dosis}',
+      idMedicamento: m.id,
+      fecha: Servicios.reloj(),
+      registradoPor: repo.uid ?? '',
+    ),
+  );
+}
 
 /// Recordatorio a pantalla completa, pensado para quien no ve bien.
-/// En la fase de funcionalidad suena como alarma, NANA lo lee en voz alta
-/// y entiende "ya me la tomé" o "al rato" sin IA. Por ahora solo es la
-/// pantalla. Regresa true si la persona confirmó.
+/// Se abre desde la alarma de la medicina o desde su día. Falta que NANA lo
+/// lea en voz alta y entienda "ya me la tomé" o "al rato" sin IA.
+/// Regresa true si la persona confirmó.
 class RecordatorioAlarma extends StatefulWidget {
   final Actividad actividad;
   const RecordatorioAlarma({super.key, required this.actividad});
@@ -31,7 +74,7 @@ class _RecordatorioAlarmaState extends State<RecordatorioAlarma>
   }
 
   void _alRato() {
-    mostrarAviso(context, 'Te vuelvo a preguntar en 10 minutos');
+    mostrarAviso(context, 'Está bien, sigue en tu lista de hoy');
     Navigator.pop(context, false);
   }
 

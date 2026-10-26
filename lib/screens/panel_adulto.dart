@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../core/dia.dart';
@@ -29,6 +31,7 @@ class _PanelAdultoState extends State<PanelAdulto> {
   bool _cargando = true;
   Stream<List<Medicamento>>? _meds;
   Stream<List<Registro>>? _hoy;
+  StreamSubscription<List<Medicamento>>? _alarmas;
 
   final frases = const [
     'Ya tomé mi medicina',
@@ -57,6 +60,19 @@ class _PanelAdultoState extends State<PanelAdulto> {
       _meds = Servicios.repo.medicamentos(_folio);
       _hoy = Servicios.repo.registrosDeHoy(_folio);
     });
+    // Cada vez que la familia cambia las medicinas, se reprograman las alarmas.
+    if (yo != null) {
+      final nombre = yo.nombre;
+      _alarmas = Servicios.repo
+          .medicamentos(_folio)
+          .listen((meds) => Servicios.alarmas.programar(nombre, meds));
+    }
+  }
+
+  @override
+  void dispose() {
+    _alarmas?.cancel();
+    super.dispose();
   }
 
   String get _folio => _yo?.folio ?? '';

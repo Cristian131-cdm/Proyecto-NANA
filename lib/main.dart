@@ -7,6 +7,7 @@ import 'core/tema.dart';
 import 'data/repositorio_firebase.dart';
 import 'firebase_options.dart';
 import 'screens/candado.dart';
+import 'screens/recordatorio_alarma.dart';
 import 'screens/splash.dart';
 
 Future<void> main() async {
@@ -15,6 +16,9 @@ Future<void> main() async {
   Servicios.repo = RepositorioFirebase();
   await Ajustes.cargar();
   VigilanteCandado.instancia.iniciar();
+  await Servicios.alarmas.iniciar(abrirDesdeAlarma);
+  VigilanteCandado.instancia.vieneDeAlarma =
+      Servicios.alarmas.abiertaDesde != null;
   runApp(const NanaApp());
 }
 
