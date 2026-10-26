@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/ajustes.dart';
 import '../core/tema.dart';
+import 'interruptor_huella.dart';
 
 // (ícono, título, explicación, preferencia). Las comparten la encuesta
 // inicial y la hoja de lectura y accesibilidad.
@@ -158,6 +159,7 @@ class _HojaTexto extends StatelessWidget {
                   onChanged: (v) => m.$4.value = v,
                 ),
               ),
+            const InterruptorHuella(),
             const SizedBox(height: 8),
             const Text(
               'Pronto: la voz, las señas, los colores y la vibración todavía '

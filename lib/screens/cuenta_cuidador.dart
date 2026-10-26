@@ -5,6 +5,7 @@ import '../data/repositorio.dart';
 import '../widgets/aviso.dart';
 import '../widgets/formulario.dart';
 import 'arranque.dart';
+import 'recomendar_huella.dart';
 
 final _correoValido = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
 
@@ -74,7 +75,7 @@ class _CuentaCuidadorState extends State<CuentaCuidador> {
         await repo.iniciarSesion(_correo.text.trim(), _contrasena.text);
       }
       final destino = await destinoInicial();
-      if (mounted) entrarA(context, destino);
+      if (mounted) await entrarRecomendandoHuella(context, destino);
     } on ErrorNana catch (e) {
       setState(() => _error = e.mensaje);
     } finally {

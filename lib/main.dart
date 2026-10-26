@@ -6,6 +6,7 @@ import 'core/servicios.dart';
 import 'core/tema.dart';
 import 'data/repositorio_firebase.dart';
 import 'firebase_options.dart';
+import 'screens/candado.dart';
 import 'screens/splash.dart';
 
 Future<void> main() async {
@@ -13,6 +14,7 @@ Future<void> main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   Servicios.repo = RepositorioFirebase();
   await Ajustes.cargar();
+  VigilanteCandado.instancia.iniciar();
   runApp(const NanaApp());
 }
 
@@ -26,6 +28,7 @@ class NanaApp extends StatelessWidget {
       builder: (context, escala, _) {
         return MaterialApp(
           title: 'NANA',
+          navigatorKey: VigilanteCandado.instancia.navegador,
           debugShowCheckedModeBanner: false,
           theme: TemaNana.tema,
           builder: (context, child) {

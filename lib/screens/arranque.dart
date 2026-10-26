@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../core/ajustes.dart';
+import '../core/biometria.dart';
 import '../core/servicios.dart';
 import '../models/usuario.dart';
 import '../widgets/mascota_nana.dart';
 import 'alta_adulto.dart';
 import 'bienvenida.dart';
+import 'candado.dart';
 import 'encuesta_apariencia.dart';
 import 'panel_adulto.dart';
 import 'panel_cuidador.dart';
@@ -44,11 +46,31 @@ class _ArranqueState extends State<Arranque> {
   @override
   void initState() {
     super.initState();
-    destinoInicial()
-        .catchError((Object _) => const Bienvenida() as Widget)
-        .then((destino) {
-          if (mounted) entrarA(context, destino);
-        });
+    _arrancar();
+  }
+
+  Future<void> _arrancar() async {
+    Widget destino;
+    try {
+      destino = await destinoInicial();
+    } catch (_) {
+      destino = const Bienvenida();
+    }
+    if (!mounted) return;
+    final vigilante = VigilanteCandado.instancia;
+    final pedir = hayQuePedirHuella(
+      activada: Ajustes.huellaActivada.value && Servicios.repo.uid != null,
+      enSegundoPlanDesde: null,
+      ahora: Servicios.reloj(),
+      vieneDeAlarma: vigilante.vieneDeAlarma,
+    );
+    if (pedir) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute<bool>(builder: (_) => const Candado()),
+      );
+    }
+    if (mounted) entrarA(context, destino);
   }
 
   @override

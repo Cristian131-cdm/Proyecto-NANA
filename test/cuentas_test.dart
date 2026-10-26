@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:nana_app/core/ajustes.dart';
+import 'package:nana_app/core/biometria.dart';
 import 'package:nana_app/core/servicios.dart';
 import 'package:nana_app/data/repositorio.dart';
 import 'package:nana_app/data/repositorio_memoria.dart';
@@ -33,6 +34,14 @@ Future<void> _crearCuentaDeAna(WidgetTester t) async {
   await _tocar(t, 'Crear mi cuenta');
 }
 
+// En pruebas no hay huella; el plugin real se queda esperando.
+class _SinHuella implements Biometria {
+  @override
+  Future<bool> disponible() async => false;
+  @override
+  Future<bool> autenticar(String motivo) async => false;
+}
+
 void main() {
   late RepositorioMemoria repo;
 
@@ -42,6 +51,7 @@ void main() {
     await Ajustes.cargar();
     repo = RepositorioMemoria(sesion: null);
     Servicios.repo = repo;
+    Servicios.biometria = _SinHuella();
   });
 
   testWidgets('El cuidador crea su cuenta, da de alta a Rosa y ve su código',

@@ -4,6 +4,7 @@ import '../core/servicios.dart';
 import '../data/repositorio.dart';
 import '../widgets/formulario.dart';
 import 'arranque.dart';
+import 'recomendar_huella.dart';
 
 // Para el adulto que llega sin familia en NANA. Lo mínimo para tener cuenta.
 class RegistroAdulto extends StatefulWidget {
@@ -52,7 +53,7 @@ class _RegistroAdultoState extends State<RegistroAdulto> {
         correo: _correo.text.trim(),
         contrasena: _contrasena.text,
       );
-      if (mounted) entrarA(context, pantallaDelAdulto());
+      if (mounted) await entrarRecomendandoHuella(context, pantallaDelAdulto());
     } on ErrorNana catch (e) {
       setState(() => _error = e.mensaje);
     } finally {

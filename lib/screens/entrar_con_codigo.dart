@@ -7,6 +7,7 @@ import '../core/tema.dart';
 import '../data/repositorio.dart';
 import '../widgets/formulario.dart';
 import 'arranque.dart';
+import 'recomendar_huella.dart';
 
 // El adulto escribe el código que le dio su familia. No hay contraseña.
 class EntrarConCodigo extends StatefulWidget {
@@ -116,7 +117,8 @@ class _Conectado extends StatelessWidget {
         const SizedBox(height: 24),
         BotonPrincipal(
           texto: 'Continuar',
-          onPressed: () => entrarA(context, pantallaDelAdulto()),
+          onPressed: () =>
+              entrarRecomendandoHuella(context, pantallaDelAdulto()),
         ),
       ],
     );
