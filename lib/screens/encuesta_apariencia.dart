@@ -24,7 +24,7 @@ class _EncuestaAparienciaState extends State<EncuestaApariencia> {
   int _paso = 1;
 
   void _terminar() {
-    Ajustes.encuestaHecha = true;
+    Ajustes.encuestaHecha.value = true;
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const PanelAdulto()),

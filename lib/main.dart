@@ -3,7 +3,9 @@ import 'core/ajustes.dart';
 import 'core/tema.dart';
 import 'screens/splash.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Ajustes.cargar();
   runApp(const NanaApp());
 }
 

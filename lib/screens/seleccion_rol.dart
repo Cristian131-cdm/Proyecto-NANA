@@ -40,7 +40,7 @@ class SeleccionRol extends StatelessWidget {
                 onPressed: () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => Ajustes.encuestaHecha
+                    builder: (_) => Ajustes.encuestaHecha.value
                         ? const PanelAdulto()
                         : const EncuestaApariencia(),
                   ),
