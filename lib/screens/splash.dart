@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../core/tema.dart';
 import '../widgets/mascota_nana.dart';
-import 'seleccion_rol.dart';
+import 'arranque.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -81,7 +81,7 @@ class _SplashScreenState extends State<SplashScreen>
       context,
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 500),
-        pageBuilder: (_, _, _) => const SeleccionRol(),
+        pageBuilder: (_, _, _) => const Arranque(),
         transitionsBuilder: (_, animacion, _, child) =>
             FadeTransition(opacity: animacion, child: child),
       ),

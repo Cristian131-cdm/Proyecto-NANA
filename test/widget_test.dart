@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'package:nana_app/core/servicios.dart';
+import 'package:nana_app/data/repositorio_memoria.dart';
 import 'package:nana_app/main.dart';
 import 'package:nana_app/screens/panel_adulto.dart';
 import 'package:nana_app/screens/panel_cuidador.dart';
@@ -11,6 +13,8 @@ Widget _envolver(Widget pantalla) => MaterialApp(home: pantalla);
 
 void main() {
   setUpAll(() => GoogleFonts.config.allowRuntimeFetching = false);
+  // Sin sesión, para que después del splash salga la bienvenida.
+  setUp(() => Servicios.repo = RepositorioMemoria(sesion: null));
 
   testWidgets('Después del splash aparece la selección de rol',
       (tester) async {
