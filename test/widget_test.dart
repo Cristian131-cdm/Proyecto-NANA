@@ -5,8 +5,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:nana_app/core/servicios.dart';
 import 'package:nana_app/data/repositorio_memoria.dart';
 import 'package:nana_app/main.dart';
-import 'package:nana_app/models/actividad.dart';
-import 'package:nana_app/models/registro.dart';
 import 'package:nana_app/screens/panel_adulto.dart';
 import 'package:nana_app/screens/panel_cuidador.dart';
 
