@@ -1,0 +1,95 @@
+rules_version = '2';
+
+// Reglas de NANA. Cada quien ve solo lo de su familia.
+// Diseño: docs/superpowers/specs/2026-10-25-registro-huella-design.md (sección 9)
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function conSesion() {
+      return request.auth != null;
+    }
+
+    function esFamilia(datos) {
+      return request.auth.uid == datos.uidAdulto
+          || request.auth.uid in datos.idsCuidadores;
+    }
+
+    function adulto(folio) {
+      return get(/databases/$(database)/documents/adultos/$(folio)).data;
+    }
+
+    function adultoDespues(folio) {
+      return getAfter(/databases/$(database)/documents/adultos/$(folio)).data;
+    }
+
+    function soloCambia(campos) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(campos);
+    }
+
+    match /usuarios/{uid} {
+      allow read, write: if conSesion() && request.auth.uid == uid;
+    }
+
+    match /adultos/{folio} {
+      allow read: if conSesion() && esFamilia(resource.data);
+
+      // Lo crea un cuidador (que se pone a sí mismo) o el propio adulto al registrarse.
+      allow create: if conSesion() && (
+          (request.resource.data.idsCuidadores == [request.auth.uid]
+              && request.resource.data.uidAdulto == null)
+          || (request.resource.data.uidAdulto == request.auth.uid
+              && request.resource.data.idsCuidadores == []));
+
+      // La familia lo edita, pero no se puede agregar o quitar cuidadores desde la app.
+      allow update: if conSesion() && esFamilia(resource.data)
+          && request.resource.data.idsCuidadores == resource.data.idsCuidadores
+          && request.resource.data.uidAdulto == resource.data.uidAdulto;
+
+      // Canje del código: el celular del adulto se pone como uidAdulto
+      // solo si en el mismo batch marca como usado un código vigente de este folio.
+      allow update: if conSesion()
+          && soloCambia(['uidAdulto', 'tieneCelular', 'codigoCanjeado'])
+          && request.resource.data.uidAdulto == request.auth.uid
+          && get(/databases/$(database)/documents/codigos/$(request.resource.data.codigoCanjeado)).data.usado == false
+          && getAfter(/databases/$(database)/documents/codigos/$(request.resource.data.codigoCanjeado)).data.folio == folio
+          && getAfter(/databases/$(database)/documents/codigos/$(request.resource.data.codigoCanjeado)).data.usadoPor == request.auth.uid;
+
+      allow delete: if false;
+
+      // Al dar de alta, el cuidador escribe su fila en el mismo batch que el adulto.
+      match /cuidadores/{uid} {
+        allow read: if conSesion() && esFamilia(adulto(folio));
+        allow create: if conSesion() && request.auth.uid == uid
+            && request.auth.uid in adultoDespues(folio).idsCuidadores;
+        allow update: if conSesion() && request.auth.uid == uid;
+        allow delete: if false;
+      }
+
+      match /{coleccion}/{id} {
+        allow read, write: if conSesion()
+            && coleccion in ['medicamentos', 'registros', 'alertas']
+            && esFamilia(adulto(folio));
+      }
+    }
+
+    match /codigos/{codigo} {
+      // Se lee uno por su número exacto; nunca se puede listar.
+      allow get: if conSesion();
+      allow list: if false;
+
+      allow create: if conSesion()
+          && request.resource.data.creadoPor == request.auth.uid
+          && request.resource.data.usado == false
+          && request.auth.uid in adulto(request.resource.data.folio).idsCuidadores;
+
+      allow update: if conSesion()
+          && resource.data.usado == false
+          && request.time < resource.data.expira
+          && soloCambia(['usado', 'usadoPor'])
+          && request.resource.data.usado == true
+          && request.resource.data.usadoPor == request.auth.uid;
+
+      allow delete: if false;
+    }
+  }
+}
