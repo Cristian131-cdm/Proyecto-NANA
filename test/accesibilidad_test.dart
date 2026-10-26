@@ -3,6 +3,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:nana_app/core/ajustes.dart';
+import 'package:nana_app/core/servicios.dart';
+import 'package:nana_app/data/repositorio_memoria.dart';
+import 'package:nana_app/models/actividad.dart';
+import 'package:nana_app/models/registro.dart';
 import 'package:nana_app/screens/encuesta_apariencia.dart';
 import 'package:nana_app/screens/panel_adulto.dart';
 import 'package:nana_app/screens/pestana_semana.dart';
@@ -17,6 +21,7 @@ void _celular(WidgetTester tester) {
 
 void main() {
   setUpAll(() => GoogleFonts.config.allowRuntimeFetching = false);
+  setUp(() => Servicios.repo = RepositorioMemoria(sesion: 'rosa-cel'));
 
   testWidgets(
     'La encuesta pregunta cómo prefiere usar NANA y termina en el panel',
@@ -62,6 +67,7 @@ void main() {
   testWidgets('Sin el "sí" de la persona la cámara no se abre', (tester) async {
     _celular(tester);
     await tester.pumpWidget(const MaterialApp(home: PanelAdulto()));
+    await tester.pumpAndSettle();
 
     await tester.scrollUntilVisible(
       find.text('Hablar con señas'),
@@ -86,11 +92,22 @@ void main() {
     tester,
   ) async {
     _celular(tester);
+    // Ya desayunó, así que lo que toca ahora es el Losartán.
+    await Servicios.repo.registrar(
+      'rosa',
+      Registro(
+        tipo: TipoActividad.comida,
+        titulo: 'Desayuno',
+        fecha: DateTime.now(),
+        registradoPor: 'rosa-cel',
+      ),
+    );
     await tester.pumpWidget(const MaterialApp(home: PanelAdulto()));
+    await tester.pumpAndSettle();
     expect(find.text('Hoy llevas 1 de 4'), findsOneWidget);
 
     // El recordatorio tiene una animación que no para: se avanza a mano.
-    await tester.tap(find.text('Toca ahora · Una pastilla con agua'));
+    await tester.tap(find.text('Toca ahora · Tu medicina'));
     await tester.pump(); // el primer cuadro de una ruta nueva va oculto
     await tester.pump(const Duration(seconds: 1));
     expect(find.text('Ya me la tomé'), findsOneWidget);

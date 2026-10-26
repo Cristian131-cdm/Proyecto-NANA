@@ -29,6 +29,7 @@ class AltaAdulto extends StatefulWidget {
 class _AltaAdultoState extends State<AltaAdulto> {
   final _nombre = TextEditingController();
   final _apellidos = TextEditingController();
+  final _telefono = TextEditingController();
   String? _parentesco;
   int _paso = 1; // 1 quién es, 2 ¿tiene celular?, 3 sin celular
   bool _intento = false;
@@ -39,14 +40,18 @@ class _AltaAdultoState extends State<AltaAdulto> {
   void dispose() {
     _nombre.dispose();
     _apellidos.dispose();
+    _telefono.dispose();
     super.dispose();
   }
 
   String get _quien => _nombre.text.trim();
+  String get _numero => _telefono.text.replaceAll(' ', '');
+  bool get _telefonoMal =>
+      _numero.isNotEmpty && !RegExp(r'^\d{10}$').hasMatch(_numero);
 
   void _siguiente() {
     setState(() => _intento = true);
-    if (_quien.isEmpty || _parentesco == null) return;
+    if (_quien.isEmpty || _parentesco == null || _telefonoMal) return;
     setState(() => _paso = 2);
   }
 
@@ -62,6 +67,7 @@ class _AltaAdultoState extends State<AltaAdulto> {
         apellidos: _apellidos.text.trim(),
         parentesco: _parentesco!,
         tieneCelular: tieneCelular,
+        telefono: _numero.isEmpty ? null : _numero,
       );
       if (!mounted) return;
       if (!tieneCelular) {
@@ -107,6 +113,13 @@ class _AltaAdultoState extends State<AltaAdulto> {
           onChanged: (_) => setState(() {}),
         ),
         CampoNana(controller: _apellidos, etiqueta: 'Apellidos'),
+        CampoNana(
+          controller: _telefono,
+          etiqueta: 'Su teléfono (opcional)',
+          teclado: TextInputType.phone,
+          error: _intento && _telefonoMal ? 'Escribe los 10 números' : null,
+          onChanged: (_) => setState(() {}),
+        ),
         const Text(
           '¿Qué es tuyo?',
           style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),

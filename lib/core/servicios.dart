@@ -5,4 +5,7 @@ import '../data/repositorio_memoria.dart';
 // pruebas ponen versiones de mentira, igual que con Ajustes.
 class Servicios {
   static RepositorioNana repo = RepositorioMemoria();
+
+  // La hora "de ahora"; las pruebas la fijan para que no dependan del reloj.
+  static DateTime Function() reloj = DateTime.now;
 }

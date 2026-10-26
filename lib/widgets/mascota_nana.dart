@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../core/tema.dart';
 
 class MascotaNana extends StatelessWidget {
@@ -44,8 +45,11 @@ class MascotaNana extends StatelessWidget {
             bottom: tamano * 0.02,
             child: Transform.scale(
               scale: escalaCorazon,
-              child: Icon(Icons.favorite,
-                  color: ColoresNana.lila, size: tamano * 0.2),
+              child: Icon(
+                Icons.favorite,
+                color: ColoresNana.lila,
+                size: tamano * 0.2,
+              ),
             ),
           ),
         ],

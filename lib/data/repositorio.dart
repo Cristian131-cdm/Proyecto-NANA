@@ -47,6 +47,7 @@ abstract class RepositorioNana {
     required String apellidos,
     required String parentesco,
     required bool tieneCelular,
+    String? telefono,
   });
   Future<CodigoVinculacion> generarCodigo(String folio);
   Stream<bool> codigoUsado(String codigo);

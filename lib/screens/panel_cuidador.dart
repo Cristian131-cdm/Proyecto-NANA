@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
 
+import '../core/servicios.dart';
 import '../core/tema.dart';
-import '../data/datos_ejemplo.dart';
+import '../models/adulto.dart';
 import '../widgets/ajustes_texto.dart';
+import '../widgets/aviso.dart';
+import '../widgets/formulario.dart';
+import 'alta_adulto.dart';
+import 'arranque.dart';
+import 'bienvenida.dart';
+import 'codigo_vinculacion.dart';
 import 'familia_alertas.dart';
 import 'pestana_historial.dart';
 import 'pestana_inicio.dart';
@@ -20,8 +27,9 @@ class PanelCuidador extends StatefulWidget {
 class _PanelCuidadorState extends State<PanelCuidador> {
   int _pestana = 0;
   int _adulto = 0;
+  final _adultos = Servicios.repo.adultosACargo();
 
-  Future<void> _cambiarAdulto() async {
+  Future<void> _cambiarAdulto(List<Adulto> lista) async {
     final elegido = await showModalBottomSheet<int>(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -37,14 +45,14 @@ class _PanelCuidadorState extends State<PanelCuidador> {
               const Text('¿A quién quieres ver?',
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
-              for (var i = 0; i < DatosEjemplo.adultosACargo.length; i++)
+              for (var i = 0; i < lista.length; i++)
                 ListTile(
                   contentPadding: const EdgeInsets.symmetric(vertical: 4),
-                  leading: _Avatar(DatosEjemplo.adultosACargo[i].$1),
-                  title: Text(DatosEjemplo.adultosACargo[i].$1,
+                  leading: _Avatar(lista[i].nombre),
+                  title: Text(lista[i].nombre,
                       style: const TextStyle(
                           fontSize: 20, fontWeight: FontWeight.bold)),
-                  subtitle: Text(DatosEjemplo.adultosACargo[i].$2,
+                  subtitle: Text(lista[i].parentesco ?? '',
                       style: const TextStyle(fontSize: 16)),
                   trailing: i == _adulto
                       ? const Icon(Icons.check_circle,
@@ -60,16 +68,108 @@ class _PanelCuidadorState extends State<PanelCuidador> {
     if (elegido != null) setState(() => _adulto = elegido);
   }
 
+  Future<void> _miCuenta(Adulto adulto) async {
+    final opcion = await showModalBottomSheet<String>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      ),
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Mi cuenta',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              for (final (clave, icono, texto) in [
+                (
+                  'codigo',
+                  Icons.phonelink_ring,
+                  'Código para el celular de ${adulto.nombre}',
+                ),
+                ('alta', Icons.person_add_alt, 'Cuidar a otra persona'),
+                ('salir', Icons.logout, 'Cerrar sesión'),
+              ])
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(vertical: 4),
+                  leading: Icon(icono, color: ColoresNana.morado, size: 30),
+                  title: Text(texto, style: const TextStyle(fontSize: 20)),
+                  onTap: () => Navigator.pop(context, clave),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (!mounted || opcion == null) return;
+    switch (opcion) {
+      case 'codigo':
+        try {
+          final codigo = await Servicios.repo.generarCodigo(adulto.folio);
+          if (!mounted) return;
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) =>
+                  PantallaCodigo(codigo: codigo, nombreAdulto: adulto.nombre),
+            ),
+          );
+        } catch (e) {
+          if (mounted) mostrarAviso(context, '$e');
+        }
+      case 'alta':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AltaAdulto()),
+        );
+      case 'salir':
+        await Servicios.repo.cerrarSesion();
+        if (mounted) entrarA(context, const Bienvenida());
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final (nombre, relacion) = DatosEjemplo.adultosACargo[_adulto];
+    return StreamBuilder<List<Adulto>>(
+      stream: _adultos,
+      builder: (context, snap) {
+        final lista = snap.data;
+        if (lista == null) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+        if (lista.isEmpty) {
+          return PantallaPaso(
+            titulo: 'Todavía no cuidas a nadie',
+            subtitulo: 'Da de alta a tu familiar para empezar.',
+            children: [
+              BotonPrincipal(
+                texto: 'Dar de alta',
+                onPressed: () => entrarA(context, const AltaAdulto()),
+              ),
+            ],
+          );
+        }
+        final adulto = lista[_adulto.clamp(0, lista.length - 1)];
+        return _panel(adulto, lista);
+      },
+    );
+  }
+
+  Widget _panel(Adulto adulto, List<Adulto> lista) {
+    final nombre = adulto.nombre;
+    final relacion = adulto.parentesco ?? '';
 
     return Scaffold(
       appBar: AppBar(
         titleSpacing: 12,
         title: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: _cambiarAdulto,
+          onTap: () => _cambiarAdulto(lista),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
             child: Row(
@@ -82,15 +182,23 @@ class _PanelCuidadorState extends State<PanelCuidador> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text('$nombre · $relacion',
+                      Text(relacion.isEmpty ? nombre : '$nombre · $relacion',
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
                               color: ColoresNana.morado)),
-                      const Text('● Activa hace 12 min',
-                          style:
-                              TextStyle(fontSize: 13, color: ColoresNana.ok)),
+                      Text(
+                          adulto.uidAdulto != null
+                              ? '● Usa NANA en su celular'
+                              : adulto.tieneCelular
+                                  ? '○ Falta conectar su celular'
+                                  : '○ Sin celular',
+                          style: TextStyle(
+                              fontSize: 13,
+                              color: adulto.uidAdulto != null
+                                  ? ColoresNana.ok
+                                  : const Color(0xFF6B6485))),
                     ],
                   ),
                 ),
@@ -113,6 +221,11 @@ class _PanelCuidadorState extends State<PanelCuidador> {
               MaterialPageRoute(builder: (_) => FamiliaAlertas(adulto: nombre)),
             ),
           ),
+          IconButton(
+            icon: const Icon(Icons.account_circle_outlined, size: 28),
+            tooltip: 'Mi cuenta',
+            onPressed: () => _miCuenta(adulto),
+          ),
           const SizedBox(width: 4),
         ],
       ),
@@ -120,8 +233,8 @@ class _PanelCuidadorState extends State<PanelCuidador> {
       body: IndexedStack(
         index: _pestana,
         children: [
-          PestanaInicio(adulto: nombre),
-          const PestanaMedicamentos(),
+          PestanaInicio(key: ValueKey(adulto.folio), adulto: adulto),
+          PestanaMedicamentos(key: ValueKey(adulto.folio), folio: adulto.folio),
           const PestanaRutinas(),
           PestanaSemana(adulto: nombre),
           PestanaHistorial(adulto: nombre),
@@ -183,7 +296,7 @@ class _Avatar extends StatelessWidget {
     return CircleAvatar(
       radius: 20,
       backgroundColor: ColoresNana.moradoClaro,
-      child: Text(nombre[0],
+      child: Text(nombre.isEmpty ? '?' : nombre[0],
           style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,

@@ -208,6 +208,7 @@ class RepositorioFirebase implements RepositorioNana {
     required String apellidos,
     required String parentesco,
     required bool tieneCelular,
+    String? telefono,
   }) => _intentar(() async {
     final u = uid!;
     final yo = await usuarioActual();
@@ -217,6 +218,7 @@ class RepositorioFirebase implements RepositorioNana {
         'nombre': nombre,
         'apellidos': apellidos,
         'tieneCelular': tieneCelular,
+        'telefono': telefono,
         'uidAdulto': null,
         'idsCuidadores': [u],
         'creadoPor': u,

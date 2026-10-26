@@ -198,6 +198,7 @@ class RepositorioMemoria implements RepositorioNana {
     required String apellidos,
     required String parentesco,
     required bool tieneCelular,
+    String? telefono,
   }) async {
     final folio = _nuevoId();
     _adultos[folio] = Adulto(
@@ -206,6 +207,7 @@ class RepositorioMemoria implements RepositorioNana {
       apellidos: apellidos,
       tieneCelular: tieneCelular,
       idsCuidadores: [_uid!],
+      telefono: telefono,
     );
     _parentescos[(folio, _uid!)] = parentesco;
     _avisar();

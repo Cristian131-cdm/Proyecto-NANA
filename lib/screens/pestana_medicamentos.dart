@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../core/servicios.dart';
 import '../core/tema.dart';
 import '../models/medicamento.dart';
 
@@ -35,54 +36,57 @@ class _FormatoDosis extends TextInputFormatter {
   }
 }
 
+// Las medicinas se guardan en Firestore y le aparecen al adulto en su día.
 class PestanaMedicamentos extends StatefulWidget {
-  const PestanaMedicamentos({super.key});
+  final String folio;
+  const PestanaMedicamentos({super.key, required this.folio});
 
   @override
   State<PestanaMedicamentos> createState() => _PestanaMedicamentosState();
 }
 
 class _PestanaMedicamentosState extends State<PestanaMedicamentos> {
-  final List<Medicamento> _lista = [
-    const Medicamento(
-      nombre: 'Losartán',
-      dosis: '50 mg',
-      hora: TimeOfDay(hour: 8, minute: 0),
-      ventanaMin: 30,
-    ),
-  ];
+  late final _meds = Servicios.repo.medicamentos(widget.folio);
+  String get folio => widget.folio;
 
-  void _abrirFormulario() {
+  void _abrirFormulario(BuildContext context) {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       builder: (_) => FormularioMedicamento(
-        onGuardar: (m) => setState(() => _lista.add(m)),
+        onGuardar: (m) => Servicios.repo.guardarMedicamento(folio, m),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    return StreamBuilder<List<Medicamento>>(
+      stream: _meds,
+      builder: (context, snap) => _lista(context, snap.data ?? const []),
+    );
+  }
+
+  Widget _lista(BuildContext context, List<Medicamento> lista) {
     return Scaffold(
       backgroundColor: Colors.transparent,
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: _abrirFormulario,
+        onPressed: () => _abrirFormulario(context),
         backgroundColor: ColoresNana.morado,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add),
         label: const Text('Agregar', style: TextStyle(fontSize: 18)),
       ),
-      body: _lista.isEmpty
+      body: lista.isEmpty
           ? const Center(
               child: Text('Aún no hay medicamentos programados',
                   style: TextStyle(fontSize: 18)),
             )
           : ListView.builder(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
-              itemCount: _lista.length,
+              itemCount: lista.length,
               itemBuilder: (context, i) {
-                final m = _lista[i];
+                final m = lista[i];
                 return Card(
                   child: ListTile(
                     leading: const CircleAvatar(
@@ -96,7 +100,9 @@ class _PestanaMedicamentosState extends State<PestanaMedicamentos> {
                         '${m.hora.format(context)} · alerta si no confirma en ${m.ventanaMin} min'),
                     trailing: IconButton(
                       icon: const Icon(Icons.delete_outline),
-                      onPressed: () => setState(() => _lista.removeAt(i)),
+                      tooltip: 'Borrar ${m.nombre}',
+                      onPressed: () =>
+                          Servicios.repo.borrarMedicamento(folio, m.id!),
                     ),
                   ),
                 );

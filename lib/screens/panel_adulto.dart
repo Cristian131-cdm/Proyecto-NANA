@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../core/dia.dart';
+import '../core/servicios.dart';
 import '../core/tema.dart';
 import '../data/datos_ejemplo.dart';
 import '../models/actividad.dart';
+import '../models/adulto.dart';
+import '../models/medicamento.dart';
+import '../models/registro.dart';
 import '../widgets/ajustes_texto.dart';
 import '../widgets/aviso.dart';
 import '../widgets/caritas_animo.dart';
@@ -20,8 +25,10 @@ class PanelAdulto extends StatefulWidget {
 }
 
 class _PanelAdultoState extends State<PanelAdulto> {
-  final List<Actividad> dia = List.of(DatosEjemplo.diaRosa);
-  int? animo;
+  Adulto? _yo;
+  bool _cargando = true;
+  Stream<List<Medicamento>>? _meds;
+  Stream<List<Registro>>? _hoy;
 
   final frases = const [
     'Ya tomé mi medicina',
@@ -30,7 +37,32 @@ class _PanelAdultoState extends State<PanelAdulto> {
     '¿Qué sigue hoy?',
   ];
 
-  int get _hechas => dia.where((a) => a.estado == EstadoActividad.hecha).length;
+  @override
+  void initState() {
+    super.initState();
+    _cargar();
+  }
+
+  Future<void> _cargar() async {
+    Adulto? yo;
+    try {
+      yo = await Servicios.repo.adultoPropio();
+    } catch (_) {
+      // Sin internet la primera vez: se muestra vacío y Firestore reintenta.
+    }
+    if (!mounted) return;
+    setState(() {
+      _yo = yo;
+      _cargando = false;
+      _meds = Servicios.repo.medicamentos(_folio);
+      _hoy = Servicios.repo.registrosDeHoy(_folio);
+    });
+  }
+
+  String get _folio => _yo?.folio ?? '';
+
+  int _hechas(List<Actividad> dia) =>
+      dia.where((a) => a.estado == EstadoActividad.hecha).length;
 
   String _saludo() {
     final h = DateTime.now().hour;
@@ -68,33 +100,48 @@ class _PanelAdultoState extends State<PanelAdulto> {
     return '${texto[0].toUpperCase()}${texto.substring(1)}';
   }
 
-  // Marca la actividad como hecha y pasa la siguiente pendiente a "ahora"
-  void _marcarHecha(int i) {
-    setState(() {
-      dia[i] = dia[i].conEstado(EstadoActividad.hecha);
-      final siguiente = dia.indexWhere(
-        (a) => a.estado == EstadoActividad.pendiente,
-      );
-      if (siguiente != -1) {
-        dia[siguiente] = dia[siguiente].conEstado(EstadoActividad.ahora);
-      }
-    });
+  // Lo anota en Firestore; la lista se actualiza sola con lo que regresa.
+  void _marcarHecha(Actividad a) {
+    Servicios.repo.registrar(
+      _folio,
+      Registro(
+        tipo: a.tipo,
+        titulo: a.titulo,
+        idMedicamento: a.idMedicamento,
+        fecha: Servicios.reloj(),
+        registradoPor: Servicios.repo.uid ?? '',
+      ),
+    );
     mostrarAviso(
       context,
-      dia[i].tipo == TipoActividad.medicina
+      a.tipo == TipoActividad.medicina
           ? 'Listo, anoté tu medicina'
           : 'Listo, lo anoté',
     );
   }
 
+  void _anotarAnimo(int i) {
+    Servicios.repo.registrar(
+      _folio,
+      Registro(
+        tipo: TipoActividad.animo,
+        titulo: CaritasAnimo.etiquetas[i],
+        valor: i,
+        fecha: Servicios.reloj(),
+        registradoPor: Servicios.repo.uid ?? '',
+      ),
+    );
+    mostrarAviso(context, 'Gracias por contarme');
+  }
+
   // Abre el recordatorio a pantalla completa (el que en la fase de función
   // suena como alarma y se contesta con la voz).
-  Future<void> _abrirRecordatorio(int i) async {
+  Future<void> _abrirRecordatorio(Actividad a) async {
     final hecho = await Navigator.push<bool>(
       context,
-      MaterialPageRoute(builder: (_) => RecordatorioAlarma(actividad: dia[i])),
+      MaterialPageRoute(builder: (_) => RecordatorioAlarma(actividad: a)),
     );
-    if (hecho == true && mounted) _marcarHecha(i);
+    if (hecho == true && mounted) _marcarHecha(a);
   }
 
   void _decir(String frase) {
@@ -111,6 +158,10 @@ class _PanelAdultoState extends State<PanelAdulto> {
   }
 
   Future<void> _confirmarAviso() async {
+    if (_yo?.tieneFamilia != true) {
+      mostrarAviso(context, 'Todavía no tienes familia conectada');
+      return;
+    }
     final si = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -159,7 +210,15 @@ class _PanelAdultoState extends State<PanelAdulto> {
         ),
       ),
     );
-    if (si == true && mounted) avisoPendiente(context);
+    if (si != true || !mounted) return;
+    final llego = await Servicios.repo.pedirAyuda(_folio);
+    if (!mounted) return;
+    mostrarAviso(
+      context,
+      llego
+          ? 'Listo, ya le avisé a tu familia'
+          : 'No hay internet. Lo mando en cuanto haya',
+    );
   }
 
   Widget _titulo(IconData icono, String texto) => Padding(
@@ -180,6 +239,25 @@ class _PanelAdultoState extends State<PanelAdulto> {
       ),
     ),
   );
+
+  // Escucha medicinas y registros de hoy y arma el día con ellos.
+  Widget _conDia(Widget Function(List<Actividad> dia, int? animo) hijo) {
+    if (_cargando) return const Center(child: CircularProgressIndicator());
+    return StreamBuilder<List<Medicamento>>(
+      stream: _meds,
+      builder: (context, meds) => StreamBuilder<List<Registro>>(
+        stream: _hoy,
+        builder: (context, regs) {
+          final hoy = regs.data ?? const <Registro>[];
+          final animos = hoy.where((r) => r.tipo == TipoActividad.animo);
+          return hijo(
+            diaDelAdulto(meds: meds.data ?? const [], hoy: hoy),
+            animos.isEmpty ? null : animos.last.valor,
+          );
+        },
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -206,145 +284,149 @@ class _PanelAdultoState extends State<PanelAdulto> {
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
-        children: [
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: ColoresNana.moradoClaro,
-              borderRadius: BorderRadius.circular(32),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const MascotaNana(tamano: 76),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(_saludo(), style: const TextStyle(fontSize: 22)),
-                          const Text(
-                            DatosEjemplo.adulto,
-                            style: TextStyle(
-                              fontSize: 40,
-                              fontWeight: FontWeight.bold,
-                              color: ColoresNana.morado,
+      body: _conDia(
+        (dia, animo) => ListView(
+          padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: ColoresNana.moradoClaro,
+                borderRadius: BorderRadius.circular(32),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const MascotaNana(tamano: 76),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _saludo(),
+                              style: const TextStyle(fontSize: 22),
                             ),
-                          ),
-                          Text(_fecha(), style: const TextStyle(fontSize: 17)),
-                        ],
+                            Text(
+                              _yo?.nombre ?? '',
+                              style: const TextStyle(
+                                fontSize: 40,
+                                fontWeight: FontWeight.bold,
+                                color: ColoresNana.morado,
+                              ),
+                            ),
+                            Text(
+                              _fecha(),
+                              style: const TextStyle(fontSize: 17),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Hoy llevas ${_hechas(dia)} de ${dia.length}',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: TweenAnimationBuilder<double>(
+                      tween: Tween(
+                        end: dia.isEmpty ? 0 : _hechas(dia) / dia.length,
+                      ),
+                      duration: const Duration(milliseconds: 400),
+                      builder: (context, v, _) => LinearProgressIndicator(
+                        value: v,
+                        minHeight: 14,
+                        backgroundColor: Colors.white,
+                        color: ColoresNana.ok,
                       ),
                     ),
-                  ],
+                  ),
+                ],
+              ),
+            ),
+            _titulo(Icons.today, 'Lo de hoy'),
+            for (var i = 0; i < dia.length; i++)
+              _FilaDia(
+                actividad: dia[i],
+                onHecha: () => _marcarHecha(dia[i]),
+                onAbrir: () => _abrirRecordatorio(dia[i]),
+              ),
+            _titulo(Icons.mood, '¿Cómo te sientes hoy?'),
+            CaritasAnimo(seleccionado: animo, onSeleccion: _anotarAnimo),
+            _titulo(Icons.chat_bubble_outline, 'Frases rápidas'),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: [
+                for (final f in frases)
+                  BotonFrase(frase: f, onTap: () => _decir(f)),
+                ActionChip(
+                  avatar: const Icon(Icons.add, color: ColoresNana.morado),
+                  label: const Text(
+                    'Más frases',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: ColoresNana.morado,
+                    ),
+                  ),
+                  backgroundColor: Colors.white,
+                  side: const BorderSide(color: ColoresNana.lila, width: 2),
+                  shape: const StadiumBorder(),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 16,
+                  ),
+                  onPressed: _masFrases,
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  'Hoy llevas $_hechas de ${dia.length}',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+              ],
+            ),
+            _titulo(Icons.sign_language, 'Otras formas de hablar con NANA'),
+            Row(
+              children: [
+                Expanded(
+                  child: _TarjetaForma(
+                    icono: Icons.ondemand_video,
+                    titulo: 'Ver en señas',
+                    detalle: 'NANA te habla en señas',
+                    onTap: () => abrirVerEnSenas(context),
                   ),
                 ),
-                const SizedBox(height: 8),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: TweenAnimationBuilder<double>(
-                    tween: Tween(end: _hechas / dia.length),
-                    duration: const Duration(milliseconds: 400),
-                    builder: (context, v, _) => LinearProgressIndicator(
-                      value: v,
-                      minHeight: 14,
-                      backgroundColor: Colors.white,
-                      color: ColoresNana.ok,
-                    ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _TarjetaForma(
+                    icono: Icons.videocam_outlined,
+                    titulo: 'Hablar con señas',
+                    detalle: 'Usa la cámara, solo si tú quieres',
+                    onTap: () => abrirHablarConSenas(context),
                   ),
                 ),
               ],
             ),
-          ),
-          _titulo(Icons.today, 'Lo de hoy'),
-          for (var i = 0; i < dia.length; i++)
-            _FilaDia(
-              actividad: dia[i],
-              onHecha: () => _marcarHecha(i),
-              onAbrir: () => _abrirRecordatorio(i),
+            _titulo(Icons.family_restroom, 'Mi familia'),
+            Row(
+              children: [
+                for (final f in DatosEjemplo.familia)
+                  Expanded(
+                    child: _Contacto(
+                      nombre: f.$1,
+                      parentesco: f.$2,
+                      onTap: () => llamar(context, f.$4),
+                    ),
+                  ),
+              ],
             ),
-          _titulo(Icons.mood, '¿Cómo te sientes hoy?'),
-          CaritasAnimo(
-            seleccionado: animo,
-            onSeleccion: (i) {
-              setState(() => animo = i);
-              mostrarAviso(context, 'Gracias por contarme');
-            },
-          ),
-          _titulo(Icons.chat_bubble_outline, 'Frases rápidas'),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              for (final f in frases)
-                BotonFrase(frase: f, onTap: () => _decir(f)),
-              ActionChip(
-                avatar: const Icon(Icons.add, color: ColoresNana.morado),
-                label: const Text(
-                  'Más frases',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                    color: ColoresNana.morado,
-                  ),
-                ),
-                backgroundColor: Colors.white,
-                side: const BorderSide(color: ColoresNana.lila, width: 2),
-                shape: const StadiumBorder(),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 16,
-                ),
-                onPressed: _masFrases,
-              ),
-            ],
-          ),
-          _titulo(Icons.sign_language, 'Otras formas de hablar con NANA'),
-          Row(
-            children: [
-              Expanded(
-                child: _TarjetaForma(
-                  icono: Icons.ondemand_video,
-                  titulo: 'Ver en señas',
-                  detalle: 'NANA te habla en señas',
-                  onTap: () => abrirVerEnSenas(context),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _TarjetaForma(
-                  icono: Icons.videocam_outlined,
-                  titulo: 'Hablar con señas',
-                  detalle: 'Usa la cámara, solo si tú quieres',
-                  onTap: () => abrirHablarConSenas(context),
-                ),
-              ),
-            ],
-          ),
-          _titulo(Icons.family_restroom, 'Mi familia'),
-          Row(
-            children: [
-              for (final f in DatosEjemplo.familia)
-                Expanded(
-                  child: _Contacto(
-                    nombre: f.$1,
-                    parentesco: f.$2,
-                    onTap: () => llamar(context, f.$4),
-                  ),
-                ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
       bottomNavigationBar: Container(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
