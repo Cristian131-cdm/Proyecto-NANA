@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "283499005250",
+    "project_id": "agente-nana",
+    "storage_bucket": "agente-nana.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:283499005250:android:0f93b872a58cd50bf074db",
+        "android_client_info": {
+          "package_name": "com.nana.nana_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDuU6Lq05d_w6wkkDYeigHFX3DHvLv_pss"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -72,5 +72,7 @@
 		</array>
 		<key>UIStatusBarHidden</key>
 		<false/>
+		<key>NSFaceIDUsageDescription</key>
+		<string>NANA usa Face ID para que solo tú abras tu información.</string>
 	</dict>
 </plist>
