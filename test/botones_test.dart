@@ -48,7 +48,7 @@ void main() {
   });
 
   testWidgets('Agregar una receta la muestra en la lista', (tester) async {
-    await tester.pumpWidget(_envolver(const PestanaHistorial(adulto: 'Rosa')));
+    await tester.pumpWidget(_envolver(const PestanaHistorial(adulto: 'Rosa', folio: 'rosa')));
     await tester.tap(find.text('Agregar receta'));
     await tester.pumpAndSettle();
 

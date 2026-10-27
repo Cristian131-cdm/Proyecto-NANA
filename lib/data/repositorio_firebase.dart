@@ -11,6 +11,7 @@ import '../models/adulto.dart';
 import '../models/alerta.dart';
 import '../models/medicamento.dart';
 import '../models/registro.dart';
+import '../models/salud.dart';
 import '../models/usuario.dart';
 import 'repositorio.dart';
 
@@ -392,6 +393,25 @@ class RepositorioFirebase implements RepositorioNana {
       }),
     );
   }
+
+  @override
+  Stream<Salud> salud(String folio) => _adultos.doc(folio).snapshots().map((s) {
+    final d = s.data()?['salud'] as Map<String, dynamic>?;
+    return Salud.deMapa(d).copyWith(
+      actualizado: (d?['actualizado'] as Timestamp?)?.toDate(),
+    );
+  });
+
+  @override
+  Future<void> guardarSalud(String folio, Salud s) async => unawaited(
+    _adultos.doc(folio).update({
+      'salud': {
+        ...s.aMapa(),
+        'actualizado': FieldValue.serverTimestamp(),
+        'actualizadoPor': uid,
+      },
+    }),
+  );
 
   @override
   Stream<List<Alerta>> alertasSinAtender(String folio) =>

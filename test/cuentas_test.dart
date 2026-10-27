@@ -23,6 +23,17 @@ Future<void> _tocar(WidgetTester t, String texto) async {
   await t.pumpAndSettle();
 }
 
+// Para botones al final de una lista larga que todavía no se dibujan.
+Future<void> _bajarYTocar(WidgetTester t, String texto) async {
+  await t.scrollUntilVisible(
+    find.text(texto),
+    300,
+    scrollable: find.byType(Scrollable).first,
+  );
+  await t.pumpAndSettle();
+  await t.tap(find.text(texto));
+}
+
 Future<void> _crearCuentaDeAna(WidgetTester t) async {
   await t.pumpWidget(const MaterialApp(home: Bienvenida()));
   await _tocar(t, 'Soy cuidador o familiar');
@@ -64,7 +75,10 @@ void main() {
     await _tocar(t, 'Siguiente');
     expect(find.text('¿Rosa tiene celular propio?'), findsOneWidget);
 
-    await t.tap(find.text('Sí, tiene celular'));
+    await _tocar(t, 'Sí, tiene celular');
+    // Antes del código le ofrece anotar su salud; aquí lo deja para después.
+    expect(find.text('¿Qué padece Rosa?'), findsOneWidget);
+    await _bajarYTocar(t, 'Lo hago después');
     // La pantalla del código tiene una ruedita de espera que no termina.
     await t.pump();
     await t.pump(const Duration(milliseconds: 500));
@@ -140,6 +154,8 @@ void main() {
     await _tocar(t, 'mamá');
     await _tocar(t, 'Siguiente');
     await _tocar(t, 'No tiene');
+    await _bajarYTocar(t, 'Lo hago después');
+    await t.pumpAndSettle();
 
     expect(find.text('Tú llevarás el día de Rosa'), findsOneWidget);
     final adultos = await repo.adultosACargo().first;

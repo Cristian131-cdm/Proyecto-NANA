@@ -6,6 +6,7 @@ import '../data/repositorio.dart';
 import '../widgets/formulario.dart';
 import 'arranque.dart';
 import 'codigo_vinculacion.dart';
+import 'formulario_salud.dart';
 import 'panel_cuidador.dart';
 
 // Después de crear su cuenta, el cuidador da de alta a quien va a cuidar.
@@ -31,7 +32,7 @@ class _AltaAdultoState extends State<AltaAdulto> {
   final _apellidos = TextEditingController();
   final _telefono = TextEditingController();
   String? _parentesco;
-  int _paso = 1; // 1 quién es, 2 ¿tiene celular?, 3 sin celular
+  int _paso = 1; // 1 quién es, 2 ¿tiene celular?
   bool _intento = false;
   bool _ocupado = false;
   String? _error;
@@ -69,18 +70,25 @@ class _AltaAdultoState extends State<AltaAdulto> {
         tieneCelular: tieneCelular,
         telefono: _numero.isEmpty ? null : _numero,
       );
+      final codigo = tieneCelular ? await repo.generarCodigo(folio) : null;
       if (!mounted) return;
-      if (!tieneCelular) {
-        setState(() => _paso = 3);
-        return;
-      }
-      final codigo = await repo.generarCodigo(folio);
-      if (!mounted) return;
+      final nombre = _quien;
+      // Primero su salud (opcional) y después el código o el aviso.
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) =>
-              PantallaCodigo(codigo: codigo, nombreAdulto: _quien),
+          builder: (_) => FormularioSalud(
+            folio: folio,
+            nombre: nombre,
+            alTerminar: (ctx) => Navigator.pushReplacement(
+              ctx,
+              MaterialPageRoute(
+                builder: (_) => codigo == null
+                    ? SinCelular(nombre: nombre)
+                    : PantallaCodigo(codigo: codigo, nombreAdulto: nombre),
+              ),
+            ),
+          ),
         ),
       );
     } on ErrorNana catch (e) {
@@ -94,8 +102,7 @@ class _AltaAdultoState extends State<AltaAdulto> {
   Widget build(BuildContext context) {
     return switch (_paso) {
       1 => _pasoQuien(),
-      2 => _pasoCelular(),
-      _ => _pasoSinCelular(),
+      _ => _pasoCelular(),
     };
   }
 
@@ -183,13 +190,19 @@ class _AltaAdultoState extends State<AltaAdulto> {
       ],
     );
   }
+}
 
-  Widget _pasoSinCelular() {
+class SinCelular extends StatelessWidget {
+  final String nombre;
+  const SinCelular({super.key, required this.nombre});
+
+  @override
+  Widget build(BuildContext context) {
     return PantallaPaso(
-      titulo: 'Tú llevarás el día de $_quien',
+      titulo: 'Tú llevarás el día de $nombre',
       subtitulo:
           'Desde tu celular anotas sus medicinas y cómo va. '
-          'Si después tiene celular, genera su código en Ajustes.',
+          'Si después tiene celular, genera su código en Mi cuenta.',
       children: [
         BotonPrincipal(
           texto: 'Ir a mi panel',

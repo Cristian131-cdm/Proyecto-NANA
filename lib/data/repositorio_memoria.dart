@@ -8,6 +8,7 @@ import '../models/adulto.dart';
 import '../models/alerta.dart';
 import '../models/medicamento.dart';
 import '../models/registro.dart';
+import '../models/salud.dart';
 import '../models/usuario.dart';
 import 'repositorio.dart';
 
@@ -73,10 +74,12 @@ class RepositorioMemoria implements RepositorioNana {
   final _medicamentos = <String, List<Medicamento>>{};
   final _registros = <String, List<Registro>>{};
   final _alertas = <String, List<Alerta>>{};
+  final _salud = <String, Salud>{};
 
   String _nuevoId() => 'id${_siguienteId++}';
   void _avisar() => _cambios.add(null);
 
+  // Cada quien que escucha recibe el valor actual y luego cada cambio.
   Stream<T> _vigilar<T>(T Function() leer) async* {
     yield leer();
     await for (final _ in _cambios.stream) {
@@ -301,6 +304,16 @@ class RepositorioMemoria implements RepositorioNana {
   @override
   Future<void> registrar(String folio, Registro r) async {
     _registros.putIfAbsent(folio, () => []).add(r);
+    _avisar();
+  }
+
+  @override
+  Stream<Salud> salud(String folio) =>
+      _vigilar(() => _salud[folio] ?? Salud.vacia);
+
+  @override
+  Future<void> guardarSalud(String folio, Salud s) async {
+    _salud[folio] = s.copyWith(actualizado: reloj());
     _avisar();
   }
 

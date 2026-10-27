@@ -237,7 +237,11 @@ class _PanelCuidadorState extends State<PanelCuidador> {
           PestanaMedicamentos(key: ValueKey(adulto.folio), folio: adulto.folio),
           const PestanaRutinas(),
           PestanaSemana(adulto: nombre),
-          PestanaHistorial(adulto: nombre),
+          PestanaHistorial(
+            key: ValueKey(adulto.folio),
+            adulto: nombre,
+            folio: adulto.folio,
+          ),
         ],
       ),
       bottomNavigationBar: NavigationBarTheme(

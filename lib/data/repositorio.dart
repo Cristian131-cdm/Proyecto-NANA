@@ -2,6 +2,7 @@ import '../models/adulto.dart';
 import '../models/alerta.dart';
 import '../models/medicamento.dart';
 import '../models/registro.dart';
+import '../models/salud.dart';
 import '../models/usuario.dart';
 
 // Error con un texto que ya se le puede mostrar a la persona tal cual.
@@ -61,6 +62,10 @@ abstract class RepositorioNana {
   Future<void> borrarMedicamento(String folio, String id);
   Stream<List<Registro>> registrosDeHoy(String folio);
   Future<void> registrar(String folio, Registro r);
+
+  // Datos de salud (padecimientos, alergias...). Los edita la familia.
+  Stream<Salud> salud(String folio);
+  Future<void> guardarSalud(String folio, Salud s);
 
   // Alertas. pedirAyuda devuelve false si quedó en cola por falta de internet.
   Stream<List<Alerta>> alertasSinAtender(String folio);

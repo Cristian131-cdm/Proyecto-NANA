@@ -4,6 +4,7 @@ import '../core/servicios.dart';
 import '../data/repositorio.dart';
 import '../widgets/formulario.dart';
 import 'arranque.dart';
+import 'formulario_salud.dart';
 import 'recomendar_huella.dart';
 
 // Para el adulto que llega sin familia en NANA. Lo mínimo para tener cuenta.
@@ -53,7 +54,19 @@ class _RegistroAdultoState extends State<RegistroAdulto> {
         correo: _correo.text.trim(),
         contrasena: _contrasena.text,
       );
-      if (mounted) await entrarRecomendandoHuella(context, pantallaDelAdulto());
+      final yo = await Servicios.repo.adultoPropio();
+      if (!mounted) return;
+      // Antes de su día, la invita a anotar su salud (puede saltarlo).
+      await entrarRecomendandoHuella(
+        context,
+        yo == null
+            ? pantallaDelAdulto()
+            : FormularioSalud(
+                folio: yo.folio,
+                nombre: yo.nombre,
+                alTerminar: (ctx) => entrarA(ctx, pantallaDelAdulto()),
+              ),
+      );
     } on ErrorNana catch (e) {
       setState(() => _error = e.mensaje);
     } finally {
