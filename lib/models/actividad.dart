@@ -31,6 +31,7 @@ class Actividad {
   final TipoActividad tipo;
   final EstadoActividad estado;
   final String? idMedicamento; // para saber qué medicina se tomó
+  final TimeOfDay? horaExacta; // para saber si ya toca (la tarjeta del adulto)
 
   const Actividad({
     required this.hora,
@@ -39,6 +40,7 @@ class Actividad {
     required this.tipo,
     required this.estado,
     this.idMedicamento,
+    this.horaExacta,
   });
 
   Actividad conEstado(EstadoActividad nuevo) => Actividad(
@@ -48,5 +50,6 @@ class Actividad {
         tipo: tipo,
         estado: nuevo,
         idMedicamento: idMedicamento,
+        horaExacta: horaExacta,
       );
 }

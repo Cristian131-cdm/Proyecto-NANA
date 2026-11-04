@@ -46,6 +46,7 @@ List<Actividad> diaDelAdulto({
               ? EstadoActividad.hecha
               : EstadoActividad.pendiente,
           idMedicamento: m.id,
+          horaExacta: m.hora,
         ),
       ),
     for (final (hora, titulo, tipo) in otras)
@@ -59,6 +60,7 @@ List<Actividad> diaDelAdulto({
           estado: hoy.any((r) => r.tipo == tipo && r.titulo == titulo)
               ? EstadoActividad.hecha
               : EstadoActividad.pendiente,
+          horaExacta: hora,
         ),
       ),
   ]..sort((a, b) => _minutos(a.$1).compareTo(_minutos(b.$1)));
@@ -68,6 +70,31 @@ List<Actividad> diaDelAdulto({
   final i = dia.indexWhere((a) => a.estado == EstadoActividad.pendiente);
   if (i != -1) dia[i] = dia[i].conEstado(EstadoActividad.ahora);
   return dia;
+}
+
+// Lo que muestra la tarjeta grande del inicio del adulto.
+enum QueToca { actividad, animo, siguiente, listo }
+
+// Cuánto antes de su hora una actividad ya se muestra como "toca ahora".
+const avisoAntesMin = 15;
+
+// En orden: lo que ya toca, luego el ánimo (una vez al día), luego lo que sigue.
+(QueToca, Actividad?) queToca({
+  required List<Actividad> dia,
+  required int? animoHoy,
+  required DateTime ahora,
+}) {
+  final siguiente = dia
+      .where((a) => a.estado == EstadoActividad.ahora)
+      .firstOrNull;
+  final minutoActual = ahora.hour * 60 + ahora.minute;
+  final yaToca = siguiente != null &&
+      (siguiente.horaExacta == null ||
+          _minutos(siguiente.horaExacta!) - minutoActual <= avisoAntesMin);
+  if (yaToca) return (QueToca.actividad, siguiente);
+  if (animoHoy == null) return (QueToca.animo, null);
+  if (siguiente != null) return (QueToca.siguiente, siguiente);
+  return (QueToca.listo, null);
 }
 
 String _queHizo(Registro r) => switch (r.tipo) {
