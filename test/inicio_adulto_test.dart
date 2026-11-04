@@ -18,7 +18,9 @@ void main() {
   setUpAll(() => GoogleFonts.config.allowRuntimeFetching = false);
   setUp(() => Servicios.repo = RepositorioMemoria(sesion: 'rosa-cel'));
 
-  testWidgets('El inicio cabe sin bajar: tarjeta y los tres botones', (t) async {
+  testWidgets('El inicio cabe sin bajar: tarjeta y los tres botones', (
+    t,
+  ) async {
     _celular(t);
     await t.pumpWidget(const MaterialApp(home: PanelAdulto()));
     await t.pumpAndSettle();
@@ -33,6 +35,27 @@ void main() {
     expect(find.text('Hablar con señas'), findsNothing);
   });
 
+  testWidgets('El inicio aguanta la letra muy grande', (t) async {
+    t.view.devicePixelRatio = 1;
+    t.view.physicalSize = const Size(360, 800);
+    addTearDown(t.view.reset);
+    await t.pumpWidget(
+      const MaterialApp(
+        home: MediaQuery(
+          data: MediaQueryData(
+            size: Size(360, 800),
+            textScaler: TextScaler.linear(2.0),
+          ),
+          child: PanelAdulto(),
+        ),
+      ),
+    );
+    await t.pumpAndSettle();
+    // Un desbordamiento lanza una excepción y haría fallar la prueba.
+    expect(t.takeException(), isNull);
+    expect(find.text('Necesito ayuda'), findsOneWidget);
+  });
+
   testWidgets('Una frase en "Hablar" regresa al inicio y se anota', (t) async {
     _celular(t);
     final dichas = <String>[];
@@ -43,7 +66,8 @@ void main() {
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => NanaEscucha(nombre: 'Rosa', onFrase: dichas.add),
+                builder: (_) =>
+                    NanaEscucha(nombre: 'Rosa', onFrase: dichas.add),
               ),
             ),
             child: const Text('abrir'),

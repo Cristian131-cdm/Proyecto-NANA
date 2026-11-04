@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../core/ajustes.dart';
 import '../core/dia.dart';
+import '../core/perfil_accesibilidad.dart';
 import '../core/servicios.dart';
 import '../core/tema.dart';
 import '../models/actividad.dart';
@@ -17,6 +19,7 @@ import 'mi_dia.dart';
 import 'mi_familia.dart';
 import 'nana_escucha.dart';
 import 'recordatorio_alarma.dart';
+import 'tablero_frases.dart';
 
 // Inicio del adulto: una sola cosa a la vez (la tarjeta) y tres botones fijos.
 // La lista completa del día está en "Ver todo mi día" (mi_dia.dart).
@@ -31,6 +34,7 @@ class _PanelAdultoState extends State<PanelAdulto> {
   Adulto? _yo;
   bool _cargando = true;
   StreamSubscription? _alarmas;
+  StreamSubscription? _salud;
 
   @override
   void initState() {
@@ -56,12 +60,17 @@ class _PanelAdultoState extends State<PanelAdulto> {
       _alarmas = Servicios.repo
           .medicamentos(_folio)
           .listen((meds) => Servicios.alarmas.programar(nombre, meds));
+      // Si la familia anota una discapacidad, el celular se adapta solo.
+      _salud = Servicios.repo
+          .salud(_folio)
+          .listen((s) => aplicarPerfil(s.discapacidades));
     }
   }
 
   @override
   void dispose() {
     _alarmas?.cancel();
+    _salud?.cancel();
     super.dispose();
   }
 
@@ -324,13 +333,22 @@ class _PanelAdultoState extends State<PanelAdulto> {
               Row(
                 children: [
                   Expanded(
-                    child: _BotonGrande(
-                      icono: Icons.mic,
-                      texto: 'Hablar',
-                      fondo: ColoresNana.azul,
-                      frente: Colors.white,
-                      onTap: () => _ir(
-                        NanaEscucha(nombre: _yo?.nombre ?? '', onFrase: _decir),
+                    // Quien no habla "dice" tocando cuadros con ícono.
+                    child: ValueListenableBuilder<bool>(
+                      valueListenable: Ajustes.sinVoz,
+                      builder: (context, sinVoz, _) => _BotonGrande(
+                        icono: sinVoz ? Icons.touch_app : Icons.mic,
+                        texto: sinVoz ? 'Decir' : 'Hablar',
+                        fondo: ColoresNana.azul,
+                        frente: Colors.white,
+                        onTap: () => _ir(
+                          sinVoz
+                              ? TableroFrases(onFrase: _decir)
+                              : NanaEscucha(
+                                  nombre: _yo?.nombre ?? '',
+                                  onFrase: _decir,
+                                ),
+                        ),
                       ),
                     ),
                   ),
@@ -415,7 +433,7 @@ class _BotonGrande extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Container(
-          constraints: BoxConstraints(minHeight: enFila ? 72 : 88),
+          constraints: BoxConstraints(minHeight: enFila ? 80 : 88),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
           // Sin "alignment": con él, el Container se estira a toda la
           // altura disponible y la barra de abajo tapa la pantalla.

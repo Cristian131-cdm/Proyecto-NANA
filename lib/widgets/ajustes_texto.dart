@@ -31,6 +31,12 @@ final modosDeUso = [
     'Por si no escuchas bien',
     Ajustes.avisoVibracion,
   ),
+  (
+    Icons.touch_app,
+    'Contestar tocando',
+    'Sin hablar: tocas lo que quieres decir',
+    Ajustes.sinVoz,
+  ),
 ];
 
 void mostrarAjustesTexto(BuildContext context) {
