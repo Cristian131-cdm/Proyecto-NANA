@@ -213,6 +213,7 @@ class RepositorioFirebase implements RepositorioNana {
   }) => _intentar(() async {
     final u = uid!;
     final yo = await usuarioActual();
+    final miTelefono = (await _usuarios.doc(u).get()).data()?['telefono'];
     final ref = _adultos.doc();
     final batch = _db.batch()
       ..set(ref, {
@@ -227,6 +228,7 @@ class RepositorioFirebase implements RepositorioNana {
       })
       ..set(ref.collection('cuidadores').doc(u), {
         'nombre': yo?.nombre ?? '',
+        'telefono': miTelefono,
         'parentesco': parentesco,
         'fechaIni': FieldValue.serverTimestamp(),
         'estado': 'activo',
@@ -314,6 +316,31 @@ class RepositorioFirebase implements RepositorioNana {
   Future<String> nombreDeCuidador(String folio) => _intentar(() async {
     final q = await _de(folio, 'cuidadores').limit(1).get();
     return q.docs.isEmpty ? '' : q.docs.first.data()['nombre'] ?? '';
+  });
+
+  @override
+  Stream<List<Familiar>> familiaDe(String folio) => _de(folio, 'cuidadores')
+      .snapshots()
+      .map(
+        (q) => [
+          for (final d in q.docs)
+            Familiar(
+              uid: d.id,
+              nombre: d.data()['nombre'] ?? '',
+              telefono: d.data()['telefono'],
+            ),
+        ],
+      );
+
+  @override
+  Future<void> compartirMiTelefono(String folio) => _intentar(() async {
+    final u = uid;
+    if (u == null) return;
+    final telefono = (await _usuarios.doc(u).get()).data()?['telefono'];
+    if (telefono == null || telefono == '') return;
+    final fila = _de(folio, 'cuidadores').doc(u);
+    if ((await fila.get()).data()?['telefono'] == telefono) return;
+    await fila.update({'telefono': telefono});
   });
 
   @override

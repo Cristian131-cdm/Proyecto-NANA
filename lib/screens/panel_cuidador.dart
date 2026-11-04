@@ -28,6 +28,7 @@ class _PanelCuidadorState extends State<PanelCuidador> {
   int _pestana = 0;
   int _adulto = 0;
   final _adultos = Servicios.repo.adultosACargo();
+  final _conTelefono = <String>{};
 
   Future<void> _cambiarAdulto(List<Adulto> lista) async {
     final elegido = await showModalBottomSheet<int>(
@@ -153,6 +154,12 @@ class _PanelCuidadorState extends State<PanelCuidador> {
               ),
             ],
           );
+        }
+        // Que cada adulto tenga el teléfono de este cuidador en "Mi familia".
+        for (final a in lista) {
+          if (_conTelefono.add(a.folio)) {
+            Servicios.repo.compartirMiTelefono(a.folio).ignore();
+          }
         }
         final adulto = lista[_adulto.clamp(0, lista.length - 1)];
         return _panel(adulto, lista);

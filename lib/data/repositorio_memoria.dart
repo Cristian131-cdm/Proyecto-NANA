@@ -34,6 +34,7 @@ class RepositorioMemoria implements RepositorioNana {
       rol: Rol.cuidador,
     );
     _contrasenas['ana@nana.mx'] = ('ana', 'secreto1');
+    _telefonos['ana'] = '5500000002';
     _usuarios['rosa-cel'] = const Usuario(
       uid: 'rosa-cel',
       nombre: 'Rosa',
@@ -68,6 +69,7 @@ class RepositorioMemoria implements RepositorioNana {
 
   final _usuarios = <String, Usuario>{};
   final _contrasenas = <String, (String, String)>{}; // correo → (uid, contraseña)
+  final _telefonos = <String, String>{}; // uid del cuidador → teléfono
   final _adultos = <String, Adulto>{};
   final _parentescos = <(String, String), String>{}; // (folio, uid) → parentesco
   final _codigos = <String, (CodigoVinculacion, bool)>{}; // código → (datos, usado)
@@ -101,7 +103,8 @@ class RepositorioMemoria implements RepositorioNana {
     required String correo,
     required String contrasena,
   }) async {
-    _crearCuenta(nombre, apellidos, correo, contrasena, Rol.cuidador);
+    final uid = _crearCuenta(nombre, apellidos, correo, contrasena, Rol.cuidador);
+    _telefonos[uid] = telefono;
   }
 
   String _crearCuenta(
@@ -268,6 +271,22 @@ class RepositorioMemoria implements RepositorioNana {
     final ids = _adultos[folio]?.idsCuidadores ?? const [];
     return ids.isEmpty ? '' : _usuarios[ids.first]?.nombre ?? '';
   }
+
+  @override
+  Stream<List<Familiar>> familiaDe(String folio) => _vigilar(
+    () => [
+      for (final id in _adultos[folio]?.idsCuidadores ?? const <String>[])
+        Familiar(
+          uid: id,
+          nombre: _usuarios[id]?.nombre ?? '',
+          telefono: _telefonos[id],
+        ),
+    ],
+  );
+
+  // En memoria el teléfono ya queda guardado al crear la cuenta.
+  @override
+  Future<void> compartirMiTelefono(String folio) async {}
 
   @override
   Stream<List<Medicamento>> medicamentos(String folio) => _vigilar(

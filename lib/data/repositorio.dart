@@ -55,6 +55,10 @@ abstract class RepositorioNana {
   Stream<List<Adulto>> adultosACargo();
   Future<Adulto?> adultoPropio();
   Future<String> nombreDeCuidador(String folio);
+  // La familia que ve el adulto en "Mi familia", para llamarles.
+  Stream<List<Familiar>> familiaDe(String folio);
+  // El cuidador deja su teléfono en su fila (las altas viejas no lo tenían).
+  Future<void> compartirMiTelefono(String folio);
 
   // El día del adulto
   Stream<List<Medicamento>> medicamentos(String folio);

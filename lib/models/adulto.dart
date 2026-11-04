@@ -23,6 +23,15 @@ class Adulto {
   bool get tieneFamilia => idsCuidadores.isNotEmpty;
 }
 
+// Alguien de la familia, como lo ve el adulto en "Mi familia".
+class Familiar {
+  final String uid;
+  final String nombre;
+  final String? telefono; // null si todavía no lo comparte
+
+  const Familiar({required this.uid, required this.nombre, this.telefono});
+}
+
 class CodigoVinculacion {
   final String codigo;
   final String folio;

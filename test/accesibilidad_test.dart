@@ -8,6 +8,7 @@ import 'package:nana_app/data/repositorio_memoria.dart';
 import 'package:nana_app/models/actividad.dart';
 import 'package:nana_app/models/registro.dart';
 import 'package:nana_app/screens/encuesta_apariencia.dart';
+import 'package:nana_app/screens/nana_escucha.dart';
 import 'package:nana_app/screens/panel_adulto.dart';
 import 'package:nana_app/screens/pestana_semana.dart';
 import 'package:nana_app/screens/senas.dart';
@@ -69,23 +70,22 @@ void main() {
     await tester.pumpWidget(const MaterialApp(home: PanelAdulto()));
     await tester.pumpAndSettle();
 
-    await tester.scrollUntilVisible(
-      find.text('Hablar con señas'),
-      300,
-      scrollable: find.byType(Scrollable).first,
-    );
-    await tester.ensureVisible(find.text('Hablar con señas'));
-    await tester.pumpAndSettle();
+    // Las señas están dentro de "Hablar". NANA late sin parar: se avanza a mano.
+    await tester.tap(find.text('Hablar'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
     await tester.tap(find.text('Hablar con señas'));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
     expect(find.byType(ConsentimientoCamara), findsOneWidget);
 
     await tester.ensureVisible(find.text('No, gracias'));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(seconds: 1));
     await tester.tap(find.text('No, gracias'));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
     expect(find.byType(CamaraSenas), findsNothing);
-    expect(find.byType(PanelAdulto), findsOneWidget);
+    expect(find.byType(NanaEscucha), findsOneWidget);
   });
 
   testWidgets('"Ya me la tomé" en el recordatorio marca la medicina', (
@@ -105,6 +105,10 @@ void main() {
     await tester.pumpWidget(const MaterialApp(home: PanelAdulto()));
     await tester.pumpAndSettle();
     expect(find.text('Hoy llevas 1 de 4'), findsOneWidget);
+
+    // La lista completa está en "Ver todo mi día" (la tarjeta depende de la hora).
+    await tester.tap(find.text('Ver todo mi día'));
+    await tester.pumpAndSettle();
 
     // El recordatorio tiene una animación que no para: se avanza a mano.
     await tester.tap(find.text('Toca ahora · Tu medicina'));
