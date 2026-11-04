@@ -39,19 +39,21 @@ final modosDeUso = [
   ),
 ];
 
-void mostrarAjustesTexto(BuildContext context) {
+// onCerrarSesion: si viene, al final de la hoja sale "Cerrar sesión".
+void mostrarAjustesTexto(BuildContext context, {VoidCallback? onCerrarSesion}) {
   showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
     ),
-    builder: (_) => const _HojaTexto(),
+    builder: (_) => _HojaTexto(onCerrarSesion: onCerrarSesion),
   );
 }
 
 class _HojaTexto extends StatelessWidget {
-  const _HojaTexto();
+  final VoidCallback? onCerrarSesion;
+  const _HojaTexto({this.onCerrarSesion});
 
   static const opciones = [
     (1.0, 'Normal', 22.0),
@@ -172,6 +174,24 @@ class _HojaTexto extends StatelessWidget {
               'no cambian nada. Ya quedan guardados para cuando estén listos.',
               style: TextStyle(fontSize: 14, color: Color(0xFF6B6485)),
             ),
+            if (onCerrarSesion case final salir?) ...[
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 60,
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    salir();
+                  },
+                  icon: const Icon(Icons.logout, size: 28),
+                  label: const Text('Cerrar sesión'),
+                  style: OutlinedButton.styleFrom(
+                    textStyle: const TextStyle(fontSize: 20),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),

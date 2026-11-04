@@ -2,11 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'package:nana_app/core/alarmas.dart';
 import 'package:nana_app/core/servicios.dart';
+import 'package:nana_app/models/medicamento.dart';
+import 'package:nana_app/screens/bienvenida.dart';
 import 'package:nana_app/data/repositorio_memoria.dart';
 import 'package:nana_app/screens/mi_familia.dart';
 import 'package:nana_app/screens/nana_escucha.dart';
 import 'package:nana_app/screens/panel_adulto.dart';
+
+class _AlarmasFalsas implements Alarmas {
+  final programadas = <List<Medicamento>>[];
+
+  @override
+  String? get abiertaDesde => null;
+
+  @override
+  Future<void> iniciar(void Function(String) alTocar) async {}
+
+  @override
+  Future<void> programar(String nombreAdulto, List<Medicamento> meds) async =>
+      programadas.add(meds);
+}
 
 void _celular(WidgetTester t) {
   t.view.devicePixelRatio = 1;
@@ -85,6 +102,44 @@ void main() {
     await t.pump(const Duration(seconds: 1));
     expect(dichas, ['Ya comí']);
     expect(find.byType(NanaEscucha), findsNothing);
+  });
+
+  testWidgets('El adulto puede cerrar sesión desde "Aa", con confirmación', (
+    t,
+  ) async {
+    _celular(t);
+    final alarmas = _AlarmasFalsas();
+    Servicios.alarmas = alarmas;
+    await t.pumpWidget(const MaterialApp(home: PanelAdulto()));
+    await t.pumpAndSettle();
+
+    await t.tap(find.text('Aa'));
+    await t.pumpAndSettle();
+    await t.ensureVisible(find.text('Cerrar sesión'));
+    await t.pumpAndSettle();
+    await t.tap(find.text('Cerrar sesión'));
+    await t.pumpAndSettle();
+
+    // "No, quedarme" no hace nada.
+    await t.tap(find.text('No, quedarme'));
+    await t.pumpAndSettle();
+    expect(Servicios.repo.uid, 'rosa-cel');
+
+    await t.tap(find.text('Aa'));
+    await t.pumpAndSettle();
+    await t.ensureVisible(find.text('Cerrar sesión'));
+    await t.pumpAndSettle();
+    await t.tap(find.text('Cerrar sesión'));
+    await t.pumpAndSettle();
+    await t.tap(find.text('Sí, salir'));
+    await t.pumpAndSettle();
+
+    expect(Servicios.repo.uid, isNull);
+    expect(find.byType(Bienvenida), findsOneWidget);
+    expect(alarmas.programadas.last, isEmpty);
+    // La bienvenida deja un temporizador; se deja correr antes de terminar.
+    await t.pumpWidget(const SizedBox());
+    await t.pump(const Duration(seconds: 10));
   });
 
   testWidgets('Mi familia muestra a la familia real con su botón de llamar', (

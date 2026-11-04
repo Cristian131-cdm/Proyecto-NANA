@@ -15,6 +15,8 @@ import '../widgets/aviso.dart';
 import '../widgets/caritas_animo.dart';
 import '../widgets/mascota_nana.dart';
 import '../widgets/tarjeta_ahora.dart';
+import 'arranque.dart';
+import 'bienvenida.dart';
 import 'mi_dia.dart';
 import 'mi_familia.dart';
 import 'nana_escucha.dart';
@@ -205,6 +207,66 @@ class _PanelAdultoState extends State<PanelAdulto> {
     );
   }
 
+  // Escondido en "Aa" y con confirmación, para que no se salga sin querer.
+  Future<void> _cerrarSesion() async {
+    final si = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        title: const Text(
+          '¿Salir de NANA en este celular?',
+          style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Ya no te llegarán tus recordatorios aquí. Para volver a entrar '
+              'necesitas un código nuevo de tu familia.',
+              style: TextStyle(fontSize: 20),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              height: 60,
+              child: FilledButton(
+                onPressed: () => Navigator.pop(context, false),
+                style: FilledButton.styleFrom(
+                  backgroundColor: ColoresNana.morado,
+                  shape: const StadiumBorder(),
+                  textStyle: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                child: const Text('No, quedarme'),
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: TextButton.styleFrom(
+                  textStyle: const TextStyle(fontSize: 20),
+                ),
+                child: const Text('Sí, salir'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (si != true || !mounted) return;
+    _alarmas?.cancel();
+    _salud?.cancel();
+    // Sin sesión no hay medicinas: se quitan las alarmas de este celular.
+    await Servicios.alarmas.programar(_yo?.nombre ?? '', const []);
+    await Servicios.repo.cerrarSesion();
+    if (mounted) entrarA(context, const Bienvenida());
+  }
+
   Widget _inicio(List<Actividad> dia, int? animo) {
     final (que, actividad) = queToca(
       dia: dia,
@@ -298,7 +360,8 @@ class _PanelAdultoState extends State<PanelAdulto> {
           Padding(
             padding: const EdgeInsets.only(right: 12),
             child: FilledButton.tonalIcon(
-              onPressed: () => mostrarAjustesTexto(context),
+              onPressed: () =>
+                  mostrarAjustesTexto(context, onCerrarSesion: _cerrarSesion),
               icon: const Icon(Icons.accessibility_new, size: 26),
               label: const Text('Aa'),
               style: FilledButton.styleFrom(
