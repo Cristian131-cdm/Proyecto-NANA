@@ -13,7 +13,6 @@ import 'package:nana_app/models/registro.dart';
 import 'package:nana_app/screens/familia_alertas.dart';
 import 'package:nana_app/screens/pestana_historial.dart';
 import 'package:nana_app/screens/pestana_rutinas.dart';
-import 'package:nana_app/screens/pestana_semana.dart';
 
 Widget _envolver(Widget pantalla) =>
     MaterialApp(home: Scaffold(body: pantalla));

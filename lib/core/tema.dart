@@ -17,6 +17,24 @@ class ColoresNana {
 }
 
 class TemaNana {
+  // "Colores más fuertes": sube el contraste alrededor de un punto muy claro
+  // (240). Los textos y colores se oscurecen mucho y los fondos claros casi
+  // no cambian, así no se pierden los bordes lila de las tarjetas.
+  static const _c = 1.5;
+  static const _t = 240 * (1 - _c);
+  static const filtroNeutro = ColorFilter.matrix([
+    1, 0, 0, 0, 0, //
+    0, 1, 0, 0, 0, //
+    0, 0, 1, 0, 0, //
+    0, 0, 0, 1, 0, //
+  ]);
+  static const filtroAltoContraste = ColorFilter.matrix([
+    _c, 0, 0, 0, _t, //
+    0, _c, 0, 0, _t, //
+    0, 0, _c, 0, _t, //
+    0, 0, 0, 1, 0, //
+  ]);
+
   // Aplica la fuente a un solo estilo (compatible con tu versión de Flutter)
   static TextStyle? _f(TextStyle? s) =>
       GoogleFonts.atkinsonHyperlegible(textStyle: s);

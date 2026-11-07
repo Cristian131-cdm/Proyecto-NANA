@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../core/dia.dart';
 import '../core/servicios.dart';
 import '../core/tema.dart';
 import '../models/adulto.dart';
+import '../models/alerta.dart';
+import '../models/medicamento.dart';
+import '../models/registro.dart';
 import '../widgets/ajustes_texto.dart';
 import '../widgets/aviso.dart';
 import '../widgets/formulario.dart';
@@ -294,28 +298,36 @@ class _PanelCuidadorState extends State<PanelCuidador> {
         child: NavigationBar(
           selectedIndex: _pestana,
           onDestinationSelected: (i) => setState(() => _pestana = i),
-          destinations: const [
+          destinations: [
             NavigationDestination(
-              icon: Icon(Icons.home_outlined),
-              selectedIcon: Icon(Icons.home, color: ColoresNana.morado),
+              icon: ContadorAlertas(
+                key: ValueKey('contador-${adulto.folio}'),
+                folio: adulto.folio,
+                child: const Icon(Icons.home_outlined),
+              ),
+              selectedIcon: ContadorAlertas(
+                key: ValueKey('contador-sel-${adulto.folio}'),
+                folio: adulto.folio,
+                child: const Icon(Icons.home, color: ColoresNana.morado),
+              ),
               label: 'Inicio',
             ),
-            NavigationDestination(
+            const NavigationDestination(
               icon: Icon(Icons.medication_outlined),
               selectedIcon: Icon(Icons.medication, color: ColoresNana.morado),
               label: 'Medicinas',
             ),
-            NavigationDestination(
+            const NavigationDestination(
               icon: Icon(Icons.event_note_outlined),
               selectedIcon: Icon(Icons.event_note, color: ColoresNana.morado),
               label: 'Rutinas',
             ),
-            NavigationDestination(
+            const NavigationDestination(
               icon: Icon(Icons.bar_chart_outlined),
               selectedIcon: Icon(Icons.bar_chart, color: ColoresNana.morado),
               label: 'Semana',
             ),
-            NavigationDestination(
+            const NavigationDestination(
               icon: Icon(Icons.folder_outlined),
               selectedIcon: Icon(Icons.folder, color: ColoresNana.morado),
               label: 'Historial',
@@ -342,6 +354,64 @@ class _Avatar extends StatelessWidget {
           fontSize: 18,
           fontWeight: FontWeight.bold,
           color: ColoresNana.morado,
+        ),
+      ),
+    );
+  }
+}
+
+// Globito rojo con cuántas alertas hay (pide ayuda + medicinas vencidas),
+// para verlo desde cualquier pestaña. El número va también en texto para
+// TalkBack/VoiceOver, no solo en color.
+class ContadorAlertas extends StatefulWidget {
+  final String folio;
+  final Widget child;
+  const ContadorAlertas({super.key, required this.folio, required this.child});
+
+  @override
+  State<ContadorAlertas> createState() => _ContadorAlertasState();
+}
+
+class _ContadorAlertasState extends State<ContadorAlertas> {
+  late final _alertas = Servicios.repo.alertasSinAtender(widget.folio);
+  late final _meds = Servicios.repo.medicamentos(widget.folio);
+  late final _hoy = Servicios.repo.registrosDeHoy(widget.folio);
+  late final _reglas = Servicios.repo.reglasAlerta(widget.folio);
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<List<Alerta>>(
+      stream: _alertas,
+      builder: (context, alertas) => StreamBuilder<List<Medicamento>>(
+        stream: _meds,
+        builder: (context, meds) => StreamBuilder<List<Registro>>(
+          stream: _hoy,
+          builder: (context, hoy) => StreamBuilder<ReglasAlerta>(
+            stream: _reglas,
+            builder: (context, reglas) {
+              final vencidas = (reglas.data ?? const ReglasAlerta()).medicina
+                  ? sinConfirmar(
+                      meds: meds.data ?? const [],
+                      hoy: hoy.data ?? const [],
+                      ahora: Servicios.reloj(),
+                    ).length
+                  : 0;
+              final total = (alertas.data?.length ?? 0) + vencidas;
+              return Semantics(
+                label: total == 0
+                    ? null
+                    : total == 1
+                    ? '1 alerta'
+                    : '$total alertas',
+                child: Badge(
+                  isLabelVisible: total > 0,
+                  label: Text('$total'),
+                  backgroundColor: ColoresNana.alerta,
+                  child: widget.child,
+                ),
+              );
+            },
+          ),
         ),
       ),
     );
