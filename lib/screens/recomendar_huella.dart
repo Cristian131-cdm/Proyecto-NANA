@@ -15,8 +15,7 @@ Future<void> entrarRecomendandoHuella(
   Widget destino,
 ) async {
   final ofrecer =
-      !Ajustes.huellaOfrecida.value &&
-      await Servicios.biometria.disponible();
+      !Ajustes.huellaOfrecida.value && await Servicios.biometria.disponible();
   if (!context.mounted) return;
   entrarA(context, ofrecer ? RecomendarHuella(destino: destino) : destino);
 }

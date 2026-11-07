@@ -118,10 +118,7 @@ class DatosEjemplo {
   ];
 
   // (nombre, relación) de otros adultos que cuida la misma persona
-  static const adultosACargo = [
-    ('Rosa', 'mamá'),
-    ('Ernesto', 'papá'),
-  ];
+  static const adultosACargo = [('Rosa', 'mamá'), ('Ernesto', 'papá')];
 
   // Tomas a tiempo por día, de 2 posibles (lunes a domingo)
   static const tomasSemana = [2, 2, 1, 2, 2, 2, 1];

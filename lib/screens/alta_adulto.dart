@@ -164,8 +164,7 @@ class _AltaAdultoState extends State<AltaAdulto> {
     return PantallaPaso(
       barra: 'Paso 2 de 2',
       titulo: '¿$_quien tiene celular propio?',
-      subtitulo:
-          'Si tiene, te damos un código para que use NANA en su propio celular.',
+      subtitulo: 'Si tiene, te damos un código para que use NANA en su propio celular.',
       children: [
         if (_error != null) MensajeError(_error!),
         BotonPrincipal(

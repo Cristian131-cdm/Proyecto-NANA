@@ -67,11 +67,7 @@ void main() {
   });
 
   test('Pasada la medianoche no cree que ya toca lo de las 8', () {
-    final (que, _) = queToca(
-      dia: _dia(const []),
-      animoHoy: 1,
-      ahora: _a(0, 5),
-    );
+    final (que, _) = queToca(dia: _dia(const []), animoHoy: 1, ahora: _a(0, 5));
     expect(que, QueToca.siguiente);
   });
 

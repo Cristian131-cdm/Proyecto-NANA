@@ -16,8 +16,7 @@ void main() {
   // Sin sesión, para que después del splash salga la bienvenida.
   setUp(() => Servicios.repo = RepositorioMemoria(sesion: null));
 
-  testWidgets('Después del splash aparece la selección de rol',
-      (tester) async {
+  testWidgets('Después del splash aparece la selección de rol', (tester) async {
     await tester.pumpWidget(const NanaApp());
     // 0.4 s de pausa y 6 s de animación.
     await tester.pump(const Duration(milliseconds: 400));
@@ -54,8 +53,9 @@ void main() {
     expect(find.text('Hoy llevas 1 de 4', skipOffstage: false), findsOneWidget);
   });
 
-  testWidgets('El cuidador confirma la medicina vencida y cambia de pestaña',
-      (tester) async {
+  testWidgets('El cuidador confirma la medicina vencida y cambia de pestaña', (
+    tester,
+  ) async {
     final hoy = DateTime.now();
     Servicios.reloj = () => DateTime(hoy.year, hoy.month, hoy.day, 9);
     addTearDown(() => Servicios.reloj = DateTime.now);

@@ -6,8 +6,11 @@ import 'package:flutter/material.dart';
 import '../core/codigo.dart';
 import '../models/adulto.dart';
 import '../models/alerta.dart';
+import '../models/actividad.dart';
 import '../models/medicamento.dart';
+import '../models/receta.dart';
 import '../models/registro.dart';
+import '../models/rutina.dart';
 import '../models/salud.dart';
 import '../models/usuario.dart';
 import 'repositorio.dart';
@@ -60,6 +63,38 @@ class RepositorioMemoria implements RepositorioNana {
         ventanaMin: 30,
       ),
     ];
+    const diario = {0, 1, 2, 3, 4, 5, 6};
+    _rutinas['rosa'] = [
+      const Rutina(
+        id: 'desayuno',
+        titulo: 'Desayuno',
+        tipo: TipoActividad.comida,
+        hora: TimeOfDay(hour: 7, minute: 30),
+        dias: diario,
+      ),
+      const Rutina(
+        id: 'comida',
+        titulo: 'Comida',
+        tipo: TipoActividad.comida,
+        hora: TimeOfDay(hour: 14, minute: 0),
+        dias: diario,
+      ),
+      const Rutina(
+        id: 'caminar',
+        titulo: 'Caminar 15 min',
+        tipo: TipoActividad.ejercicio,
+        hora: TimeOfDay(hour: 18, minute: 0),
+        dias: diario,
+      ),
+    ];
+    _recetas['rosa'] = [
+      Receta(
+        id: 'receta1',
+        medico: 'Dr. Pérez',
+        fecha: DateTime(2026, 10, 2),
+        indicacion: 'Losartán 50 mg · 1 al día',
+      ),
+    ];
   }
 
   String? _uid;
@@ -68,15 +103,23 @@ class RepositorioMemoria implements RepositorioNana {
   final _cambios = StreamController<void>.broadcast();
 
   final _usuarios = <String, Usuario>{};
-  final _contrasenas = <String, (String, String)>{}; // correo → (uid, contraseña)
+  final _contrasenas =
+      <String, (String, String)>{}; // correo → (uid, contraseña)
   final _telefonos = <String, String>{}; // uid del cuidador → teléfono
   final _adultos = <String, Adulto>{};
-  final _parentescos = <(String, String), String>{}; // (folio, uid) → parentesco
-  final _codigos = <String, (CodigoVinculacion, bool)>{}; // código → (datos, usado)
+  final _parentescos =
+      <(String, String), String>{}; // (folio, uid) → parentesco
+  final _codigos =
+      <String, (CodigoVinculacion, bool)>{}; // código → (datos, usado)
   final _medicamentos = <String, List<Medicamento>>{};
   final _registros = <String, List<Registro>>{};
   final _alertas = <String, List<Alerta>>{};
   final _salud = <String, Salud>{};
+  final _reglas = <String, ReglasAlerta>{};
+  final _rutinas = <String, List<Rutina>>{};
+  final _recetas = <String, List<Receta>>{};
+  final _citas = <String, List<Cita>>{};
+  final _ultima = <String, DateTime>{};
 
   String _nuevoId() => 'id${_siguienteId++}';
   void _avisar() => _cambios.add(null);
@@ -103,7 +146,13 @@ class RepositorioMemoria implements RepositorioNana {
     required String correo,
     required String contrasena,
   }) async {
-    final uid = _crearCuenta(nombre, apellidos, correo, contrasena, Rol.cuidador);
+    final uid = _crearCuenta(
+      nombre,
+      apellidos,
+      correo,
+      contrasena,
+      Rol.cuidador,
+    );
     _telefonos[uid] = telefono;
   }
 
@@ -168,7 +217,9 @@ class RepositorioMemoria implements RepositorioNana {
   @override
   Future<Adulto> canjearCodigo(String codigo) async {
     final guardado = _codigos[codigo];
-    if (guardado == null || guardado.$2 || reloj().isAfter(guardado.$1.expira)) {
+    if (guardado == null ||
+        guardado.$2 ||
+        reloj().isAfter(guardado.$1.expira)) {
       throw const ErrorNana(errorCodigo);
     }
     final folio = guardado.$1.folio;
@@ -290,8 +341,9 @@ class RepositorioMemoria implements RepositorioNana {
 
   @override
   Stream<List<Medicamento>> medicamentos(String folio) => _vigilar(
-    () => List.of(_medicamentos[folio] ?? const <Medicamento>[])
-      ..sort((a, b) => a.horaTexto.compareTo(b.horaTexto)),
+    () =>
+        List.of(_medicamentos[folio] ?? const <Medicamento>[])
+          ..sort((a, b) => a.horaTexto.compareTo(b.horaTexto)),
   );
 
   @override
@@ -323,6 +375,7 @@ class RepositorioMemoria implements RepositorioNana {
   @override
   Future<void> registrar(String folio, Registro r) async {
     _registros.putIfAbsent(folio, () => []).add(r);
+    _ultima[folio] = reloj();
     _avisar();
   }
 
@@ -362,4 +415,103 @@ class RepositorioMemoria implements RepositorioNana {
     }
     _avisar();
   }
+
+  @override
+  Stream<ReglasAlerta> reglasAlerta(String folio) =>
+      _vigilar(() => _reglas[folio] ?? const ReglasAlerta());
+
+  @override
+  Future<void> guardarReglasAlerta(String folio, ReglasAlerta r) async {
+    _reglas[folio] = r;
+    _avisar();
+  }
+
+  // Alta o cambio en una lista guardada por folio.
+  void _poner<T>(
+    Map<String, List<T>> donde,
+    String folio,
+    T valor,
+    String? id,
+    String? Function(T) idDe,
+    T Function(String) conId,
+  ) {
+    final lista = donde.putIfAbsent(folio, () => []);
+    if (id == null) {
+      lista.add(conId(_nuevoId()));
+    } else {
+      final i = lista.indexWhere((x) => idDe(x) == id);
+      i == -1 ? lista.add(valor) : lista[i] = valor;
+    }
+    _avisar();
+  }
+
+  void _quitar<T>(
+    Map<String, List<T>> donde,
+    String folio,
+    String id,
+    String? Function(T) idDe,
+  ) {
+    donde[folio]?.removeWhere((x) => idDe(x) == id);
+    _avisar();
+  }
+
+  int _min(TimeOfDay t) => t.hour * 60 + t.minute;
+
+  @override
+  Stream<List<Rutina>> rutinas(String folio) => _vigilar(
+    () =>
+        List.of(_rutinas[folio] ?? const <Rutina>[])
+          ..sort((a, b) => _min(a.hora).compareTo(_min(b.hora))),
+  );
+
+  @override
+  Future<void> guardarRutina(String folio, Rutina r) async =>
+      _poner(_rutinas, folio, r, r.id, (x) => x.id, r.conId);
+
+  @override
+  Future<void> borrarRutina(String folio, String id) async =>
+      _quitar(_rutinas, folio, id, (Rutina x) => x.id);
+
+  @override
+  Stream<List<Receta>> recetas(String folio) => _vigilar(
+    () =>
+        List.of(_recetas[folio] ?? const <Receta>[])
+          ..sort((a, b) => b.fecha.compareTo(a.fecha)),
+  );
+
+  @override
+  Future<void> guardarReceta(String folio, Receta r) async =>
+      _poner(_recetas, folio, r, r.id, (x) => x.id, r.conId);
+
+  @override
+  Future<void> borrarReceta(String folio, String id) async =>
+      _quitar(_recetas, folio, id, (Receta x) => x.id);
+
+  @override
+  Stream<List<Cita>> citas(String folio) => _vigilar(
+    () =>
+        List.of(_citas[folio] ?? const <Cita>[])
+          ..sort((a, b) => a.fecha.compareTo(b.fecha)),
+  );
+
+  @override
+  Future<void> guardarCita(String folio, Cita c) async =>
+      _poner(_citas, folio, c, c.id, (x) => x.id, c.conId);
+
+  @override
+  Future<void> borrarCita(String folio, String id) async =>
+      _quitar(_citas, folio, id, (Cita x) => x.id);
+
+  @override
+  Stream<List<Registro>> registrosDesde(String folio, DateTime desde) =>
+      _vigilar(
+        () => [
+          for (final r in _registros[folio] ?? const <Registro>[])
+            if (!r.fecha.isBefore(desde)) r,
+        ]..sort((a, b) => a.fecha.compareTo(b.fecha)),
+      );
+
+  @override
+  Stream<DateTime?> ultimaActividad(String folio) =>
+      _vigilar(() => _ultima[folio]);
 }

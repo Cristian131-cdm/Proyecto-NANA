@@ -43,8 +43,7 @@ class _EntrarConCodigoState extends State<EntrarConCodigo> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) =>
-              _Conectado(nombre: adulto.nombre, familiar: familiar),
+          builder: (_) => _Conectado(nombre: adulto.nombre, familiar: familiar),
         ),
       );
     } on ErrorNana catch (e) {
@@ -83,9 +82,7 @@ class _EntrarConCodigoState extends State<EntrarConCodigo> {
           decoration: InputDecoration(
             hintText: '······',
             semanticCounterText: 'Código de 6 números',
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(20)),
           ),
         ),
         const SizedBox(height: 24),

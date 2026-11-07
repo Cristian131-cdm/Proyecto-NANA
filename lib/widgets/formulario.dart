@@ -126,7 +126,11 @@ class MensajeError extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const Icon(Icons.error_outline, color: ColoresNana.alerta, size: 28),
+            const Icon(
+              Icons.error_outline,
+              color: ColoresNana.alerta,
+              size: 28,
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Text(

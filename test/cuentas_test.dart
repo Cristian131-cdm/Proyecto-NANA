@@ -65,8 +65,9 @@ void main() {
     Servicios.biometria = _SinHuella();
   });
 
-  testWidgets('El cuidador crea su cuenta, da de alta a Rosa y ve su código',
-      (t) async {
+  testWidgets('El cuidador crea su cuenta, da de alta a Rosa y ve su código', (
+    t,
+  ) async {
     await _crearCuentaDeAna(t);
     expect(find.text('¿A quién vas a cuidar?'), findsOneWidget);
 
@@ -86,8 +87,7 @@ void main() {
     expect(find.textContaining(RegExp(r'^\d{3} \d{3}$')), findsOneWidget);
   });
 
-  testWidgets('Rosa entra con el código y queda conectada con Ana',
-      (t) async {
+  testWidgets('Rosa entra con el código y queda conectada con Ana', (t) async {
     // Ana ya existe; genera el código desde su celular.
     final conAna = RepositorioMemoria();
     final codigo = await conAna.generarCodigo('rosa');
@@ -127,8 +127,7 @@ void main() {
     expect(boton.onPressed, isNull);
   });
 
-  testWidgets('Un cuidador sin adultos a cargo llega a dar de alta',
-      (t) async {
+  testWidgets('Un cuidador sin adultos a cargo llega a dar de alta', (t) async {
     await repo.crearCuentaCuidador(
       nombre: 'Luis',
       apellidos: '',

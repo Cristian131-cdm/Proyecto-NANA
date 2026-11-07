@@ -8,6 +8,8 @@ class ColoresNana {
   static const azul = Color(0xFF2F6FED);
   static const fondo = Color(0xFFFBFAFE);
   static const tinta = Color(0xFF241B3D);
+  static const tintaSuave = Color(0xFF6B6485); // textos de apoyo
+  static const gris = Color(0xFF8A82A3); // pendiente, apagado
   static const alerta = Color(0xFF8F5200);
   static const alertaClaro = Color(0xFFFFF1D6);
   static const ok = Color(0xFF1F8A4C);

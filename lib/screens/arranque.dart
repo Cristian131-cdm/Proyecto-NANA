@@ -78,7 +78,6 @@ class _ArranqueState extends State<Arranque> {
   }
 
   @override
-  Widget build(BuildContext context) => const Scaffold(
-    body: Center(child: MascotaNana(tamano: 140)),
-  );
+  Widget build(BuildContext context) =>
+      const Scaffold(body: Center(child: MascotaNana(tamano: 140)));
 }

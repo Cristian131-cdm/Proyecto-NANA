@@ -140,11 +140,11 @@ class _SplashScreenState extends State<SplashScreen>
                   // La mascota empieza en el centro (donde la deja el splash
                   // nativo), rebota y sube a su lugar.
                   final centroFinal = alto * 0.3;
-                  final centroY =
-                      lerpDouble(alto / 2, centroFinal, v(_subir))!;
+                  final centroY = lerpDouble(alto / 2, centroFinal, v(_subir))!;
                   final flotar = quieto ? 0.0 : onda * 5 * v(_subir);
                   final escalaMascota = 1 + 0.1 * pico(_rebote);
-                  final escalaCorazon = 1 +
+                  final escalaCorazon =
+                      1 +
                       0.35 * pico(_corazon) +
                       (quieto ? 0 : 0.25 * golpe * v(_pausa));
                   final tamanoHalo = 260 + (quieto ? 0.0 : onda * 10);
@@ -194,8 +194,12 @@ class _SplashScreenState extends State<SplashScreen>
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  for (final (i, letra)
-                                      in ['N', 'A', 'N', 'A'].indexed)
+                                  for (final (i, letra) in [
+                                    'N',
+                                    'A',
+                                    'N',
+                                    'A',
+                                  ].indexed)
                                     _Letra(valor: v(_letras[i]), letra: letra),
                                 ],
                               ),

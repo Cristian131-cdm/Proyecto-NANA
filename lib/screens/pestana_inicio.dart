@@ -8,6 +8,7 @@ import '../models/adulto.dart';
 import '../models/alerta.dart';
 import '../models/medicamento.dart';
 import '../models/registro.dart';
+import '../models/rutina.dart';
 import '../widgets/aviso.dart';
 import '../widgets/caritas_animo.dart';
 import '../widgets/tarjeta_dato.dart';
@@ -27,6 +28,9 @@ class _PestanaInicioState extends State<PestanaInicio> {
   late final _meds = Servicios.repo.medicamentos(widget.adulto.folio);
   late final _hoy = Servicios.repo.registrosDeHoy(widget.adulto.folio);
   late final _alertas = Servicios.repo.alertasSinAtender(widget.adulto.folio);
+  late final _rutinas = Servicios.repo.rutinas(widget.adulto.folio);
+  late final _reglas = Servicios.repo.reglasAlerta(widget.adulto.folio);
+  late final _ultima = Servicios.repo.ultimaActividad(widget.adulto.folio);
 
   @override
   Widget build(BuildContext context) {
@@ -36,11 +40,23 @@ class _PestanaInicioState extends State<PestanaInicio> {
         stream: _hoy,
         builder: (context, regs) => StreamBuilder<List<Alerta>>(
           stream: _alertas,
-          builder: (context, alertas) => _Contenido(
-            adulto: widget.adulto,
-            meds: meds.data ?? const [],
-            hoy: regs.data ?? const [],
-            alertas: alertas.data ?? const [],
+          builder: (context, alertas) => StreamBuilder<List<Rutina>>(
+            stream: _rutinas,
+            builder: (context, rutinas) => StreamBuilder<ReglasAlerta>(
+              stream: _reglas,
+              builder: (context, reglas) => StreamBuilder<DateTime?>(
+                stream: _ultima,
+                builder: (context, ultima) => _Contenido(
+                  adulto: widget.adulto,
+                  meds: meds.data ?? const [],
+                  hoy: regs.data ?? const [],
+                  alertas: alertas.data ?? const [],
+                  rutinas: rutinas.data ?? const [],
+                  reglas: reglas.data ?? const ReglasAlerta(),
+                  ultima: ultima.data,
+                ),
+              ),
+            ),
           ),
         ),
       ),
@@ -53,9 +69,15 @@ class _Contenido extends StatelessWidget {
   final List<Medicamento> meds;
   final List<Registro> hoy;
   final List<Alerta> alertas;
+  final List<Rutina> rutinas;
+  final ReglasAlerta reglas;
+  final DateTime? ultima;
 
   const _Contenido({
     required this.adulto,
+    required this.rutinas,
+    required this.reglas,
+    required this.ultima,
     required this.meds,
     required this.hoy,
     required this.alertas,
@@ -105,8 +127,21 @@ class _Contenido extends StatelessWidget {
     final nombre = adulto.nombre;
     final telefono = adulto.telefono;
     final ahora = Servicios.reloj();
-    final vencidas = sinConfirmar(meds: meds, hoy: hoy, ahora: ahora);
-    final dia = diaDelAdulto(meds: meds, hoy: hoy);
+    final vencidas = reglas.medicina
+        ? sinConfirmar(meds: meds, hoy: hoy, ahora: ahora)
+        : const <Medicamento>[];
+    final callado =
+        reglas.sinNoticias &&
+        sinNoticias(
+          ultima: ultima,
+          ahora: ahora,
+          horas: reglas.horasSinNoticias,
+        );
+    final dia = diaDelAdulto(
+      meds: meds,
+      hoy: hoy,
+      otras: rutinasDeHoy(rutinas, ahora),
+    );
     final linea = lineaDelCuidador(meds: meds, hoy: hoy, ahora: ahora);
     final VoidCallback? llamarle = telefono == null
         ? null
@@ -148,7 +183,20 @@ class _Contenido extends StatelessWidget {
           ),
           const SizedBox(height: 12),
         ],
-        if (alertas.isEmpty && vencidas.isEmpty) _EstadoBien(adulto: nombre),
+        if (callado) ...[
+          _Alerta(
+            titulo:
+                '$nombre lleva ${reglas.horasSinNoticias} horas sin noticias',
+            detalle:
+                'No se ha anotado nada desde las '
+                '${horaCorta(TimeOfDay.fromDateTime(ultima!))}. '
+                'Puedes llamarle para saber cómo está.',
+            onLlamar: llamarle,
+          ),
+          const SizedBox(height: 12),
+        ],
+        if (alertas.isEmpty && vencidas.isEmpty && !callado)
+          _EstadoBien(adulto: nombre),
         TituloSeccion('Hoy lleva $listas de ${dia.length}'),
         Row(
           children: [
@@ -263,15 +311,15 @@ class _Alerta extends StatelessWidget {
   final String titulo;
   final String detalle;
   final VoidCallback? onLlamar; // null si no hay teléfono guardado
-  final String textoResuelta;
-  final VoidCallback onResuelta;
+  final String? textoResuelta; // null: la alerta se quita sola
+  final VoidCallback? onResuelta;
 
   const _Alerta({
     required this.titulo,
     required this.detalle,
     required this.onLlamar,
-    required this.textoResuelta,
-    required this.onResuelta,
+    this.textoResuelta,
+    this.onResuelta,
   });
 
   @override
@@ -330,27 +378,28 @@ class _Alerta extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 10),
+                if (textoResuelta != null) const SizedBox(width: 10),
               ],
-              Expanded(
-                child: SizedBox(
-                  height: 52,
-                  child: OutlinedButton(
-                    onPressed: onResuelta,
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: ColoresNana.alerta,
-                      backgroundColor: Colors.white,
-                      side: const BorderSide(color: ColoresNana.alerta),
-                      shape: const StadiumBorder(),
-                      textStyle: const TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.bold,
+              if (textoResuelta != null)
+                Expanded(
+                  child: SizedBox(
+                    height: 52,
+                    child: OutlinedButton(
+                      onPressed: onResuelta,
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: ColoresNana.alerta,
+                        backgroundColor: Colors.white,
+                        side: const BorderSide(color: ColoresNana.alerta),
+                        shape: const StadiumBorder(),
+                        textStyle: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
+                      child: Text(textoResuelta!),
                     ),
-                    child: Text(textoResuelta),
                   ),
                 ),
-              ),
             ],
           ),
         ],

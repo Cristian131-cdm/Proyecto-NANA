@@ -12,8 +12,10 @@ class TituloSeccion extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(top: 24, bottom: 10),
-      child: Text(texto,
-          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+      child: Text(
+        texto,
+        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+      ),
     );
   }
 }
@@ -61,13 +63,21 @@ class TarjetaDato extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(titulo,
-                          style: const TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold)),
+                      Text(
+                        titulo,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       if (subtitulo != null)
-                        Text(subtitulo!,
-                            style: const TextStyle(
-                                fontSize: 15, color: Color(0xFF6B6485))),
+                        Text(
+                          subtitulo!,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            color: Color(0xFF6B6485),
+                          ),
+                        ),
                     ],
                   ),
                 ),

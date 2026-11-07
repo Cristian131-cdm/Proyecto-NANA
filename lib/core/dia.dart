@@ -3,11 +3,21 @@ import 'package:flutter/material.dart';
 import '../models/actividad.dart';
 import '../models/medicamento.dart';
 import '../models/registro.dart';
+import '../models/rutina.dart';
 
 // Arma "el día" a partir de lo que hay en Firestore. Son funciones puras
 // para poder probarlas sin pantallas.
 
-// Comidas y actividad física fijas mientras las rutinas no estén en Firestore.
+// Las rutinas que tocan ese día, en la forma que usa diaDelAdulto.
+List<(TimeOfDay, String, TipoActividad)> rutinasDeHoy(
+  List<Rutina> rutinas,
+  DateTime hoy,
+) => [
+  for (final r in rutinas)
+    if (r.tocaEl(hoy)) (r.hora, r.titulo, r.tipo),
+];
+
+// Comidas y actividad física de ejemplo (las pruebas las usan por defecto).
 const rutinasDelDia = [
   (TimeOfDay(hour: 7, minute: 30), 'Desayuno', TipoActividad.comida),
   (TimeOfDay(hour: 14, minute: 0), 'Comida', TipoActividad.comida),
@@ -24,9 +34,8 @@ String horaCorta(TimeOfDay t) {
 
 int _minutos(TimeOfDay t) => t.hour * 60 + t.minute;
 
-bool _tomada(Medicamento m, List<Registro> hoy) => hoy.any(
-  (r) => r.tipo == TipoActividad.medicina && r.idMedicamento == m.id,
-);
+bool _tomada(Medicamento m, List<Registro> hoy) =>
+    hoy.any((r) => r.tipo == TipoActividad.medicina && r.idMedicamento == m.id);
 
 List<Actividad> diaDelAdulto({
   required List<Medicamento> meds,
@@ -88,7 +97,8 @@ const avisoAntesMin = 15;
       .where((a) => a.estado == EstadoActividad.ahora)
       .firstOrNull;
   final minutoActual = ahora.hour * 60 + ahora.minute;
-  final yaToca = siguiente != null &&
+  final yaToca =
+      siguiente != null &&
       (siguiente.horaExacta == null ||
           _minutos(siguiente.horaExacta!) - minutoActual <= avisoAntesMin);
   if (yaToca) return (QueToca.actividad, siguiente);
@@ -113,8 +123,7 @@ List<Medicamento> sinConfirmar({
   final minutoActual = ahora.hour * 60 + ahora.minute;
   return [
     for (final m in meds)
-      if (!_tomada(m, hoy) && minutoActual > _minutos(m.hora) + m.ventanaMin)
-        m,
+      if (!_tomada(m, hoy) && minutoActual > _minutos(m.hora) + m.ventanaMin) m,
   ];
 }
 
@@ -156,3 +165,11 @@ List<Actividad> lineaDelCuidador({
   ]..sort((a, b) => a.$1.compareTo(b.$1));
   return [for (final (_, a) in filas) a];
 }
+
+// "Sin noticias": hace más de [horas] que no se anota nada. Si nunca se ha
+// anotado nada (recién dado de alta) no se avisa.
+bool sinNoticias({
+  required DateTime? ultima,
+  required DateTime ahora,
+  required int horas,
+}) => ultima != null && ahora.difference(ultima) >= Duration(hours: horas);

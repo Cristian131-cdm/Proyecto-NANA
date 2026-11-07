@@ -32,7 +32,9 @@ void main() {
 
     expect(
       () => repo.canjearCodigo(codigo.codigo),
-      throwsA(isA<ErrorNana>().having((e) => e.mensaje, 'mensaje', errorCodigo)),
+      throwsA(
+        isA<ErrorNana>().having((e) => e.mensaje, 'mensaje', errorCodigo),
+      ),
     );
   });
 
@@ -44,7 +46,9 @@ void main() {
 
     expect(
       () => repo.canjearCodigo(codigo.codigo),
-      throwsA(isA<ErrorNana>().having((e) => e.mensaje, 'mensaje', errorCodigo)),
+      throwsA(
+        isA<ErrorNana>().having((e) => e.mensaje, 'mensaje', errorCodigo),
+      ),
     );
   });
 

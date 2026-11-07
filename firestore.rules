@@ -67,7 +67,8 @@ service cloud.firestore {
 
       match /{coleccion}/{id} {
         allow read, write: if conSesion()
-            && coleccion in ['medicamentos', 'registros', 'alertas']
+            && coleccion in ['medicamentos', 'registros', 'alertas',
+                              'rutinas', 'recetas', 'citas']
             && esFamilia(adulto(folio));
       }
     }

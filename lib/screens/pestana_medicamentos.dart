@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import '../core/servicios.dart';
 import '../core/tema.dart';
 import '../models/medicamento.dart';
@@ -29,7 +30,9 @@ String? errorDosis(String texto) {
 class _FormatoDosis extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
-      TextEditingValue anterior, TextEditingValue nuevo) {
+    TextEditingValue anterior,
+    TextEditingValue nuevo,
+  ) {
     final texto = nuevo.text.replaceAll(',', '.');
     if (!RegExp(r'^\d{0,4}(\.\d{0,3})?$').hasMatch(texto)) return anterior;
     return nuevo.copyWith(text: texto);
@@ -79,8 +82,10 @@ class _PestanaMedicamentosState extends State<PestanaMedicamentos> {
       ),
       body: lista.isEmpty
           ? const Center(
-              child: Text('Aún no hay medicamentos programados',
-                  style: TextStyle(fontSize: 18)),
+              child: Text(
+                'Aún no hay medicamentos programados',
+                style: TextStyle(fontSize: 18),
+              ),
             )
           : ListView.builder(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
@@ -93,11 +98,16 @@ class _PestanaMedicamentosState extends State<PestanaMedicamentos> {
                       backgroundColor: ColoresNana.moradoClaro,
                       child: Icon(Icons.medication, color: ColoresNana.morado),
                     ),
-                    title: Text('${m.nombre} · ${m.dosis}',
-                        style: const TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold)),
+                    title: Text(
+                      '${m.nombre} · ${m.dosis}',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     subtitle: Text(
-                        '${m.hora.format(context)} · alerta si no confirma en ${m.ventanaMin} min'),
+                      '${m.hora.format(context)} · alerta si no confirma en ${m.ventanaMin} min',
+                    ),
                     trailing: IconButton(
                       icon: const Icon(Icons.delete_outline),
                       tooltip: 'Borrar ${m.nombre}',
@@ -143,12 +153,14 @@ class _FormularioMedicamentoState extends State<FormularioMedicamento> {
   void _guardar() {
     setState(() => _intento = true);
     if (_nombre.text.trim().isEmpty || errorDosis(_dosis.text) != null) return;
-    widget.onGuardar(Medicamento(
-      nombre: _nombre.text.trim(),
-      dosis: '${_dosis.text.trim()} $_unidad',
-      hora: _hora,
-      ventanaMin: _ventana,
-    ));
+    widget.onGuardar(
+      Medicamento(
+        nombre: _nombre.text.trim(),
+        dosis: '${_dosis.text.trim()} $_unidad',
+        hora: _hora,
+        ventanaMin: _ventana,
+      ),
+    );
     Navigator.pop(context);
   }
 
@@ -166,8 +178,10 @@ class _FormularioMedicamentoState extends State<FormularioMedicamento> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Nuevo medicamento',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            const Text(
+              'Nuevo medicamento',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 4),
             const Text(
               'Registra solo lo indicado por un profesional de la salud.',
@@ -192,8 +206,9 @@ class _FormularioMedicamentoState extends State<FormularioMedicamento> {
                   flex: 3,
                   child: TextField(
                     controller: _dosis,
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     inputFormatters: [_FormatoDosis()],
                     onChanged: (_) => setState(() {}),
                     decoration: InputDecoration(
@@ -231,11 +246,14 @@ class _FormularioMedicamentoState extends State<FormularioMedicamento> {
               icon: const Icon(Icons.access_time),
               label: Text('Hora: ${_hora.format(context)}'),
               style: OutlinedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 52)),
+                minimumSize: const Size(double.infinity, 52),
+              ),
             ),
             const SizedBox(height: 16),
-            const Text('Ventana de confirmación',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            const Text(
+              'Ventana de confirmación',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
             const SizedBox(height: 8),
             SegmentedButton<int>(
               segments: const [

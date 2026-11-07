@@ -1,12 +1,21 @@
 import 'package:flutter/material.dart';
 
+import '../core/dia.dart';
+import '../core/servicios.dart';
 import '../core/tema.dart';
-import '../data/datos_ejemplo.dart';
 import '../models/actividad.dart';
+import '../models/rutina.dart';
+import '../widgets/aviso.dart';
 import '../widgets/tarjeta_dato.dart';
 
 const _nombresDias = [
-  'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'
+  'Lunes',
+  'Martes',
+  'Miércoles',
+  'Jueves',
+  'Viernes',
+  'Sábado',
+  'Domingo',
 ];
 
 // Convierte los días elegidos (0 = lunes) en el texto que se ve en la tarjeta.
@@ -22,55 +31,33 @@ String textoDias(Set<int> dias) {
   return '${nombres.sublist(0, nombres.length - 1).join(', ')} y ${nombres.last}';
 }
 
-Set<int> _diasDeTexto(String texto) {
-  if (texto == 'Todos los días') return {0, 1, 2, 3, 4, 5, 6};
-  if (texto == 'Lunes a viernes') return {0, 1, 2, 3, 4};
-  final dias = <int>{};
-  for (var i = 0; i < _nombresDias.length; i++) {
-    if (texto.toLowerCase().contains(_nombresDias[i].toLowerCase())) {
-      dias.add(i);
-    }
-  }
-  return dias;
-}
-
-// Lee horas como "7:30" o "2:00 pm" de los datos de ejemplo.
-TimeOfDay _horaDeTexto(String texto) {
-  final m = RegExp(r'(\d+):(\d+)\s*(am|pm)?', caseSensitive: false)
-      .firstMatch(texto);
-  if (m == null) return const TimeOfDay(hour: 8, minute: 0);
-  var h = int.parse(m.group(1)!);
-  final pm = m.group(3)?.toLowerCase() == 'pm';
-  if (pm && h < 12) h += 12;
-  return TimeOfDay(hour: h, minute: int.parse(m.group(2)!));
-}
-
 class PestanaRutinas extends StatefulWidget {
-  const PestanaRutinas({super.key});
+  final String folio;
+  const PestanaRutinas({super.key, required this.folio});
 
   @override
   State<PestanaRutinas> createState() => _PestanaRutinasState();
 }
 
 class _PestanaRutinasState extends State<PestanaRutinas> {
-  final List<Actividad> _rutinas = List.of(DatosEjemplo.rutinas);
+  late final _rutinas = Servicios.repo.rutinas(widget.folio);
 
-  void _abrirFormulario([int? indice]) {
+  void _abrirFormulario([Rutina? inicial]) {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       builder: (_) => FormularioRutina(
-        inicial: indice == null ? null : _rutinas[indice],
-        onGuardar: (r) => setState(() {
-          if (indice == null) {
-            _rutinas.add(r);
-          } else {
-            _rutinas[indice] = r;
-          }
-        }),
-        onEliminar: indice == null
+        inicial: inicial,
+        onGuardar: (r) {
+          Servicios.repo.guardarRutina(widget.folio, r);
+          mostrarAviso(context, 'Rutina guardada');
+        },
+        onEliminar: inicial == null
             ? null
-            : () => setState(() => _rutinas.removeAt(indice)),
+            : () {
+                Servicios.repo.borrarRutina(widget.folio, inicial.id!);
+                mostrarAviso(context, 'Rutina eliminada');
+              },
       ),
     );
   }
@@ -86,42 +73,58 @@ class _PestanaRutinasState extends State<PestanaRutinas> {
         icon: const Icon(Icons.add),
         label: const Text('Agregar', style: TextStyle(fontSize: 18)),
       ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 90),
-        children: [
-          const Text(
-            'NANA le recuerda estas cosas a lo largo del día.',
-            style: TextStyle(fontSize: 16, color: Color(0xFF6B6485)),
-          ),
-          const TituloSeccion('Comidas'),
-          ..._de(TipoActividad.comida),
-          const TituloSeccion('Moverse'),
-          ..._de(TipoActividad.ejercicio),
-        ],
+      body: StreamBuilder<List<Rutina>>(
+        stream: _rutinas,
+        builder: (context, snap) {
+          final rutinas = snap.data ?? const <Rutina>[];
+          return ListView(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 90),
+            children: [
+              const Text(
+                'NANA le recuerda estas cosas a lo largo del día.',
+                style: TextStyle(fontSize: 16, color: ColoresNana.tintaSuave),
+              ),
+              const TituloSeccion('Comidas'),
+              ..._de(rutinas, TipoActividad.comida),
+              const TituloSeccion('Moverse'),
+              ..._de(rutinas, TipoActividad.ejercicio),
+            ],
+          );
+        },
       ),
     );
   }
 
-  List<Widget> _de(TipoActividad tipo) {
+  List<Widget> _de(List<Rutina> rutinas, TipoActividad tipo) {
+    final deTipo = rutinas.where((r) => r.tipo == tipo).toList();
+    if (deTipo.isEmpty) {
+      return [
+        Text(
+          tipo == TipoActividad.comida
+              ? 'Sin comidas todavía. Toca "Agregar".'
+              : 'Sin actividades todavía. Toca "Agregar".',
+          style: const TextStyle(fontSize: 17, color: ColoresNana.tintaSuave),
+        ),
+      ];
+    }
     return [
-      for (var i = 0; i < _rutinas.length; i++)
-        if (_rutinas[i].tipo == tipo)
-          TarjetaDato(
-            icono: tipo.icono,
-            titulo: '${_rutinas[i].titulo} · ${_rutinas[i].hora}',
-            subtitulo: _rutinas[i].detalle,
-            color: tipo == TipoActividad.comida
-                ? ColoresNana.ok
-                : ColoresNana.azul,
-            onTap: () => _abrirFormulario(i),
-          ),
+      for (final r in deTipo)
+        TarjetaDato(
+          icono: tipo.icono,
+          titulo: '${r.titulo} · ${horaCorta(r.hora)}',
+          subtitulo: textoDias(r.dias),
+          color: tipo == TipoActividad.comida
+              ? ColoresNana.ok
+              : ColoresNana.azul,
+          onTap: () => _abrirFormulario(r),
+        ),
     ];
   }
 }
 
 class FormularioRutina extends StatefulWidget {
-  final Actividad? inicial;
-  final ValueChanged<Actividad> onGuardar;
+  final Rutina? inicial;
+  final ValueChanged<Rutina> onGuardar;
   final VoidCallback? onEliminar;
 
   const FormularioRutina({
@@ -138,12 +141,11 @@ class FormularioRutina extends StatefulWidget {
 class _FormularioRutinaState extends State<FormularioRutina> {
   late final _nombre = TextEditingController(text: widget.inicial?.titulo);
   late TipoActividad _tipo = widget.inicial?.tipo ?? TipoActividad.comida;
-  late TimeOfDay _hora = widget.inicial == null
-      ? const TimeOfDay(hour: 8, minute: 0)
-      : _horaDeTexto(widget.inicial!.hora);
-  late final Set<int> _dias = widget.inicial == null
-      ? {0, 1, 2, 3, 4, 5, 6}
-      : _diasDeTexto(widget.inicial!.detalle);
+  late TimeOfDay _hora =
+      widget.inicial?.hora ?? const TimeOfDay(hour: 8, minute: 0);
+  late final Set<int> _dias = Set.of(
+    widget.inicial?.dias ?? const {0, 1, 2, 3, 4, 5, 6},
+  );
   bool _intento = false;
 
   @override
@@ -160,13 +162,15 @@ class _FormularioRutinaState extends State<FormularioRutina> {
   void _guardar() {
     setState(() => _intento = true);
     if (_nombre.text.trim().isEmpty || _dias.isEmpty) return;
-    widget.onGuardar(Actividad(
-      hora: _hora.format(context),
-      titulo: _nombre.text.trim(),
-      detalle: textoDias(_dias),
-      tipo: _tipo,
-      estado: EstadoActividad.pendiente,
-    ));
+    widget.onGuardar(
+      Rutina(
+        id: widget.inicial?.id,
+        titulo: _nombre.text.trim(),
+        tipo: _tipo,
+        hora: _hora,
+        dias: Set.of(_dias),
+      ),
+    );
     Navigator.pop(context);
   }
 
@@ -184,9 +188,10 @@ class _FormularioRutinaState extends State<FormularioRutina> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(widget.inicial == null ? 'Nueva rutina' : 'Editar rutina',
-                style:
-                    const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            Text(
+              widget.inicial == null ? 'Nueva rutina' : 'Editar rutina',
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 4),
             const Text(
               'Si es ejercicio, que sea lo indicado por su médico.',
@@ -196,13 +201,15 @@ class _FormularioRutinaState extends State<FormularioRutina> {
             SegmentedButton<TipoActividad>(
               segments: const [
                 ButtonSegment(
-                    value: TipoActividad.comida,
-                    icon: Icon(Icons.restaurant),
-                    label: Text('Comida')),
+                  value: TipoActividad.comida,
+                  icon: Icon(Icons.restaurant),
+                  label: Text('Comida'),
+                ),
                 ButtonSegment(
-                    value: TipoActividad.ejercicio,
-                    icon: Icon(Icons.directions_walk),
-                    label: Text('Moverse')),
+                  value: TipoActividad.ejercicio,
+                  icon: Icon(Icons.directions_walk),
+                  label: Text('Moverse'),
+                ),
               ],
               selected: {_tipo},
               onSelectionChanged: (s) => setState(() => _tipo = s.first),
@@ -224,11 +231,14 @@ class _FormularioRutinaState extends State<FormularioRutina> {
               icon: const Icon(Icons.access_time),
               label: Text('Hora: ${_hora.format(context)}'),
               style: OutlinedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 52)),
+                minimumSize: const Size(double.infinity, 52),
+              ),
             ),
             const SizedBox(height: 16),
-            const Text('Días',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            const Text(
+              'Días',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
             const SizedBox(height: 8),
             Wrap(
               spacing: 6,
@@ -239,16 +249,18 @@ class _FormularioRutinaState extends State<FormularioRutina> {
                     label: Text(_nombresDias[i].substring(0, 2)),
                     tooltip: _nombresDias[i],
                     selected: _dias.contains(i),
-                    onSelected: (si) => setState(
-                        () => si ? _dias.add(i) : _dias.remove(i)),
+                    onSelected: (si) =>
+                        setState(() => si ? _dias.add(i) : _dias.remove(i)),
                   ),
               ],
             ),
             if (_intento && _dias.isEmpty)
               const Padding(
                 padding: EdgeInsets.only(top: 6),
-                child: Text('Elige al menos un día',
-                    style: TextStyle(color: ColoresNana.alerta)),
+                child: Text(
+                  'Elige al menos un día',
+                  style: TextStyle(color: ColoresNana.alerta),
+                ),
               ),
             const SizedBox(height: 20),
             ElevatedButton(onPressed: _guardar, child: const Text('Guardar')),
@@ -261,8 +273,9 @@ class _FormularioRutinaState extends State<FormularioRutina> {
                 },
                 icon: const Icon(Icons.delete_outline),
                 label: const Text('Eliminar rutina'),
-                style:
-                    TextButton.styleFrom(foregroundColor: ColoresNana.alerta),
+                style: TextButton.styleFrom(
+                  foregroundColor: ColoresNana.alerta,
+                ),
               ),
             ],
           ],

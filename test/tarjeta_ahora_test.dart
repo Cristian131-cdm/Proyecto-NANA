@@ -41,18 +41,19 @@ void main() {
     return llamadas;
   }
 
-  testWidgets('Lo que toca: "Ya" anota y tocar la tarjeta abre el recordatorio', (
-    t,
-  ) async {
-    final llamadas = await pintar(t, QueToca.actividad, actividad: _losartan);
-    expect(find.text('Toca ahora'), findsOneWidget);
-    expect(find.text('Losartán 50 mg'), findsOneWidget);
-    expect(find.bySemanticsLabel('Ya me la tomé'), findsOneWidget);
+  testWidgets(
+    'Lo que toca: "Ya" anota y tocar la tarjeta abre el recordatorio',
+    (t) async {
+      final llamadas = await pintar(t, QueToca.actividad, actividad: _losartan);
+      expect(find.text('Toca ahora'), findsOneWidget);
+      expect(find.text('Losartán 50 mg'), findsOneWidget);
+      expect(find.bySemanticsLabel('Ya me la tomé'), findsOneWidget);
 
-    await t.tap(find.text('Ya'));
-    await t.tap(find.text('Losartán 50 mg'));
-    expect(llamadas, ['hecha', 'abrir']);
-  });
+      await t.tap(find.text('Ya'));
+      await t.tap(find.text('Losartán 50 mg'));
+      expect(llamadas, ['hecha', 'abrir']);
+    },
+  );
 
   testWidgets('Lo que sigue también deja marcarlo, pero no abre la alarma', (
     t,

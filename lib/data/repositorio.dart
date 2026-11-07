@@ -1,7 +1,9 @@
 import '../models/adulto.dart';
 import '../models/alerta.dart';
 import '../models/medicamento.dart';
+import '../models/receta.dart';
 import '../models/registro.dart';
+import '../models/rutina.dart';
 import '../models/salud.dart';
 import '../models/usuario.dart';
 
@@ -75,4 +77,21 @@ abstract class RepositorioNana {
   Stream<List<Alerta>> alertasSinAtender(String folio);
   Future<bool> pedirAyuda(String folio);
   Future<void> atenderAlerta(String folio, String id);
+  Stream<ReglasAlerta> reglasAlerta(String folio);
+  Future<void> guardarReglasAlerta(String folio, ReglasAlerta r);
+
+  // Rutinas (comidas y moverse), recetas y citas. Las edita la familia.
+  Stream<List<Rutina>> rutinas(String folio);
+  Future<void> guardarRutina(String folio, Rutina r);
+  Future<void> borrarRutina(String folio, String id);
+  Stream<List<Receta>> recetas(String folio);
+  Future<void> guardarReceta(String folio, Receta r);
+  Future<void> borrarReceta(String folio, String id);
+  Stream<List<Cita>> citas(String folio);
+  Future<void> guardarCita(String folio, Cita c);
+  Future<void> borrarCita(String folio, String id);
+
+  // Para la semana y para "sin noticias".
+  Stream<List<Registro>> registrosDesde(String folio, DateTime desde);
+  Stream<DateTime?> ultimaActividad(String folio);
 }

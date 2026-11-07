@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../core/tema.dart';
 
 class CaritasAnimo extends StatelessWidget {
@@ -63,7 +64,9 @@ class CaritasAnimo extends StatelessWidget {
                         etiquetas[i],
                         style: TextStyle(
                           fontSize: 14,
-                          fontWeight: activa ? FontWeight.bold : FontWeight.normal,
+                          fontWeight: activa
+                              ? FontWeight.bold
+                              : FontWeight.normal,
                           color: activa ? colores[i] : ColoresNana.tinta,
                         ),
                       ),

@@ -8,20 +8,20 @@ enum EstadoActividad { hecha, ahora, pendiente, sinConfirmar }
 
 extension TipoActividadVisual on TipoActividad {
   IconData get icono => switch (this) {
-        TipoActividad.medicina => Icons.medication,
-        TipoActividad.comida => Icons.restaurant,
-        TipoActividad.ejercicio => Icons.directions_walk,
-        TipoActividad.animo => Icons.mood,
-      };
+    TipoActividad.medicina => Icons.medication,
+    TipoActividad.comida => Icons.restaurant,
+    TipoActividad.ejercicio => Icons.directions_walk,
+    TipoActividad.animo => Icons.mood,
+  };
 }
 
 extension EstadoActividadVisual on EstadoActividad {
   Color get color => switch (this) {
-        EstadoActividad.hecha => ColoresNana.ok,
-        EstadoActividad.ahora => ColoresNana.morado,
-        EstadoActividad.pendiente => const Color(0xFF8A82A3),
-        EstadoActividad.sinConfirmar => ColoresNana.alerta,
-      };
+    EstadoActividad.hecha => ColoresNana.ok,
+    EstadoActividad.ahora => ColoresNana.morado,
+    EstadoActividad.pendiente => const Color(0xFF8A82A3),
+    EstadoActividad.sinConfirmar => ColoresNana.alerta,
+  };
 }
 
 class Actividad {
@@ -44,12 +44,12 @@ class Actividad {
   });
 
   Actividad conEstado(EstadoActividad nuevo) => Actividad(
-        hora: hora,
-        titulo: titulo,
-        detalle: detalle,
-        tipo: tipo,
-        estado: nuevo,
-        idMedicamento: idMedicamento,
-        horaExacta: horaExacta,
-      );
+    hora: hora,
+    titulo: titulo,
+    detalle: detalle,
+    tipo: tipo,
+    estado: nuevo,
+    idMedicamento: idMedicamento,
+    horaExacta: horaExacta,
+  );
 }

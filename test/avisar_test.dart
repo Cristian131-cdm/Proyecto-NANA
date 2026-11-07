@@ -32,7 +32,10 @@ void main() {
     Servicios.repo = RepositorioMemoria(sesion: 'rosa-cel')..sinInternet = true;
     await _pedirAyuda(t);
 
-    expect(find.text('No hay internet. Lo mando en cuanto haya'), findsOneWidget);
+    expect(
+      find.text('No hay internet. Lo mando en cuanto haya'),
+      findsOneWidget,
+    );
     expect(find.text('Listo, ya le avisé a tu familia'), findsNothing);
   });
 

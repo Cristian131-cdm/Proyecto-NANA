@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../core/servicios.dart';
 import '../core/tema.dart';
-import '../data/datos_ejemplo.dart';
+import '../models/adulto.dart';
+import '../models/alerta.dart';
 import '../widgets/aviso.dart';
 import '../widgets/tarjeta_dato.dart';
 
@@ -18,19 +20,22 @@ String generarCodigo([Random? azar]) {
 
 class FamiliaAlertas extends StatefulWidget {
   final String adulto;
-  const FamiliaAlertas({super.key, required this.adulto});
+  final String folio;
+  const FamiliaAlertas({super.key, required this.adulto, required this.folio});
 
   @override
   State<FamiliaAlertas> createState() => _FamiliaAlertasState();
 }
 
 class _FamiliaAlertasState extends State<FamiliaAlertas> {
-  bool _medicina = true;
-  bool _sinNoticias = true;
-  int _horasSinNoticias = 12;
+  late final _familia = Servicios.repo.familiaDe(widget.folio);
+  late final _reglas = Servicios.repo.reglasAlerta(widget.folio);
 
-  void _verFamiliar(int i) {
-    final f = DatosEjemplo.familia[i];
+  void _guardar(ReglasAlerta r) =>
+      Servicios.repo.guardarReglasAlerta(widget.folio, r);
+
+  void _verFamiliar(Familiar f, bool soyYo) {
+    final telefono = f.telefono;
     showModalBottomSheet<void>(
       context: context,
       builder: (context) => Padding(
@@ -39,29 +44,38 @@ class _FamiliaAlertasState extends State<FamiliaAlertas> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(i == 0 ? '${f.$1} (tú)' : f.$1,
-                style:
-                    const TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
+            Text(
+              soyYo ? '${f.nombre} (tú)' : f.nombre,
+              style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 4),
-            Text('${f.$2[0].toUpperCase()}${f.$2.substring(1)} de ${widget.adulto}',
-                style: const TextStyle(fontSize: 18)),
-            const SizedBox(height: 4),
-            Text(f.$3,
-                style: const TextStyle(fontSize: 16, color: Color(0xFF6B6485))),
-            if (i != 0) ...[
+            Text(
+              'Cuida a ${widget.adulto} · recibe todas las alertas',
+              style: const TextStyle(
+                fontSize: 16,
+                color: ColoresNana.tintaSuave,
+              ),
+            ),
+            if (telefono != null && telefono.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text('Teléfono: $telefono', style: const TextStyle(fontSize: 18)),
+            ],
+            if (!soyYo && telefono != null && telefono.isNotEmpty) ...[
               const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
                 height: 60,
                 child: FilledButton.icon(
-                  onPressed: () => llamar(context, f.$4),
+                  onPressed: () => llamar(context, telefono),
                   icon: const Icon(Icons.call),
-                  label: Text('Llamar a ${f.$1}'),
+                  label: Text('Llamar a ${f.nombre}'),
                   style: FilledButton.styleFrom(
                     backgroundColor: ColoresNana.azul,
                     shape: const StadiumBorder(),
                     textStyle: const TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.bold),
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -74,7 +88,8 @@ class _FamiliaAlertasState extends State<FamiliaAlertas> {
 
   void _invitar() {
     final codigo = generarCodigo();
-    final texto = 'Te invito a cuidar a ${widget.adulto} en NANA. '
+    final texto =
+        'Te invito a cuidar a ${widget.adulto} en NANA. '
         'Abre la app y escribe este código: $codigo';
     showDialog<void>(
       context: context,
@@ -84,12 +99,15 @@ class _FamiliaAlertasState extends State<FamiliaAlertas> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SelectableText(codigo,
-                style: const TextStyle(
-                    fontSize: 40,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 6,
-                    color: ColoresNana.morado)),
+            SelectableText(
+              codigo,
+              style: const TextStyle(
+                fontSize: 40,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 6,
+                color: ColoresNana.morado,
+              ),
+            ),
             const SizedBox(height: 12),
             const Text(
               'De prueba: el código se activará cuando haya cuentas.',
@@ -109,8 +127,7 @@ class _FamiliaAlertasState extends State<FamiliaAlertas> {
             label: const Text('Copiar'),
           ),
           FilledButton.icon(
-            onPressed: () =>
-                SharePlus.instance.share(ShareParams(text: texto)),
+            onPressed: () => SharePlus.instance.share(ShareParams(text: texto)),
             icon: const Icon(Icons.share),
             label: const Text('Compartir'),
           ),
@@ -121,71 +138,87 @@ class _FamiliaAlertasState extends State<FamiliaAlertas> {
 
   @override
   Widget build(BuildContext context) {
-    final adulto = widget.adulto;
     return Scaffold(
       appBar: AppBar(title: const Text('Familia y alertas')),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
-        children: [
-          TituloSeccion('Quiénes cuidan a $adulto'),
-          for (final (i, f) in DatosEjemplo.familia.indexed)
-            TarjetaDato(
-              icono: Icons.person,
-              titulo: i == 0 ? 'Tú (${f.$1}) · ${f.$2}' : '${f.$1} · ${f.$2}',
-              subtitulo: f.$3,
-              onTap: () => _verFamiliar(i),
-            ),
-          BotonSecundario(
-            icono: Icons.person_add_alt_1,
-            texto: 'Invitar a alguien con código',
-            onPressed: _invitar,
+      body: StreamBuilder<List<Familiar>>(
+        stream: _familia,
+        builder: (context, familia) => StreamBuilder<ReglasAlerta>(
+          stream: _reglas,
+          builder: (context, reglas) => _lista(
+            familia.data ?? const [],
+            reglas.data ?? const ReglasAlerta(),
           ),
-          const TituloSeccion('¿Cuándo te aviso?'),
-          _Regla(
-            icono: Icons.medication,
-            titulo: 'Medicina sin confirmar',
-            subtitulo: 'Según la ventana de cada medicina (15, 30 o 60 min)',
-            encendida: _medicina,
-            onCambio: (v) => setState(() => _medicina = v),
-          ),
-          _Regla(
-            icono: Icons.schedule,
-            titulo: 'Sin noticias',
-            subtitulo:
-                'Si pasan $_horasSinNoticias horas sin ningún registro',
-            encendida: _sinNoticias,
-            onCambio: (v) => setState(() => _sinNoticias = v),
-            extra: _sinNoticias
-                ? SegmentedButton<int>(
-                    segments: const [
-                      ButtonSegment(value: 6, label: Text('6 h')),
-                      ButtonSegment(value: 12, label: Text('12 h')),
-                      ButtonSegment(value: 24, label: Text('24 h')),
-                    ],
-                    selected: {_horasSinNoticias},
-                    onSelectionChanged: (s) =>
-                        setState(() => _horasSinNoticias = s.first),
-                  )
-                : null,
-          ),
-          const _Regla(
-            icono: Icons.notifications_active,
-            titulo: 'Cuando pide ayuda',
-            subtitulo: 'Siempre, al momento. Esta no se puede apagar.',
-            encendida: true,
-          ),
-          const TituloSeccion('Privacidad'),
-          TarjetaDato(
-            icono: Icons.lock_outline,
-            titulo: 'Qué datos se guardan',
-            subtitulo: 'Y quién los puede ver',
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const PantallaPrivacidad()),
-            ),
-          ),
-        ],
+        ),
       ),
+    );
+  }
+
+  Widget _lista(List<Familiar> familia, ReglasAlerta reglas) {
+    final adulto = widget.adulto;
+    final yo = Servicios.repo.uid;
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
+      children: [
+        TituloSeccion('Quiénes cuidan a $adulto'),
+        for (final f in familia)
+          TarjetaDato(
+            icono: Icons.person,
+            titulo: f.uid == yo ? 'Tú (${f.nombre})' : f.nombre,
+            subtitulo: (f.telefono ?? '').isEmpty
+                ? 'Recibe todas las alertas'
+                : 'Recibe todas las alertas · ${f.telefono}',
+            onTap: () => _verFamiliar(f, f.uid == yo),
+          ),
+        BotonSecundario(
+          icono: Icons.person_add_alt_1,
+          texto: 'Invitar a alguien con código',
+          onPressed: _invitar,
+        ),
+        const TituloSeccion('¿Cuándo te aviso?'),
+        _Regla(
+          icono: Icons.medication,
+          titulo: 'Medicina sin confirmar',
+          subtitulo: 'Según la ventana de cada medicina (15, 30 o 60 min)',
+          encendida: reglas.medicina,
+          onCambio: (v) => _guardar(reglas.copyWith(medicina: v)),
+        ),
+        _Regla(
+          icono: Icons.schedule,
+          titulo: 'Sin noticias',
+          subtitulo:
+              'Si pasan ${reglas.horasSinNoticias} horas sin ningún registro',
+          encendida: reglas.sinNoticias,
+          onCambio: (v) => _guardar(reglas.copyWith(sinNoticias: v)),
+          extra: reglas.sinNoticias
+              ? SegmentedButton<int>(
+                  segments: const [
+                    ButtonSegment(value: 6, label: Text('6 h')),
+                    ButtonSegment(value: 12, label: Text('12 h')),
+                    ButtonSegment(value: 24, label: Text('24 h')),
+                  ],
+                  selected: {reglas.horasSinNoticias},
+                  onSelectionChanged: (s) =>
+                      _guardar(reglas.copyWith(horasSinNoticias: s.first)),
+                )
+              : null,
+        ),
+        const _Regla(
+          icono: Icons.notifications_active,
+          titulo: 'Cuando pide ayuda',
+          subtitulo: 'Siempre, al momento. Esta no se puede apagar.',
+          encendida: true,
+        ),
+        const TituloSeccion('Privacidad'),
+        TarjetaDato(
+          icono: Icons.lock_outline,
+          titulo: 'Qué datos se guardan',
+          subtitulo: 'Y quién los puede ver',
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const PantallaPrivacidad()),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -234,12 +267,20 @@ class _Regla extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(titulo,
-                          style: const TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold)),
-                      Text(subtitulo,
-                          style: const TextStyle(
-                              fontSize: 15, color: Color(0xFF6B6485))),
+                      Text(
+                        titulo,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        subtitulo,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          color: Color(0xFF6B6485),
+                        ),
+                      ),
                     ],
                   ),
                 ),

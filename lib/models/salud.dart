@@ -3,7 +3,8 @@
 class Salud {
   final List<String> padecimientos;
   final List<String> alergias;
-  final List<String> medicamentos; // los que menciona el expediente, sin horario
+  final List<String>
+  medicamentos; // los que menciona el expediente, sin horario
   final List<String> discapacidades;
   final double? pesoKg;
   final int? estaturaCm;

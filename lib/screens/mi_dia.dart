@@ -6,8 +6,9 @@ import '../core/tema.dart';
 import '../models/actividad.dart';
 import '../models/medicamento.dart';
 import '../models/registro.dart';
+import '../models/rutina.dart';
 
-// Escucha medicinas y registros de hoy y arma el día con ellos.
+// Escucha medicinas, rutinas y registros de hoy y arma el día con ellos.
 class ConDia extends StatefulWidget {
   final String folio;
   final Widget Function(List<Actividad> dia, int? animo) builder;
@@ -21,21 +22,32 @@ class ConDia extends StatefulWidget {
 class _ConDiaState extends State<ConDia> {
   late final _meds = Servicios.repo.medicamentos(widget.folio);
   late final _hoy = Servicios.repo.registrosDeHoy(widget.folio);
+  late final _rutinas = Servicios.repo.rutinas(widget.folio);
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<Medicamento>>(
       stream: _meds,
-      builder: (context, meds) => StreamBuilder<List<Registro>>(
-        stream: _hoy,
-        builder: (context, regs) {
-          final hoy = regs.data ?? const <Registro>[];
-          final animos = hoy.where((r) => r.tipo == TipoActividad.animo);
-          return widget.builder(
-            diaDelAdulto(meds: meds.data ?? const [], hoy: hoy),
-            animos.isEmpty ? null : animos.last.valor,
-          );
-        },
+      builder: (context, meds) => StreamBuilder<List<Rutina>>(
+        stream: _rutinas,
+        builder: (context, rutinas) => StreamBuilder<List<Registro>>(
+          stream: _hoy,
+          builder: (context, regs) {
+            final hoy = regs.data ?? const <Registro>[];
+            final animos = hoy.where((r) => r.tipo == TipoActividad.animo);
+            return widget.builder(
+              diaDelAdulto(
+                meds: meds.data ?? const [],
+                hoy: hoy,
+                otras: rutinasDeHoy(
+                  rutinas.data ?? const [],
+                  Servicios.reloj(),
+                ),
+              ),
+              animos.isEmpty ? null : animos.last.valor,
+            );
+          },
+        ),
       ),
     );
   }

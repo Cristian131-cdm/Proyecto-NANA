@@ -28,10 +28,7 @@ const frasesPorGrupo = {
     '¿Viene alguien hoy?',
     'Extraño a mi familia',
   ],
-  'Mi día': [
-    '¿Qué sigue hoy?',
-    'Necesito ayuda',
-  ],
+  'Mi día': ['¿Qué sigue hoy?', 'Necesito ayuda'],
 };
 
 /// Abre la hoja con todas las frases. Regresa la frase que tocó, o null.
@@ -74,9 +71,10 @@ class _HojaFrases extends StatelessWidget {
             Row(
               children: [
                 const Expanded(
-                  child: Text('¿Qué le quieres decir a NANA?',
-                      style:
-                          TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                  child: Text(
+                    '¿Qué le quieres decir a NANA?',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.close, size: 30),
@@ -88,20 +86,25 @@ class _HojaFrases extends StatelessWidget {
             for (final grupo in frasesPorGrupo.entries) ...[
               Padding(
                 padding: const EdgeInsets.only(top: 20, bottom: 10),
-                child: Text(grupo.key,
-                    style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: ColoresNana.morado)),
+                child: Text(
+                  grupo.key,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: ColoresNana.morado,
+                  ),
+                ),
               ),
               Wrap(
                 spacing: 10,
                 runSpacing: 10,
                 children: grupo.value
-                    .map((f) => BotonFrase(
-                          frase: f,
-                          onTap: () => Navigator.pop(context, f),
-                        ))
+                    .map(
+                      (f) => BotonFrase(
+                        frase: f,
+                        onTap: () => Navigator.pop(context, f),
+                      ),
+                    )
                     .toList(),
               ),
             ],
@@ -122,12 +125,17 @@ class BotonFrase extends StatelessWidget {
   Widget build(BuildContext context) {
     final ayuda = frase == 'Necesito ayuda';
     return ActionChip(
-      label: Text(frase,
-          style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              color: ayuda ? ColoresNana.alerta : ColoresNana.morado)),
-      backgroundColor: ayuda ? ColoresNana.alertaClaro : ColoresNana.moradoClaro,
+      label: Text(
+        frase,
+        style: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          color: ayuda ? ColoresNana.alerta : ColoresNana.morado,
+        ),
+      ),
+      backgroundColor: ayuda
+          ? ColoresNana.alertaClaro
+          : ColoresNana.moradoClaro,
       side: ayuda
           ? const BorderSide(color: ColoresNana.alerta, width: 1.5)
           : BorderSide.none,

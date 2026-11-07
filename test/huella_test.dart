@@ -43,16 +43,13 @@ void main() {
   final las9 = DateTime(2026, 10, 26, 9);
 
   group('Cuándo se pide la huella', () {
-    bool pedir({
-      bool activada = true,
-      Duration? fuera,
-      bool alarma = false,
-    }) => hayQuePedirHuella(
-      activada: activada,
-      enSegundoPlanDesde: fuera == null ? null : las9.subtract(fuera),
-      ahora: las9,
-      vieneDeAlarma: alarma,
-    );
+    bool pedir({bool activada = true, Duration? fuera, bool alarma = false}) =>
+        hayQuePedirHuella(
+          activada: activada,
+          enSegundoPlanDesde: fuera == null ? null : las9.subtract(fuera),
+          ahora: las9,
+          vieneDeAlarma: alarma,
+        );
 
     test('a los 29 minutos todavía no', () {
       expect(pedir(fuera: const Duration(minutes: 29)), isFalse);
@@ -97,8 +94,9 @@ void main() {
       expect(find.text('¿Quieres entrar con tu huella?'), findsNothing);
     });
 
-    testWidgets('"Sí, activarla" pide la huella y la deja encendida',
-        (t) async {
+    testWidgets('"Sí, activarla" pide la huella y la deja encendida', (
+      t,
+    ) async {
       final bio = _BiometriaFalsa(hay: true);
       Servicios.biometria = bio;
       await _entrarConCodigo(t);

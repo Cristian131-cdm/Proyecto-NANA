@@ -61,7 +61,9 @@ void main() {
             size: Size(360, 1600),
             textScaler: TextScaler.linear(2.0),
           ),
-          child: const Scaffold(body: PestanaSemana(adulto: 'Rosa')),
+          child: const Scaffold(
+            body: PestanaSemana(adulto: 'Rosa', folio: 'rosa'),
+          ),
         ),
       ),
     );

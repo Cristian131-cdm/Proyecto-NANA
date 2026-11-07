@@ -97,8 +97,9 @@ void main() {
     expect(guardada.actualizado, isNotNull);
   });
 
-  testWidgets('A mano: se agrega y se quita un padecimiento y se guarda',
-      (t) async {
+  testWidgets('A mano: se agrega y se quita un padecimiento y se guarda', (
+    t,
+  ) async {
     await t.pumpWidget(_conFormulario());
     await t.tap(find.text('abrir'));
     await t.pumpAndSettle();
@@ -121,8 +122,9 @@ void main() {
     expect(find.text('abrir'), findsOneWidget); // regresó
   });
 
-  testWidgets('El expediente llena el formulario y la familia lo confirma',
-      (t) async {
+  testWidgets('El expediente llena el formulario y la familia lo confirma', (
+    t,
+  ) async {
     await t.pumpWidget(_conFormulario());
     await t.tap(find.text('abrir'));
     await t.pumpAndSettle();
@@ -142,8 +144,7 @@ void main() {
     expect(s.origen, 'documento');
   });
 
-  testWidgets('Si no se puede leer el documento lo dice con calma',
-      (t) async {
+  testWidgets('Si no se puede leer el documento lo dice con calma', (t) async {
     Servicios.lector = _LectorFalso(falla: true);
     await t.pumpWidget(_conFormulario());
     await t.tap(find.text('abrir'));
@@ -181,7 +182,9 @@ void main() {
     );
     await t.pumpWidget(
       const MaterialApp(
-        home: Scaffold(body: PestanaHistorial(adulto: 'Rosa', folio: 'rosa')),
+        home: Scaffold(
+          body: PestanaHistorial(adulto: 'Rosa', folio: 'rosa'),
+        ),
       ),
     );
     await t.pumpAndSettle();

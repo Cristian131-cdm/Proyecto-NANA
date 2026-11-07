@@ -48,8 +48,9 @@ void main() {
     }
   });
 
-  testWidgets('Al abrir su día y al cambiar las medicinas se reprograman',
-      (t) async {
+  testWidgets('Al abrir su día y al cambiar las medicinas se reprograman', (
+    t,
+  ) async {
     final alarmas = _AlarmasFalsas();
     Servicios.alarmas = alarmas;
     addTearDown(() => Servicios.alarmas = AlarmasLocales());

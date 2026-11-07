@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nana_app/models/rutina.dart';
 
 import 'package:nana_app/core/dia.dart';
 import 'package:nana_app/models/actividad.dart';
@@ -84,5 +85,46 @@ void main() {
     expect(dia[0].estado, EstadoActividad.hecha);
     expect(dia[1].estado, EstadoActividad.hecha);
     expect(dia[2].estado, EstadoActividad.ahora);
+  });
+
+  test('Solo entran las rutinas que tocan ese día', () {
+    const caminar = Rutina(
+      titulo: 'Caminar',
+      tipo: TipoActividad.ejercicio,
+      hora: TimeOfDay(hour: 18, minute: 0),
+      dias: {0, 1, 2, 3, 4}, // lunes a viernes
+    );
+    expect(rutinasDeHoy(const [caminar], DateTime(2026, 11, 6)).length, 1);
+    expect(rutinasDeHoy(const [caminar], DateTime(2026, 11, 8)), isEmpty);
+  });
+
+  test('Sin noticias: avisa después de las horas elegidas', () {
+    final ultima = DateTime(2026, 11, 8, 8);
+    expect(
+      sinNoticias(ultima: ultima, ahora: DateTime(2026, 11, 8, 19), horas: 12),
+      isFalse,
+    );
+    expect(
+      sinNoticias(ultima: ultima, ahora: DateTime(2026, 11, 8, 20), horas: 12),
+      isTrue,
+    );
+    expect(
+      sinNoticias(ultima: null, ahora: DateTime(2026, 11, 9), horas: 12),
+      isFalse,
+    );
+  });
+
+  test('La rutina se guarda y se lee igual', () {
+    const r = Rutina(
+      titulo: 'Cena',
+      tipo: TipoActividad.comida,
+      hora: TimeOfDay(hour: 20, minute: 30),
+      dias: {6, 1},
+    );
+    final leida = Rutina.deMapa('x', r.aMapa());
+    expect(leida.titulo, 'Cena');
+    expect(leida.hora, const TimeOfDay(hour: 20, minute: 30));
+    expect(leida.dias, {1, 6});
+    expect(leida.tipo, TipoActividad.comida);
   });
 }

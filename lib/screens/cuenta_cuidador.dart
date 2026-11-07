@@ -87,7 +87,8 @@ class _CuentaCuidadorState extends State<CuentaCuidador> {
     if (_errorCorreo != null) {
       setState(() {
         _intento = true;
-        _error = 'Escribe tu correo arriba y vuelve a tocar "Olvidé mi contraseña".';
+        _error =
+            'Escribe tu correo arriba y vuelve a tocar "Olvidé mi contraseña".';
       });
       return;
     }

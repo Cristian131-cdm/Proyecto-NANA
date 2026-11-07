@@ -43,21 +43,31 @@ class _PanelCuidadorState extends State<PanelCuidador> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('¿A quién quieres ver?',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              const Text(
+                '¿A quién quieres ver?',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 12),
               for (var i = 0; i < lista.length; i++)
                 ListTile(
                   contentPadding: const EdgeInsets.symmetric(vertical: 4),
                   leading: _Avatar(lista[i].nombre),
-                  title: Text(lista[i].nombre,
-                      style: const TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.bold)),
-                  subtitle: Text(lista[i].parentesco ?? '',
-                      style: const TextStyle(fontSize: 16)),
+                  title: Text(
+                    lista[i].nombre,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  subtitle: Text(
+                    lista[i].parentesco ?? '',
+                    style: const TextStyle(fontSize: 16),
+                  ),
                   trailing: i == _adulto
-                      ? const Icon(Icons.check_circle,
-                          color: ColoresNana.morado)
+                      ? const Icon(
+                          Icons.check_circle,
+                          color: ColoresNana.morado,
+                        )
                       : null,
                   onTap: () => Navigator.pop(context, i),
                 ),
@@ -82,8 +92,10 @@ class _PanelCuidadorState extends State<PanelCuidador> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Mi cuenta',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              const Text(
+                'Mi cuenta',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 8),
               for (final (clave, icono, texto) in [
                 (
@@ -189,23 +201,28 @@ class _PanelCuidadorState extends State<PanelCuidador> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(relacion.isEmpty ? nombre : '$nombre · $relacion',
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: ColoresNana.morado)),
                       Text(
-                          adulto.uidAdulto != null
-                              ? '● Usa NANA en su celular'
-                              : adulto.tieneCelular
-                                  ? '○ Falta conectar su celular'
-                                  : '○ Sin celular',
-                          style: TextStyle(
-                              fontSize: 13,
-                              color: adulto.uidAdulto != null
-                                  ? ColoresNana.ok
-                                  : const Color(0xFF6B6485))),
+                        relacion.isEmpty ? nombre : '$nombre · $relacion',
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: ColoresNana.morado,
+                        ),
+                      ),
+                      Text(
+                        adulto.uidAdulto != null
+                            ? '● Usa NANA en su celular'
+                            : adulto.tieneCelular
+                            ? '○ Falta conectar su celular'
+                            : '○ Sin celular',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: adulto.uidAdulto != null
+                              ? ColoresNana.ok
+                              : const Color(0xFF6B6485),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -225,7 +242,10 @@ class _PanelCuidadorState extends State<PanelCuidador> {
             tooltip: 'Familia y alertas',
             onPressed: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => FamiliaAlertas(adulto: nombre)),
+              MaterialPageRoute(
+                builder: (_) =>
+                    FamiliaAlertas(adulto: nombre, folio: adulto.folio),
+              ),
             ),
           ),
           IconButton(
@@ -242,8 +262,12 @@ class _PanelCuidadorState extends State<PanelCuidador> {
         children: [
           PestanaInicio(key: ValueKey(adulto.folio), adulto: adulto),
           PestanaMedicamentos(key: ValueKey(adulto.folio), folio: adulto.folio),
-          const PestanaRutinas(),
-          PestanaSemana(adulto: nombre),
+          PestanaRutinas(key: ValueKey(adulto.folio), folio: adulto.folio),
+          PestanaSemana(
+            key: ValueKey(adulto.folio),
+            adulto: nombre,
+            folio: adulto.folio,
+          ),
           PestanaHistorial(
             key: ValueKey(adulto.folio),
             adulto: nombre,
@@ -272,25 +296,30 @@ class _PanelCuidadorState extends State<PanelCuidador> {
           onDestinationSelected: (i) => setState(() => _pestana = i),
           destinations: const [
             NavigationDestination(
-                icon: Icon(Icons.home_outlined),
-                selectedIcon: Icon(Icons.home, color: ColoresNana.morado),
-                label: 'Inicio'),
+              icon: Icon(Icons.home_outlined),
+              selectedIcon: Icon(Icons.home, color: ColoresNana.morado),
+              label: 'Inicio',
+            ),
             NavigationDestination(
-                icon: Icon(Icons.medication_outlined),
-                selectedIcon: Icon(Icons.medication, color: ColoresNana.morado),
-                label: 'Medicinas'),
+              icon: Icon(Icons.medication_outlined),
+              selectedIcon: Icon(Icons.medication, color: ColoresNana.morado),
+              label: 'Medicinas',
+            ),
             NavigationDestination(
-                icon: Icon(Icons.event_note_outlined),
-                selectedIcon: Icon(Icons.event_note, color: ColoresNana.morado),
-                label: 'Rutinas'),
+              icon: Icon(Icons.event_note_outlined),
+              selectedIcon: Icon(Icons.event_note, color: ColoresNana.morado),
+              label: 'Rutinas',
+            ),
             NavigationDestination(
-                icon: Icon(Icons.bar_chart_outlined),
-                selectedIcon: Icon(Icons.bar_chart, color: ColoresNana.morado),
-                label: 'Semana'),
+              icon: Icon(Icons.bar_chart_outlined),
+              selectedIcon: Icon(Icons.bar_chart, color: ColoresNana.morado),
+              label: 'Semana',
+            ),
             NavigationDestination(
-                icon: Icon(Icons.folder_outlined),
-                selectedIcon: Icon(Icons.folder, color: ColoresNana.morado),
-                label: 'Historial'),
+              icon: Icon(Icons.folder_outlined),
+              selectedIcon: Icon(Icons.folder, color: ColoresNana.morado),
+              label: 'Historial',
+            ),
           ],
         ),
       ),
@@ -307,11 +336,14 @@ class _Avatar extends StatelessWidget {
     return CircleAvatar(
       radius: 20,
       backgroundColor: ColoresNana.moradoClaro,
-      child: Text(nombre.isEmpty ? '?' : nombre[0],
-          style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: ColoresNana.morado)),
+      child: Text(
+        nombre.isEmpty ? '?' : nombre[0],
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: ColoresNana.morado,
+        ),
+      ),
     );
   }
 }

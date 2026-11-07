@@ -34,13 +34,17 @@ class _RegistroAdultoState extends State<RegistroAdulto> {
 
   String? get _errorNombre =>
       _nombre.text.trim().isEmpty ? 'Escribe tu nombre' : null;
-  String? get _errorCorreo => _correo.text.contains('@') ? null : 'Revisa tu correo';
-  String? get _errorContrasena =>
-      _contrasena.text.length < 6 ? 'Necesita al menos 6 letras o números' : null;
+  String? get _errorCorreo =>
+      _correo.text.contains('@') ? null : 'Revisa tu correo';
+  String? get _errorContrasena => _contrasena.text.length < 6
+      ? 'Necesita al menos 6 letras o números'
+      : null;
 
   Future<void> _enviar() async {
     setState(() => _intento = true);
-    if (_errorNombre != null || _errorCorreo != null || _errorContrasena != null) {
+    if (_errorNombre != null ||
+        _errorCorreo != null ||
+        _errorContrasena != null) {
       return;
     }
     setState(() {

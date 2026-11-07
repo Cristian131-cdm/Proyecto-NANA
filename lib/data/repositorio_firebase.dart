@@ -10,7 +10,9 @@ import '../models/actividad.dart';
 import '../models/adulto.dart';
 import '../models/alerta.dart';
 import '../models/medicamento.dart';
+import '../models/receta.dart';
 import '../models/registro.dart';
+import '../models/rutina.dart';
 import '../models/salud.dart';
 import '../models/usuario.dart';
 import 'repositorio.dart';
@@ -262,10 +264,8 @@ class RepositorioFirebase implements RepositorioNana {
   });
 
   @override
-  Stream<bool> codigoUsado(String codigo) => _codigos
-      .doc(codigo)
-      .snapshots()
-      .map((s) => s.data()?['usado'] == true);
+  Stream<bool> codigoUsado(String codigo) =>
+      _codigos.doc(codigo).snapshots().map((s) => s.data()?['usado'] == true);
 
   Adulto _adulto(
     DocumentSnapshot<Map<String, dynamic>> s, {
@@ -294,10 +294,7 @@ class RepositorioFirebase implements RepositorioNana {
         .asyncMap(
           (q) => Future.wait(
             q.docs.map((s) async {
-              final c = await s.reference
-                  .collection('cuidadores')
-                  .doc(u)
-                  .get();
+              final c = await s.reference.collection('cuidadores').doc(u).get();
               return _adulto(s, parentesco: c.data()?['parentesco']);
             }),
           ),
@@ -319,9 +316,8 @@ class RepositorioFirebase implements RepositorioNana {
   });
 
   @override
-  Stream<List<Familiar>> familiaDe(String folio) => _de(folio, 'cuidadores')
-      .snapshots()
-      .map(
+  Stream<List<Familiar>> familiaDe(String folio) =>
+      _de(folio, 'cuidadores').snapshots().map(
         (q) => [
           for (final d in q.docs)
             Familiar(
@@ -344,21 +340,22 @@ class RepositorioFirebase implements RepositorioNana {
   });
 
   @override
-  Stream<List<Medicamento>> medicamentos(String folio) => _de(folio, 'medicamentos')
-      .orderBy('hora')
-      .snapshots()
-      .map(
-        (q) => [
-          for (final s in q.docs)
-            Medicamento(
-              id: s.id,
-              nombre: s['nombre'],
-              dosis: s['dosis'],
-              hora: Medicamento.leerHora(s['hora']),
-              ventanaMin: s['ventanaMin'],
-            ),
-        ],
-      );
+  Stream<List<Medicamento>> medicamentos(String folio) =>
+      _de(folio, 'medicamentos')
+          .orderBy('hora')
+          .snapshots()
+          .map(
+            (q) => [
+              for (final s in q.docs)
+                Medicamento(
+                  id: s.id,
+                  nombre: s['nombre'],
+                  dosis: s['dosis'],
+                  hora: Medicamento.leerHora(s['hora']),
+                  ventanaMin: s['ventanaMin'],
+                ),
+            ],
+          );
 
   @override
   Future<void> guardarMedicamento(String folio, Medicamento m) =>
@@ -386,21 +383,18 @@ class RepositorioFirebase implements RepositorioNana {
         .where('fecha', isGreaterThanOrEqualTo: Timestamp.fromDate(hoy))
         .orderBy('fecha')
         .snapshots()
-        .map(
-          (q) => [
-            for (final s in q.docs)
-              Registro(
-                id: s.id,
-                tipo: TipoActividad.values.byName(s['tipo']),
-                titulo: s['titulo'],
-                idMedicamento: s.data()['idMedicamento'],
-                valor: s.data()['valor'],
-                fecha: (s['fecha'] as Timestamp).toDate(),
-                registradoPor: s['registradoPor'],
-              ),
-          ],
-        );
+        .map((q) => [for (final s in q.docs) _registro(s)]);
   }
+
+  Registro _registro(QueryDocumentSnapshot<Map<String, dynamic>> s) => Registro(
+    id: s.id,
+    tipo: TipoActividad.values.byName(s['tipo']),
+    titulo: s['titulo'],
+    idMedicamento: s.data()['idMedicamento'],
+    valor: s.data()['valor'],
+    fecha: (s['fecha'] as Timestamp).toDate(),
+    registradoPor: s['registradoPor'],
+  );
 
   @override
   Future<void> registrar(String folio, Registro r) async {
@@ -424,9 +418,8 @@ class RepositorioFirebase implements RepositorioNana {
   @override
   Stream<Salud> salud(String folio) => _adultos.doc(folio).snapshots().map((s) {
     final d = s.data()?['salud'] as Map<String, dynamic>?;
-    return Salud.deMapa(d).copyWith(
-      actualizado: (d?['actualizado'] as Timestamp?)?.toDate(),
-    );
+    return Salud.deMapa(d)
+        .copyWith(actualizado: (d?['actualizado'] as Timestamp?)?.toDate());
   });
 
   @override
@@ -441,21 +434,19 @@ class RepositorioFirebase implements RepositorioNana {
   );
 
   @override
-  Stream<List<Alerta>> alertasSinAtender(String folio) =>
-      _de(folio, 'alertas')
-          .where('atendida', isEqualTo: false)
-          .snapshots()
-          .map(
-            (q) => [
-              for (final s in q.docs)
-                Alerta(
-                  id: s.id,
-                  fecha:
-                      (s.data()['fecha'] as Timestamp?)?.toDate() ??
-                      DateTime.now(),
-                ),
-            ],
-          );
+  Stream<List<Alerta>> alertasSinAtender(String folio) => _de(folio, 'alertas')
+      .where('atendida', isEqualTo: false)
+      .snapshots()
+      .map(
+        (q) => [
+          for (final s in q.docs)
+            Alerta(
+              id: s.id,
+              fecha:
+                  (s.data()['fecha'] as Timestamp?)?.toDate() ?? DateTime.now(),
+            ),
+        ],
+      );
 
   @override
   Future<bool> pedirAyuda(String folio) async {
@@ -477,9 +468,121 @@ class RepositorioFirebase implements RepositorioNana {
 
   @override
   Future<void> atenderAlerta(String folio, String id) async => unawaited(
-    _de(folio, 'alertas').doc(id).update({
-      'atendida': true,
-      'atendidaPor': uid,
-    }),
+    _de(
+      folio,
+      'alertas',
+    ).doc(id).update({'atendida': true, 'atendidaPor': uid}),
   );
+
+  @override
+  Stream<ReglasAlerta> reglasAlerta(String folio) => _adultos
+      .doc(folio)
+      .snapshots()
+      .map(
+        (s) => ReglasAlerta.deMapa(
+          s.data()?['reglasAlerta'] as Map<String, dynamic>?,
+        ),
+      );
+
+  @override
+  Future<void> guardarReglasAlerta(String folio, ReglasAlerta r) async =>
+      unawaited(_adultos.doc(folio).update({'reglasAlerta': r.aMapa()}));
+
+  // Guarda sin esperar al servidor: con mala señal Firestore lo manda después.
+  Future<void> _guardarEn(
+    String folio,
+    String sub,
+    String? id,
+    Map<String, dynamic> datos,
+  ) async {
+    final col = _de(folio, sub);
+    unawaited(id == null ? col.add(datos) : col.doc(id).set(datos));
+  }
+
+  Future<void> _borrarDe(String folio, String sub, String id) async =>
+      unawaited(_de(folio, sub).doc(id).delete());
+
+  @override
+  Stream<List<Rutina>> rutinas(String folio) => _de(folio, 'rutinas')
+      .orderBy('hora')
+      .snapshots()
+      .map((q) => [for (final s in q.docs) Rutina.deMapa(s.id, s.data())]);
+
+  @override
+  Future<void> guardarRutina(String folio, Rutina r) =>
+      _guardarEn(folio, 'rutinas', r.id, r.aMapa());
+
+  @override
+  Future<void> borrarRutina(String folio, String id) =>
+      _borrarDe(folio, 'rutinas', id);
+
+  @override
+  Stream<List<Receta>> recetas(String folio) => _de(folio, 'recetas')
+      .orderBy('fecha', descending: true)
+      .snapshots()
+      .map(
+        (q) => [
+          for (final s in q.docs)
+            Receta(
+              id: s.id,
+              medico: s.data()['medico'] ?? '',
+              fecha: (s.data()['fecha'] as Timestamp).toDate(),
+              indicacion: s.data()['indicacion'] ?? '',
+            ),
+        ],
+      );
+
+  @override
+  Future<void> guardarReceta(String folio, Receta r) =>
+      _guardarEn(folio, 'recetas', r.id, {
+        'medico': r.medico,
+        'fecha': Timestamp.fromDate(r.fecha),
+        'indicacion': r.indicacion,
+      });
+
+  @override
+  Future<void> borrarReceta(String folio, String id) =>
+      _borrarDe(folio, 'recetas', id);
+
+  @override
+  Stream<List<Cita>> citas(String folio) => _de(folio, 'citas')
+      .orderBy('fecha')
+      .snapshots()
+      .map(
+        (q) => [
+          for (final s in q.docs)
+            Cita(
+              id: s.id,
+              especialidad: s.data()['especialidad'] ?? '',
+              fecha: (s.data()['fecha'] as Timestamp).toDate(),
+              lugar: s.data()['lugar'] ?? '',
+            ),
+        ],
+      );
+
+  @override
+  Future<void> guardarCita(String folio, Cita c) =>
+      _guardarEn(folio, 'citas', c.id, {
+        'especialidad': c.especialidad,
+        'fecha': Timestamp.fromDate(c.fecha),
+        'lugar': c.lugar,
+      });
+
+  @override
+  Future<void> borrarCita(String folio, String id) =>
+      _borrarDe(folio, 'citas', id);
+
+  @override
+  Stream<List<Registro>> registrosDesde(String folio, DateTime desde) =>
+      _de(folio, 'registros')
+          .where('fecha', isGreaterThanOrEqualTo: Timestamp.fromDate(desde))
+          .orderBy('fecha')
+          .snapshots()
+          .map((q) => [for (final s in q.docs) _registro(s)]);
+
+  @override
+  Stream<DateTime?> ultimaActividad(String folio) => _adultos
+      .doc(folio)
+      .snapshots()
+      .map((s) => (s.data()?['ultimaActividad'] as Timestamp?)?.toDate());
 }

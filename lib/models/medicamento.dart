@@ -16,12 +16,12 @@ class Medicamento {
   });
 
   Medicamento conId(String nuevo) => Medicamento(
-        id: nuevo,
-        nombre: nombre,
-        dosis: dosis,
-        hora: hora,
-        ventanaMin: ventanaMin,
-      );
+    id: nuevo,
+    nombre: nombre,
+    dosis: dosis,
+    hora: hora,
+    ventanaMin: ventanaMin,
+  );
 
   // 'HH:mm', como se guarda en Firestore
   String get horaTexto =>
