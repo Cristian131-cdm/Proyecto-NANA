@@ -82,4 +82,40 @@ void main() {
     final (que, _) = queToca(dia: const [suelta], animoHoy: 1, ahora: _a(6));
     expect(que, QueToca.actividad);
   });
+
+  test('En la tarde ya no se pide el desayuno, pero la medicina sí', () {
+    final dia = diaDelAdulto(
+      meds: const [_losartan],
+      hoy: const [],
+      otras: const [
+        (TimeOfDay(hour: 7, minute: 30), 'Desayuno', TipoActividad.comida),
+        (TimeOfDay(hour: 14, minute: 0), 'Comida', TipoActividad.comida),
+      ],
+      ahora: DateTime(2026, 11, 7, 13, 50),
+    );
+    final ahora = dia.firstWhere((a) => a.estado == EstadoActividad.ahora);
+    expect(ahora.titulo, startsWith('Losartán'));
+  });
+
+  test('Con la medicina tomada, en la tarde toca la comida', () {
+    final dia = diaDelAdulto(
+      meds: const [_losartan],
+      hoy: [
+        Registro(
+          tipo: TipoActividad.medicina,
+          titulo: 'Losartán 50 mg',
+          idMedicamento: _losartan.id,
+          fecha: DateTime(2026, 11, 7, 8, 5),
+          registradoPor: 'rosa',
+        ),
+      ],
+      otras: const [
+        (TimeOfDay(hour: 7, minute: 30), 'Desayuno', TipoActividad.comida),
+        (TimeOfDay(hour: 14, minute: 0), 'Comida', TipoActividad.comida),
+      ],
+      ahora: DateTime(2026, 11, 7, 13, 50),
+    );
+    final ahora = dia.firstWhere((a) => a.estado == EstadoActividad.ahora);
+    expect(ahora.titulo, 'Comida');
+  });
 }

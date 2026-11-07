@@ -43,6 +43,7 @@ class _ConDiaState extends State<ConDia> {
                   rutinas.data ?? const [],
                   Servicios.reloj(),
                 ),
+                ahora: Servicios.reloj(),
               ),
               animos.isEmpty ? null : animos.last.valor,
             );

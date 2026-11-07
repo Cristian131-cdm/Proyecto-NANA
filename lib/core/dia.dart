@@ -41,6 +41,7 @@ List<Actividad> diaDelAdulto({
   required List<Medicamento> meds,
   required List<Registro> hoy,
   List<(TimeOfDay, String, TipoActividad)> otras = rutinasDelDia,
+  DateTime? ahora,
 }) {
   final filas = <(TimeOfDay, Actividad)>[
     for (final m in meds)
@@ -75,11 +76,24 @@ List<Actividad> diaDelAdulto({
   ]..sort((a, b) => _minutos(a.$1).compareTo(_minutos(b.$1)));
 
   final dia = [for (final (_, a) in filas) a];
-  // Lo primero que falta es lo que "toca ahora".
-  final i = dia.indexWhere((a) => a.estado == EstadoActividad.pendiente);
+  // Lo primero que falta es lo que "toca ahora". Una comida o actividad que
+  // ya pasó hace más de 2 horas no se pide (en la tarde no se pregunta por el
+  // desayuno); una medicina sí, hasta que se confirme.
+  final minutoActual = ahora == null ? null : ahora.hour * 60 + ahora.minute;
+  bool yaSePaso(Actividad a) =>
+      minutoActual != null &&
+      a.tipo != TipoActividad.medicina &&
+      a.horaExacta != null &&
+      _minutos(a.horaExacta!) + vencidaDespuesMin < minutoActual;
+  final i = dia.indexWhere(
+    (a) => a.estado == EstadoActividad.pendiente && !yaSePaso(a),
+  );
   if (i != -1) dia[i] = dia[i].conEstado(EstadoActividad.ahora);
   return dia;
 }
+
+// Después de cuántos minutos una comida o actividad ya no "toca".
+const vencidaDespuesMin = 120;
 
 // Lo que muestra la tarjeta grande del inicio del adulto.
 enum QueToca { actividad, animo, siguiente, listo }
