@@ -55,7 +55,7 @@ List<DiaSemana> semana({
   final inicio = DateUtils.dateOnly(hoy).subtract(const Duration(days: 6));
   return [
     for (var i = 0; i < 7; i++)
-      _dia(DateUtils.addDaysToDate(inicio, i), meds, rutinas, [
+      _dia(DateUtils.addDaysToDate(inicio, i), hoy, meds, rutinas, [
         for (final r in registros)
           if (DateUtils.isSameDay(r.fecha, DateUtils.addDaysToDate(inicio, i)))
             r,
@@ -65,6 +65,7 @@ List<DiaSemana> semana({
 
 DiaSemana _dia(
   DateTime fecha,
+  DateTime ahora,
   List<Medicamento> meds,
   List<Rutina> rutinas,
   List<Registro> delDia,
@@ -76,6 +77,15 @@ DiaSemana _dia(
   };
   final animos = delDia.where((r) => r.tipo == TipoActividad.animo).toList();
   final mal = animos.where((r) => (r.valor ?? 0) >= 3).toList();
+  // Hoy solo cuenta lo que ya se hizo o lo que ya se pasó de su hora: el día
+  // todavía no termina y no es "faltó".
+  final esHoy = DateUtils.isSameDay(fecha, ahora);
+  final minuto = ahora.hour * 60 + ahora.minute;
+  bool yaPaso(TimeOfDay h, int margen) =>
+      !esHoy || h.hour * 60 + h.minute + margen < minuto;
+  final medsDelDia = meds
+      .where((m) => tomadas.contains(m.id) || yaPaso(m.hora, m.ventanaMin))
+      .toList();
   final ejercicio = rutinas
       .where((r) => r.tipo == TipoActividad.ejercicio && r.tocaEl(fecha))
       .toList();
@@ -86,10 +96,12 @@ DiaSemana _dia(
   return DiaSemana(
     fecha: fecha,
     tomas: meds.where((m) => tomadas.contains(m.id)).length,
-    posibles: meds.length,
+    posibles: medsDelDia.length,
     animo: animos.isEmpty ? null : animos.last.valor,
     movimiento: ejercicio.where((r) => hechos.contains(r.titulo)).length,
-    movimientoPosible: ejercicio.length,
+    movimientoPosible: ejercicio
+        .where((r) => hechos.contains(r.titulo) || yaPaso(r.hora, 60))
+        .length,
     horaMal: mal.isEmpty ? null : mal.last.fecha,
   );
 }

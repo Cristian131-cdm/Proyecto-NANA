@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/dia.dart';
 import '../core/servicios.dart';
 import '../core/tema.dart';
+import '../data/demo.dart';
 import '../models/adulto.dart';
 import '../models/alerta.dart';
 import '../models/medicamento.dart';
@@ -108,6 +109,11 @@ class _PanelCuidadorState extends State<PanelCuidador> {
                   'Código para el celular de ${adulto.nombre}',
                 ),
                 ('alta', Icons.person_add_alt, 'Cuidar a otra persona'),
+                (
+                  'demo',
+                  Icons.auto_awesome_outlined,
+                  'Cargar datos de demostración',
+                ),
                 ('salir', Icons.logout, 'Cerrar sesión'),
               ])
                 ListTile(
@@ -142,6 +148,43 @@ class _PanelCuidadorState extends State<PanelCuidador> {
           context,
           MaterialPageRoute(builder: (_) => const AltaAdulto()),
         );
+      case 'demo':
+        final si = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('¿Cargar datos de demostración?'),
+            content: Text(
+              'Se agregan rutinas, una receta, dos citas y una semana de '
+              'ejemplo para ${adulto.nombre}. No se borra nada de lo que ya '
+              'tiene y el día de hoy no se toca.',
+              style: const TextStyle(fontSize: 18),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancelar'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Sí, cargar'),
+              ),
+            ],
+          ),
+        );
+        if (si != true) return;
+        final n = await cargarDemo(
+          Servicios.repo,
+          adulto.folio,
+          Servicios.reloj(),
+        );
+        if (mounted) {
+          mostrarAviso(
+            context,
+            n == 0
+                ? 'Ya tenía los datos de demostración'
+                : 'Listo, datos cargados',
+          );
+        }
       case 'salir':
         await Servicios.repo.cerrarSesion();
         if (mounted) entrarA(context, const Bienvenida());

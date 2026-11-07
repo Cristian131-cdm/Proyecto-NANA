@@ -9,8 +9,8 @@ class Ajustes {
   // La encuesta de apariencia solo se muestra la primera vez
   static final ValueNotifier<bool> encuestaHecha = ValueNotifier(false);
 
-  // Cómo prefiere usar NANA. Por ahora solo se guardan; la voz, las señas,
-  // el alto contraste y la vibración se conectan en la fase de funcionalidad.
+  // Cómo prefiere usar NANA. altoContraste ya cambia toda la app (main.dart);
+  // la voz, las señas y la vibración por ahora solo se guardan.
   static final ValueNotifier<bool> queMeHable = ValueNotifier(false);
   static final ValueNotifier<bool> conSenas = ValueNotifier(false);
   static final ValueNotifier<bool> altoContraste = ValueNotifier(false);

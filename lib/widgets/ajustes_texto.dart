@@ -170,8 +170,8 @@ class _HojaTexto extends StatelessWidget {
             const InterruptorHuella(),
             const SizedBox(height: 8),
             const Text(
-              'Pronto: la voz, las señas, los colores y la vibración todavía '
-              'no cambian nada. Ya quedan guardados para cuando estén listos.',
+              'Pronto: la voz, las señas y la vibración todavía no cambian '
+              'nada. Ya quedan guardados para cuando estén listos.',
               style: TextStyle(fontSize: 14, color: Color(0xFF6B6485)),
             ),
             if (onCerrarSesion case final salir?) ...[
