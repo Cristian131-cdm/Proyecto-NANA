@@ -1,6 +1,7 @@
 import '../data/repositorio.dart';
 import '../data/repositorio_memoria.dart';
 import 'alarmas.dart';
+import 'avisos.dart';
 import 'biometria.dart';
 import 'lector_expediente.dart';
 
@@ -10,6 +11,7 @@ class Servicios {
   static RepositorioNana repo = RepositorioMemoria();
   static Biometria biometria = BiometriaLocal();
   static Alarmas alarmas = AlarmasLocales();
+  static Avisos avisos = const AvisosNulos();
   static LectorExpediente lector = const LectorSimulado();
 
   // La hora "de ahora"; las pruebas la fijan para que no dependan del reloj.

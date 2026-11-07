@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/avisos.dart';
 import '../core/dia.dart';
 import '../core/servicios.dart';
 import '../core/tema.dart';
@@ -34,6 +35,17 @@ class _PanelCuidadorState extends State<PanelCuidador> {
   int _adulto = 0;
   final _adultos = Servicios.repo.adultosACargo();
   final _conTelefono = <String>{};
+  // Avisan con una notificación del celular cuando llega una alerta nueva,
+  // aunque NANA esté minimizada.
+  final _vigilantes = <String, VigilanteAlertas>{};
+
+  @override
+  void dispose() {
+    for (final v in _vigilantes.values) {
+      v.cancelar();
+    }
+    super.dispose();
+  }
 
   Future<void> _cambiarAdulto(List<Adulto> lista) async {
     final elegido = await showModalBottomSheet<int>(
@@ -218,6 +230,14 @@ class _PanelCuidadorState extends State<PanelCuidador> {
         for (final a in lista) {
           if (_conTelefono.add(a.folio)) {
             Servicios.repo.compartirMiTelefono(a.folio).ignore();
+          }
+          if (!_vigilantes.containsKey(a.folio)) {
+            if (_vigilantes.isEmpty) Servicios.avisos.pedirPermiso().ignore();
+            _vigilantes[a.folio] = VigilanteAlertas(
+              avisos: Servicios.avisos,
+              nombre: a.nombre,
+              ahora: Servicios.reloj(),
+            )..escuchar(Servicios.repo.alertasSinAtender(a.folio));
           }
         }
         final adulto = lista[_adulto.clamp(0, lista.length - 1)];

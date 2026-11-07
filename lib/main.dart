@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
 import 'core/ajustes.dart';
+import 'core/avisos.dart';
 import 'core/servicios.dart';
 import 'core/tema.dart';
 import 'data/repositorio_firebase.dart';
@@ -15,6 +16,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   Servicios.repo = RepositorioFirebase();
+  Servicios.avisos = AvisosLocales();
   await Ajustes.cargar();
   VigilanteCandado.instancia.iniciar();
   await Servicios.alarmas.iniciar(abrirDesdeAlarma);

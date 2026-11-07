@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'core/ajustes.dart';
+import 'core/avisos.dart';
 import 'core/servicios.dart';
 import 'data/demo.dart';
 import 'data/repositorio_memoria.dart';
@@ -18,6 +19,7 @@ Future<void> main() async {
   final repo = RepositorioMemoria(sesion: rol == 'adulto' ? 'rosa-cel' : 'ana');
   await cargarDemo(repo, 'rosa', DateTime.now());
   Servicios.repo = repo;
+  Servicios.avisos = AvisosLocales();
   await Ajustes.cargar();
   VigilanteCandado.instancia.iniciar();
   await Servicios.alarmas.iniciar(abrirDesdeAlarma);
