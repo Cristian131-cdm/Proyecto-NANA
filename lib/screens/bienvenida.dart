@@ -11,10 +11,8 @@ import 'registro_adulto.dart';
 class Bienvenida extends StatelessWidget {
   const Bienvenida({super.key});
 
-  void _ir(BuildContext context, Widget pantalla) => Navigator.push(
-    context,
-    MaterialPageRoute(builder: (_) => pantalla),
-  );
+  void _ir(BuildContext context, Widget pantalla) =>
+      Navigator.push(context, MaterialPageRoute(builder: (_) => pantalla));
 
   @override
   Widget build(BuildContext context) {
@@ -101,7 +99,9 @@ class OpcionesCuidador extends StatelessWidget {
         ElevatedButton(
           onPressed: () => Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const CuentaCuidador(crear: true)),
+            MaterialPageRoute(
+              builder: (_) => const CuentaCuidador(crear: true),
+            ),
           ),
           child: const Text('Crear cuenta'),
         ),

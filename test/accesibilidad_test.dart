@@ -47,19 +47,24 @@ void main() {
     },
   );
 
-  testWidgets('La gráfica de la semana aguanta la letra muy grande',
-      (tester) async {
+  testWidgets('La gráfica de la semana aguanta la letra muy grande', (
+    tester,
+  ) async {
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = const Size(360, 1600);
     addTearDown(tester.view.reset);
     // Letra del celular grande por 1.5 de NANA ("Muy grande").
-    await tester.pumpWidget(MaterialApp(
-      home: MediaQuery(
-        data: const MediaQueryData(
-            size: Size(360, 1600), textScaler: TextScaler.linear(2.0)),
-        child: const Scaffold(body: PestanaSemana(adulto: 'Rosa')),
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MediaQuery(
+          data: const MediaQueryData(
+            size: Size(360, 1600),
+            textScaler: TextScaler.linear(2.0),
+          ),
+          child: const Scaffold(body: PestanaSemana(adulto: 'Rosa')),
+        ),
       ),
-    ));
+    );
     // Un desbordamiento lanza una excepción y haría fallar la prueba.
     expect(tester.takeException(), isNull);
     expect(find.text('Medicinas a tiempo'), findsOneWidget);
