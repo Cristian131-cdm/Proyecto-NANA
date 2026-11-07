@@ -407,11 +407,27 @@ class RepositorioMemoria implements RepositorioNana {
   }
 
   @override
+  Future<void> avisarFrase(String folio, String frase) async {
+    _alertas
+        .putIfAbsent(folio, () => [])
+        .add(
+          Alerta(id: _nuevoId(), fecha: reloj(), tipo: 'frase', texto: frase),
+        );
+    _avisar();
+  }
+
+  @override
   Future<void> atenderAlerta(String folio, String id) async {
     final lista = _alertas[folio] ?? [];
     final i = lista.indexWhere((a) => a.id == id);
     if (i != -1) {
-      lista[i] = Alerta(id: id, fecha: lista[i].fecha, atendida: true);
+      lista[i] = Alerta(
+        id: id,
+        fecha: lista[i].fecha,
+        atendida: true,
+        tipo: lista[i].tipo,
+        texto: lista[i].texto,
+      );
     }
     _avisar();
   }

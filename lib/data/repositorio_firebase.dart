@@ -444,6 +444,8 @@ class RepositorioFirebase implements RepositorioNana {
               id: s.id,
               fecha:
                   (s.data()['fecha'] as Timestamp?)?.toDate() ?? DateTime.now(),
+              tipo: s.data()['tipo'] as String? ?? 'pide_ayuda',
+              texto: s.data()['texto'] as String?,
             ),
         ],
       );
@@ -465,6 +467,17 @@ class RepositorioFirebase implements RepositorioNana {
       return false;
     }
   }
+
+  @override
+  Future<void> avisarFrase(String folio, String frase) async => unawaited(
+    _de(folio, 'alertas').add({
+      'tipo': 'frase',
+      'texto': frase,
+      'fecha': Timestamp.now(),
+      'atendida': false,
+      'creadaPor': uid,
+    }),
+  );
 
   @override
   Future<void> atenderAlerta(String folio, String id) async => unawaited(

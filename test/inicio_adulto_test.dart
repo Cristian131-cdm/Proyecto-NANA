@@ -160,4 +160,17 @@ void main() {
     await t.pumpAndSettle();
     expect(find.text('Todavía no tienes familia conectada'), findsOneWidget);
   });
+
+  testWidgets('Si no encuentra su cuenta avisa en vez de tronar', (t) async {
+    _celular(t);
+    // Una sesión que no está ligada a ningún adulto.
+    Servicios.repo = RepositorioMemoria(sesion: 'nadie');
+    Servicios.alarmas = _AlarmasFalsas();
+    await t.pumpWidget(const MaterialApp(home: PanelAdulto()));
+    await t.pumpAndSettle();
+
+    expect(t.takeException(), isNull);
+    expect(find.text('No pude encontrar tu cuenta'), findsOneWidget);
+    expect(find.text('Entrar con un código'), findsOneWidget);
+  });
 }

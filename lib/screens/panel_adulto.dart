@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../core/ajustes.dart';
 import '../core/dia.dart';
+import '../core/frases.dart';
 import '../core/perfil_accesibilidad.dart';
 import '../core/servicios.dart';
 import '../core/tema.dart';
@@ -132,12 +133,37 @@ class _PanelAdultoState extends State<PanelAdulto> {
     if (hecho == true && mounted) _marcarHecha(a);
   }
 
+  // Lo que el adulto dice con las frases le llega a su familia: se anota en
+  // su día y, si es algo preocupante, también como alerta. "Ya comí" marca la
+  // comida y "Me siento bien" cuenta como su ánimo (ver core/frases.dart).
   void _decir(String frase) {
     if (frase == 'Necesito ayuda') {
       _confirmarAviso();
-    } else {
-      mostrarAviso(context, 'Anotado: $frase');
+      return;
     }
+    final comida = comidaDeFrase(frase);
+    final animo = animoDeFrase(frase);
+    Servicios.repo.registrar(
+      _folio,
+      Registro(
+        tipo: comida != null
+            ? TipoActividad.comida
+            : animo != null
+            ? TipoActividad.animo
+            : TipoActividad.mensaje,
+        titulo:
+            comida ?? (animo != null ? CaritasAnimo.etiquetas[animo] : frase),
+        valor: animo,
+        fecha: Servicios.reloj(),
+        registradoPor: Servicios.repo.uid ?? '',
+      ),
+    );
+    final avisar = esPreocupante(frase) && _yo?.tieneFamilia == true;
+    if (avisar) Servicios.repo.avisarFrase(_folio, frase);
+    mostrarAviso(
+      context,
+      avisar ? 'Le avisé a tu familia' : 'Listo, se lo cuento a tu familia',
+    );
   }
 
   void _ir(Widget pantalla) =>
@@ -352,8 +378,65 @@ class _PanelAdultoState extends State<PanelAdulto> {
     );
   }
 
+  // No se encontró a qué adulto pertenece este celular (sin internet la
+  // primera vez, o la sesión ya no está ligada). Sin folio no se puede leer
+  // nada, así que en vez de tronar se explica y se ofrece salir.
+  Widget _sinCuenta() {
+    return Scaffold(
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.all(24),
+          children: [
+            const SizedBox(height: 24),
+            const Center(child: MascotaNana(tamano: 120)),
+            const SizedBox(height: 24),
+            const Text(
+              'No pude encontrar tu cuenta',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Revisa que tengas internet. Si sigue igual, pídele a tu familia '
+              'un código nuevo y vuelve a entrar.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 22),
+            ),
+            const SizedBox(height: 32),
+            ElevatedButton.icon(
+              onPressed: () {
+                setState(() => _cargando = true);
+                _cargar();
+              },
+              icon: const Icon(Icons.refresh, size: 28),
+              label: const Text('Intentar de nuevo'),
+            ),
+            const SizedBox(height: 16),
+            OutlinedButton.icon(
+              onPressed: () async {
+                await Servicios.repo.cerrarSesion();
+                if (mounted) entrarA(context, const Bienvenida());
+              },
+              icon: const Icon(Icons.pin_outlined, size: 28),
+              label: const Text('Entrar con un código'),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 64),
+                shape: const StadiumBorder(),
+                textStyle: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (!_cargando && _yo == null) return _sinCuenta();
     return Scaffold(
       appBar: AppBar(
         actions: [

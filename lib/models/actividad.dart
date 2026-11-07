@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/tema.dart';
 
-enum TipoActividad { medicina, comida, ejercicio, animo }
+enum TipoActividad { medicina, comida, ejercicio, animo, mensaje }
 
 enum EstadoActividad { hecha, ahora, pendiente, sinConfirmar }
 
@@ -12,6 +12,7 @@ extension TipoActividadVisual on TipoActividad {
     TipoActividad.comida => Icons.restaurant,
     TipoActividad.ejercicio => Icons.directions_walk,
     TipoActividad.animo => Icons.mood,
+    TipoActividad.mensaje => Icons.chat_bubble_outline,
   };
 }
 

@@ -77,6 +77,8 @@ abstract class RepositorioNana {
   Stream<List<Alerta>> alertasSinAtender(String folio);
   Future<bool> pedirAyuda(String folio);
   Future<void> atenderAlerta(String folio, String id);
+  // El adulto dijo algo preocupante ("Me duele algo"): le llega a la familia.
+  Future<void> avisarFrase(String folio, String frase);
   Stream<ReglasAlerta> reglasAlerta(String folio);
   Future<void> guardarReglasAlerta(String folio, ReglasAlerta r);
 

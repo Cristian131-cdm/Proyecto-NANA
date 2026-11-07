@@ -1,10 +1,21 @@
-// Por ahora el único tipo es 'pide_ayuda' (botón "Avisar a mi familia").
+// 'pide_ayuda' (botón "Necesito ayuda") o 'frase' (dijo algo preocupante,
+// como "Me duele algo"; el texto va en [texto]).
 class Alerta {
   final String id;
   final DateTime fecha;
   final bool atendida;
+  final String tipo;
+  final String? texto;
 
-  const Alerta({required this.id, required this.fecha, this.atendida = false});
+  const Alerta({
+    required this.id,
+    required this.fecha,
+    this.atendida = false,
+    this.tipo = 'pide_ayuda',
+    this.texto,
+  });
+
+  bool get esFrase => tipo == 'frase';
 }
 
 // Qué avisos quiere la familia (pantalla "Familia y alertas"). "Pide ayuda"

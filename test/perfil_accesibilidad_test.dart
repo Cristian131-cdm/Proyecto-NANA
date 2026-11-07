@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:nana_app/core/ajustes.dart';
 import 'package:nana_app/core/perfil_accesibilidad.dart';
 import 'package:nana_app/core/servicios.dart';
+import 'package:nana_app/models/actividad.dart';
 import 'package:nana_app/data/repositorio_memoria.dart';
 import 'package:nana_app/models/salud.dart';
 import 'package:nana_app/screens/panel_adulto.dart';
@@ -95,6 +96,39 @@ void main() {
 
     await t.tap(find.text('Ya comí'));
     await t.pumpAndSettle();
-    expect(find.text('Anotado: Ya comí'), findsOneWidget);
+    expect(find.text('Listo, se lo cuento a tu familia'), findsOneWidget);
+    // "Ya comí" marca la comida del día.
+    final hoy = await repo.registrosDeHoy('rosa').first;
+    expect(
+      hoy.any((r) => r.tipo == TipoActividad.comida && r.titulo == 'Comida'),
+      isTrue,
+    );
+  });
+
+  testWidgets('"Me siento mal" le llega a la familia como alerta', (t) async {
+    t.view.devicePixelRatio = 1;
+    t.view.physicalSize = const Size(420, 900);
+    addTearDown(t.view.reset);
+    final repo = RepositorioMemoria(sesion: 'rosa-cel');
+    Servicios.repo = repo;
+    await repo.guardarSalud('rosa', const Salud(discapacidades: ['No habla']));
+
+    await t.pumpWidget(const MaterialApp(home: PanelAdulto()));
+    await t.pumpAndSettle();
+    await t.tap(find.text('Decir'));
+    await t.pumpAndSettle();
+    await t.tap(find.text('Me siento mal'));
+    await t.pumpAndSettle();
+
+    expect(find.text('Le avisé a tu familia'), findsOneWidget);
+    final alertas = await repo.alertasSinAtender('rosa').first;
+    expect(alertas.single.esFrase, isTrue);
+    expect(alertas.single.texto, 'Me siento mal');
+    // Y cuenta como su ánimo del día.
+    final hoy = await repo.registrosDeHoy('rosa').first;
+    expect(
+      hoy.any((r) => r.tipo == TipoActividad.animo && r.valor == 3),
+      isTrue,
+    );
   });
 }

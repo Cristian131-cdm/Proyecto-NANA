@@ -126,6 +126,7 @@ String _queHizo(Registro r) => switch (r.tipo) {
   TipoActividad.comida => '${r.titulo}: listo',
   TipoActividad.ejercicio => '${r.titulo}: hecho',
   TipoActividad.animo => 'Ánimo: ${r.titulo}',
+  TipoActividad.mensaje => 'Dijo: "${r.titulo}"',
 };
 
 // Medicinas que ya pasaron su hora más la ventana y nadie confirmó.

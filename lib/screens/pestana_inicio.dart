@@ -161,12 +161,16 @@ class _Contenido extends StatelessWidget {
       children: [
         for (final a in alertas) ...[
           _Alerta(
-            titulo: '$nombre pidió ayuda',
-            detalle:
-                'Tocó "Avisar a mi familia" a las '
-                '${horaCorta(TimeOfDay.fromDateTime(a.fecha))}.',
+            titulo: a.esFrase
+                ? '$nombre dijo: "${a.texto ?? ''}"'
+                : '$nombre pidió ayuda',
+            detalle: a.esFrase
+                ? 'Te lo mandó desde NANA a las '
+                      '${horaCorta(TimeOfDay.fromDateTime(a.fecha))}.'
+                : 'Tocó "Necesito ayuda" a las '
+                      '${horaCorta(TimeOfDay.fromDateTime(a.fecha))}.',
             onLlamar: llamarle,
-            textoResuelta: 'Ya lo atendí',
+            textoResuelta: a.esFrase ? 'Ya lo vi' : 'Ya lo atendí',
             onResuelta: () => Servicios.repo.atenderAlerta(adulto.folio, a.id),
           ),
           const SizedBox(height: 12),
