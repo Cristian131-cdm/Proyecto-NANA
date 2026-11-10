@@ -14,6 +14,7 @@ import '../models/registro.dart';
 import '../widgets/ajustes_texto.dart';
 import '../widgets/aviso.dart';
 import '../widgets/caritas_animo.dart';
+import '../widgets/esqueleto.dart';
 import '../widgets/festejo.dart';
 import '../widgets/mascota_nana.dart';
 import '../widgets/tarjeta_ahora.dart';
@@ -517,7 +518,7 @@ class _PanelAdultoState extends State<PanelAdulto> {
         ],
       ),
       body: _cargando
-          ? const Center(child: CircularProgressIndicator())
+          ? const EsqueletoCarga()
           : ConDia(folio: _folio, builder: _inicio),
       bottomNavigationBar: Container(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),

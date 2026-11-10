@@ -5,12 +5,15 @@ import '../core/dia.dart';
 import '../core/servicios.dart';
 import '../core/tema.dart';
 import '../data/demo.dart';
+import '../models/actividad.dart';
 import '../models/adulto.dart';
 import '../models/alerta.dart';
 import '../models/medicamento.dart';
 import '../models/registro.dart';
+import '../models/rutina.dart';
 import '../widgets/ajustes_texto.dart';
 import '../widgets/aviso.dart';
+import '../widgets/esqueleto.dart';
 import '../widgets/formulario.dart';
 import 'alta_adulto.dart';
 import 'arranque.dart';
@@ -210,9 +213,7 @@ class _PanelCuidadorState extends State<PanelCuidador> {
       builder: (context, snap) {
         final lista = snap.data;
         if (lista == null) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
+          return const Scaffold(body: SafeArea(child: EsqueletoCarga()));
         }
         if (lista.isEmpty) {
           return PantallaPaso(
@@ -261,7 +262,11 @@ class _PanelCuidadorState extends State<PanelCuidador> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _Avatar(nombre),
+                AnilloDelDia(
+                  key: ValueKey('anillo-${adulto.folio}'),
+                  folio: adulto.folio,
+                  nombre: nombre,
+                ),
                 const SizedBox(width: 10),
                 Flexible(
                   child: Column(
@@ -475,6 +480,92 @@ class _ContadorAlertasState extends State<ContadorAlertas> {
               );
             },
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// La inicial del adulto con un anillo que se llena según lo que lleva hoy
+// (medicinas, comidas y actividad). Verde al completar.
+class AnilloDelDia extends StatefulWidget {
+  final String folio;
+  final String nombre;
+  const AnilloDelDia({super.key, required this.folio, required this.nombre});
+
+  @override
+  State<AnilloDelDia> createState() => _AnilloDelDiaState();
+}
+
+class _AnilloDelDiaState extends State<AnilloDelDia> {
+  late final _meds = Servicios.repo.medicamentos(widget.folio);
+  late final _rutinas = Servicios.repo.rutinas(widget.folio);
+  late final _hoy = Servicios.repo.registrosDeHoy(widget.folio);
+
+  @override
+  Widget build(BuildContext context) {
+    final quieto = MediaQuery.disableAnimationsOf(context);
+    return StreamBuilder<List<Medicamento>>(
+      stream: _meds,
+      builder: (context, meds) => StreamBuilder<List<Rutina>>(
+        stream: _rutinas,
+        builder: (context, rutinas) => StreamBuilder<List<Registro>>(
+          stream: _hoy,
+          builder: (context, hoy) {
+            final ahora = Servicios.reloj();
+            final dia = diaDelAdulto(
+              meds: meds.data ?? const [],
+              hoy: hoy.data ?? const [],
+              otras: rutinasDeHoy(rutinas.data ?? const [], ahora),
+              ahora: ahora,
+            );
+            final hechas = dia
+                .where((a) => a.estado == EstadoActividad.hecha)
+                .length;
+            final total = dia.length;
+            final completo = total > 0 && hechas == total;
+            return Semantics(
+              label: '${widget.nombre}: lleva $hechas de $total hoy',
+              child: Tooltip(
+                message: 'Hoy lleva $hechas de $total',
+                child: SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      TweenAnimationBuilder<double>(
+                        tween: Tween(end: total == 0 ? 0 : hechas / total),
+                        duration: Duration(milliseconds: quieto ? 0 : 600),
+                        curve: Curves.easeOutCubic,
+                        builder: (context, v, _) => SizedBox.expand(
+                          child: CircularProgressIndicator(
+                            value: v,
+                            strokeWidth: 4,
+                            backgroundColor: ColoresNana.moradoClaro,
+                            color: completo
+                                ? ColoresNana.ok
+                                : ColoresNana.morado,
+                          ),
+                        ),
+                      ),
+                      _Avatar(widget.nombre),
+                      if (completo)
+                        const Positioned(
+                          right: 0,
+                          bottom: 0,
+                          child: Icon(
+                            Icons.check_circle,
+                            size: 18,
+                            color: ColoresNana.ok,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
