@@ -1,11 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-void mostrarAviso(BuildContext context, String texto) {
+// Con [onDeshacer] el aviso dura 5 segundos y trae el botón "Deshacer",
+// por si fue un error de dedo.
+void mostrarAviso(
+  BuildContext context,
+  String texto, {
+  VoidCallback? onDeshacer,
+}) {
   ScaffoldMessenger.of(context)
     ..hideCurrentSnackBar()
     ..showSnackBar(
-      SnackBar(content: Text(texto, style: const TextStyle(fontSize: 20))),
+      SnackBar(
+        content: Text(texto, style: const TextStyle(fontSize: 20)),
+        duration: Duration(seconds: onDeshacer == null ? 4 : 5),
+        action: onDeshacer == null
+            ? null
+            : SnackBarAction(
+                label: 'Deshacer',
+                textColor: const Color(0xFFD9CCFF),
+                onPressed: onDeshacer,
+              ),
+      ),
     );
 }
 

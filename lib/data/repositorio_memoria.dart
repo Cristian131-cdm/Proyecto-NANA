@@ -373,9 +373,29 @@ class RepositorioMemoria implements RepositorioNana {
   });
 
   @override
-  Future<void> registrar(String folio, Registro r) async {
-    _registros.putIfAbsent(folio, () => []).add(r);
+  Future<String> registrar(String folio, Registro r) async {
+    final id = r.id ?? _nuevoId();
+    _registros
+        .putIfAbsent(folio, () => [])
+        .add(
+          Registro(
+            id: id,
+            tipo: r.tipo,
+            titulo: r.titulo,
+            idMedicamento: r.idMedicamento,
+            valor: r.valor,
+            fecha: r.fecha,
+            registradoPor: r.registradoPor,
+          ),
+        );
     _ultima[folio] = reloj();
+    _avisar();
+    return id;
+  }
+
+  @override
+  Future<void> borrarRegistro(String folio, String id) async {
+    _registros[folio]?.removeWhere((r) => r.id == id);
     _avisar();
   }
 

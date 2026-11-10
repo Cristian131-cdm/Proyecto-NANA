@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'core/ajustes.dart';
 import 'core/avisos.dart';
@@ -43,6 +44,11 @@ class NanaApp extends StatelessWidget {
           navigatorKey: VigilanteCandado.instancia.navegador,
           debugShowCheckedModeBanner: false,
           theme: TemaNana.tema,
+          // Fechas, horas ("10:00 a. m."), calendario y botones del sistema
+          // en español de México.
+          locale: const Locale('es', 'MX'),
+          supportedLocales: const [Locale('es', 'MX'), Locale('es')],
+          localizationsDelegates: GlobalMaterialLocalizations.delegates,
           builder: (context, child) {
             final sistema = MediaQuery.textScalerOf(context).scale(1.0);
             final contenido = MediaQuery(

@@ -105,7 +105,7 @@ class _Contenido extends StatelessWidget {
       ),
     );
     if (si != true) return;
-    await Servicios.repo.registrar(
+    final id = await Servicios.repo.registrar(
       adulto.folio,
       Registro(
         tipo: TipoActividad.medicina,
@@ -114,6 +114,12 @@ class _Contenido extends StatelessWidget {
         fecha: Servicios.reloj(),
         registradoPor: Servicios.repo.uid ?? '',
       ),
+    );
+    if (!context.mounted) return;
+    mostrarAviso(
+      context,
+      'Anoté que ${adulto.nombre} ya se tomó su ${m.nombre}',
+      onDeshacer: () => Servicios.repo.borrarRegistro(adulto.folio, id),
     );
   }
 

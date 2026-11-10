@@ -67,7 +67,9 @@ abstract class RepositorioNana {
   Future<void> guardarMedicamento(String folio, Medicamento m);
   Future<void> borrarMedicamento(String folio, String id);
   Stream<List<Registro>> registrosDeHoy(String folio);
-  Future<void> registrar(String folio, Registro r);
+  // Devuelve el id del registro, para poder deshacerlo.
+  Future<String> registrar(String folio, Registro r);
+  Future<void> borrarRegistro(String folio, String id);
 
   // Datos de salud (padecimientos, alergias...). Los edita la familia.
   Stream<Salud> salud(String folio);

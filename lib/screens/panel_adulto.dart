@@ -14,6 +14,7 @@ import '../models/registro.dart';
 import '../widgets/ajustes_texto.dart';
 import '../widgets/aviso.dart';
 import '../widgets/caritas_animo.dart';
+import '../widgets/festejo.dart';
 import '../widgets/mascota_nana.dart';
 import '../widgets/tarjeta_ahora.dart';
 import 'arranque.dart';
@@ -90,9 +91,11 @@ class _PanelAdultoState extends State<PanelAdulto> {
   }
 
   // Lo anota en Firestore; la tarjeta se actualiza sola con lo que regresa.
-  void _marcarHecha(Actividad a) {
-    Servicios.repo.registrar(
-      _folio,
+  // Festejo corto y luego el aviso con "Deshacer" por si fue sin querer.
+  Future<void> _marcarHecha(Actividad a) async {
+    final folio = _folio;
+    final id = await Servicios.repo.registrar(
+      folio,
       Registro(
         tipo: a.tipo,
         titulo: a.titulo,
@@ -101,16 +104,29 @@ class _PanelAdultoState extends State<PanelAdulto> {
         registradoPor: Servicios.repo.uid ?? '',
       ),
     );
+    if (!mounted) return;
+    await mostrarFestejo(
+      context,
+      a.tipo == TipoActividad.medicina
+          ? '¡Muy bien!\nAnoté tu medicina'
+          : '¡Listo!',
+    );
+    if (!mounted) return;
     mostrarAviso(
       context,
       a.tipo == TipoActividad.medicina
           ? 'Listo, anoté tu medicina'
           : 'Listo, lo anoté',
+      onDeshacer: () {
+        Servicios.repo.borrarRegistro(folio, id);
+        mostrarAviso(context, 'Lo quité');
+      },
     );
   }
 
-  void _anotarAnimo(int i) {
-    Servicios.repo.registrar(
+  Future<void> _anotarAnimo(int i) async {
+    final folio = _folio;
+    final id = await Servicios.repo.registrar(
       _folio,
       Registro(
         tipo: TipoActividad.animo,
@@ -120,7 +136,12 @@ class _PanelAdultoState extends State<PanelAdulto> {
         registradoPor: Servicios.repo.uid ?? '',
       ),
     );
-    mostrarAviso(context, 'Gracias por contarme');
+    if (!mounted) return;
+    mostrarAviso(
+      context,
+      'Gracias por contarme',
+      onDeshacer: () => Servicios.repo.borrarRegistro(folio, id),
+    );
   }
 
   // Abre el recordatorio a pantalla completa (el que en la fase de función

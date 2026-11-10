@@ -127,5 +127,10 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
     expect(find.text('Hoy llevas 2 de 4', skipOffstage: false), findsOneWidget);
+    // El festejo se cierra solo y luego sale el aviso con "Deshacer".
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.text('Deshacer'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 6));
   });
 }

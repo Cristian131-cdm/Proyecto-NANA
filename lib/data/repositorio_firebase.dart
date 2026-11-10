@@ -397,9 +397,11 @@ class RepositorioFirebase implements RepositorioNana {
   );
 
   @override
-  Future<void> registrar(String folio, Registro r) async {
+  Future<String> registrar(String folio, Registro r) async {
+    // El id se conoce antes de mandar, así funciona aun sin señal.
+    final ref = _de(folio, 'registros').doc();
     unawaited(
-      _de(folio, 'registros').add({
+      ref.set({
         'tipo': r.tipo.name,
         'titulo': r.titulo,
         'idMedicamento': r.idMedicamento,
@@ -413,7 +415,12 @@ class RepositorioFirebase implements RepositorioNana {
         'ultimaActividad': FieldValue.serverTimestamp(),
       }),
     );
+    return ref.id;
   }
+
+  @override
+  Future<void> borrarRegistro(String folio, String id) async =>
+      unawaited(_de(folio, 'registros').doc(id).delete());
 
   @override
   Stream<Salud> salud(String folio) => _adultos.doc(folio).snapshots().map((s) {
