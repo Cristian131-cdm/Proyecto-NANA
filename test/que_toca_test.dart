@@ -5,6 +5,7 @@ import 'package:nana_app/core/dia.dart';
 import 'package:nana_app/models/actividad.dart';
 import 'package:nana_app/models/medicamento.dart';
 import 'package:nana_app/models/registro.dart';
+import 'package:nana_app/widgets/mascota_nana.dart';
 
 const _losartan = Medicamento(
   id: 'losartan',
@@ -117,5 +118,35 @@ void main() {
     );
     final ahora = dia.firstWhere((a) => a.estado == EstadoActividad.ahora);
     expect(ahora.titulo, 'Comida');
+  });
+
+  test('La cara de NANA sigue al día', () {
+    const pendiente = Actividad(
+      hora: '8:00',
+      titulo: 'Losartán',
+      detalle: '',
+      tipo: TipoActividad.medicina,
+      estado: EstadoActividad.ahora,
+    );
+    final hecha = pendiente.conEstado(EstadoActividad.hecha);
+    final tarde = DateTime(2026, 11, 9, 15);
+    final noche = DateTime(2026, 11, 9, 23);
+
+    expect(
+      estadoNana(dia: [hecha], que: QueToca.listo, ahora: noche),
+      EstadoNana.contenta,
+    );
+    expect(
+      estadoNana(dia: [pendiente], que: QueToca.actividad, ahora: noche),
+      EstadoNana.atenta,
+    );
+    expect(
+      estadoNana(dia: [pendiente], que: QueToca.siguiente, ahora: noche),
+      EstadoNana.dormida,
+    );
+    expect(
+      estadoNana(dia: [pendiente], que: QueToca.siguiente, ahora: tarde),
+      EstadoNana.normal,
+    );
   });
 }

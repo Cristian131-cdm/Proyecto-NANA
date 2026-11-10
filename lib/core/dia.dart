@@ -4,6 +4,7 @@ import '../models/actividad.dart';
 import '../models/medicamento.dart';
 import '../models/registro.dart';
 import '../models/rutina.dart';
+import '../widgets/mascota_nana.dart';
 
 // Arma "el día" a partir de lo que hay en Firestore. Son funciones puras
 // para poder probarlas sin pantallas.
@@ -188,3 +189,25 @@ bool sinNoticias({
   required DateTime ahora,
   required int horas,
 }) => ultima != null && ahora.difference(ultima) >= Duration(hours: horas);
+
+// Cara de NANA en el inicio del adulto: contenta si ya hizo todo, atenta si
+// algo ya toca (aunque sea de noche), dormida de 10 pm a 6 am y normal lo demás.
+EstadoNana estadoNana({
+  required List<Actividad> dia,
+  required QueToca que,
+  required DateTime ahora,
+}) {
+  if (dia.isNotEmpty && dia.every((a) => a.estado == EstadoActividad.hecha)) {
+    return EstadoNana.contenta;
+  }
+  if (que == QueToca.actividad) return EstadoNana.atenta;
+  if (ahora.hour >= 22 || ahora.hour < 6) return EstadoNana.dormida;
+  return EstadoNana.normal;
+}
+
+String describirNana(EstadoNana e) => switch (e) {
+  EstadoNana.contenta => 'NANA está contenta: hiciste todo lo de hoy',
+  EstadoNana.atenta => 'NANA está atenta: algo ya te toca',
+  EstadoNana.dormida => 'NANA está dormida',
+  EstadoNana.normal => 'NANA',
+};

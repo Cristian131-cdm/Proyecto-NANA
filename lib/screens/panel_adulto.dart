@@ -320,12 +320,30 @@ class _PanelAdultoState extends State<PanelAdulto> {
       animoHoy: animo,
       ahora: Servicios.reloj(),
     );
+    final estado = estadoNana(dia: dia, que: que, ahora: Servicios.reloj());
+    final quieto = MediaQuery.disableAnimationsOf(context);
+    final suave = Duration(milliseconds: quieto ? 0 : 350);
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
       children: [
         Row(
           children: [
-            const MascotaNana(tamano: 64),
+            // La cara de NANA cambia con el día (contenta, atenta, dormida).
+            Semantics(
+              label: describirNana(estado),
+              child: AnimatedSwitcher(
+                duration: suave,
+                transitionBuilder: (child, a) => ScaleTransition(
+                  scale: Tween(begin: 0.85, end: 1.0).animate(a),
+                  child: FadeTransition(opacity: a, child: child),
+                ),
+                child: MascotaNana(
+                  key: ValueKey(estado),
+                  tamano: 64,
+                  estado: estado,
+                ),
+              ),
+            ),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
@@ -366,13 +384,30 @@ class _PanelAdultoState extends State<PanelAdulto> {
           ],
         ),
         const SizedBox(height: 20),
-        TarjetaAhora(
-          que: que,
-          actividad: actividad,
-          animo: animo,
-          onHecha: () => _marcarHecha(actividad!),
-          onAbrir: () => _abrirRecordatorio(actividad!),
-          onAnimo: _anotarAnimo,
+        // Cuando cambia lo que toca, la tarjeta se desliza en vez de brincar.
+        AnimatedSwitcher(
+          duration: suave,
+          switchInCurve: Curves.easeOutCubic,
+          switchOutCurve: Curves.easeInCubic,
+          transitionBuilder: (child, a) => FadeTransition(
+            opacity: a,
+            child: SlideTransition(
+              position: Tween(
+                begin: const Offset(0.08, 0),
+                end: Offset.zero,
+              ).animate(a),
+              child: child,
+            ),
+          ),
+          child: TarjetaAhora(
+            key: ValueKey('${que.name}-${actividad?.titulo}'),
+            que: que,
+            actividad: actividad,
+            animo: animo,
+            onHecha: () => _marcarHecha(actividad!),
+            onAbrir: () => _abrirRecordatorio(actividad!),
+            onAnimo: _anotarAnimo,
+          ),
         ),
         const SizedBox(height: 8),
         Align(
