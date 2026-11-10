@@ -26,6 +26,7 @@ class DiaSemana {
   final int movimiento; // actividades físicas hechas
   final int movimientoPosible;
   final DateTime? horaMal; // cuándo dijo que se sentía mal, si dijo
+  final List<Registro> registros; // lo que se anotó ese día, en orden
 
   const DiaSemana({
     required this.fecha,
@@ -35,6 +36,7 @@ class DiaSemana {
     required this.movimiento,
     required this.movimientoPosible,
     this.horaMal,
+    this.registros = const [],
   });
 
   String get letra =>
@@ -103,6 +105,7 @@ DiaSemana _dia(
         .where((r) => hechos.contains(r.titulo) || yaPaso(r.hora, 60))
         .length,
     horaMal: mal.isEmpty ? null : mal.last.fecha,
+    registros: List.of(delDia)..sort((a, b) => a.fecha.compareTo(b.fecha)),
   );
 }
 

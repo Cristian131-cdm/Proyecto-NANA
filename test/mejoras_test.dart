@@ -4,9 +4,11 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:nana_app/core/biometria.dart';
 import 'package:nana_app/core/servicios.dart';
+import 'package:nana_app/data/demo.dart';
 import 'package:nana_app/data/repositorio_memoria.dart';
 import 'package:nana_app/screens/panel_cuidador.dart';
 import 'package:nana_app/screens/pestana_medicamentos.dart';
+import 'package:nana_app/screens/pestana_semana.dart';
 import 'package:nana_app/widgets/ajustes_texto.dart';
 
 class _SinHuella implements Biometria {
@@ -79,5 +81,27 @@ void main() {
     final meds = await Servicios.repo.medicamentos('rosa').first;
     expect(meds.single.nombre, 'Losartán');
     await t.pump(const Duration(seconds: 6));
+  });
+
+  testWidgets('Tocar un día de la Semana muestra lo que pasó', (t) async {
+    final repo = Servicios.repo as RepositorioMemoria;
+    final ahora = DateTime.now();
+    await cargarDemo(repo, 'rosa', ahora);
+    final s = t.ensureSemantics();
+    await t.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: PestanaSemana(adulto: 'Rosa', folio: 'rosa'),
+        ),
+      ),
+    );
+    await t.pumpAndSettle();
+
+    // El primer día (hace 6 días) tiene datos de la demostración.
+    await t.tap(find.bySemanticsLabel(RegExp('Toca para ver el día')).first);
+    await t.pumpAndSettle();
+    expect(find.text('Lo que se anotó'), findsOneWidget);
+    expect(find.textContaining('Desayuno'), findsWidgets);
+    s.dispose();
   });
 }

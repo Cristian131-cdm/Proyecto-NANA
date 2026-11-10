@@ -122,7 +122,8 @@ const avisoAntesMin = 15;
   return (QueToca.listo, null);
 }
 
-String _queHizo(Registro r) => switch (r.tipo) {
+// Cómo se cuenta un registro en la línea del cuidador y en el detalle del día.
+String queHizo(Registro r) => switch (r.tipo) {
   TipoActividad.medicina => 'Tomó ${r.titulo}',
   TipoActividad.comida => '${r.titulo}: listo',
   TipoActividad.ejercicio => '${r.titulo}: hecho',
@@ -155,7 +156,7 @@ List<Actividad> lineaDelCuidador({
         r.fecha.hour * 60 + r.fecha.minute,
         Actividad(
           hora: horaCorta(TimeOfDay.fromDateTime(r.fecha)),
-          titulo: _queHizo(r),
+          titulo: queHizo(r),
           detalle: '',
           tipo: r.tipo,
           estado: EstadoActividad.hecha,

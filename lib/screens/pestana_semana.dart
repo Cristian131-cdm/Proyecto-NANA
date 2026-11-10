@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../core/dia.dart';
 import '../core/semana.dart';
 import '../core/servicios.dart';
 import '../core/tema.dart';
+import '../models/actividad.dart';
 import '../models/medicamento.dart';
 import '../models/registro.dart';
 import '../models/rutina.dart';
@@ -102,9 +104,10 @@ class VistaSemana extends StatelessWidget {
             children: [
               for (final d in dias)
                 Expanded(
-                  child: Semantics(
-                    label: '${d.nombre}: ${d.tomas} de ${d.posibles} medicinas',
-                    excludeSemantics: true,
+                  child: _DiaTocable(
+                    dia: d,
+                    etiqueta:
+                        '${d.nombre}: ${d.tomas} de ${d.posibles} medicinas',
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -116,15 +119,26 @@ class VistaSemana extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 4),
-                        Container(
-                          width: 26,
-                          height: 4 + 86.0 * d.tomas / maxPorDia,
-                          decoration: BoxDecoration(
-                            color: d.completo
-                                ? ColoresNana.lila
-                                : const Color(0xFFE8B260),
-                            borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(8),
+                        // La barra sube al abrir la pestaña.
+                        TweenAnimationBuilder<double>(
+                          tween: Tween(begin: 0, end: d.tomas / maxPorDia),
+                          duration: Duration(
+                            milliseconds:
+                                MediaQuery.disableAnimationsOf(context)
+                                ? 0
+                                : 600,
+                          ),
+                          curve: Curves.easeOutCubic,
+                          builder: (context, v, _) => Container(
+                            width: 26,
+                            height: 4 + 86.0 * v,
+                            decoration: BoxDecoration(
+                              color: d.completo
+                                  ? ColoresNana.lila
+                                  : const Color(0xFFE8B260),
+                              borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(8),
+                              ),
                             ),
                           ),
                         ),
@@ -151,11 +165,11 @@ class VistaSemana extends StatelessWidget {
             children: [
               for (final d in dias)
                 Expanded(
-                  child: Semantics(
-                    label: d.animo == null
+                  child: _DiaTocable(
+                    dia: d,
+                    etiqueta: d.animo == null
                         ? '${d.nombre}: sin dato'
                         : '${d.nombre}: ${CaritasAnimo.etiquetas[d.animo!]}',
-                    excludeSemantics: true,
                     child: Column(
                       children: [
                         d.animo == null
@@ -230,5 +244,138 @@ class VistaSemana extends StatelessWidget {
     color: Colors.white,
     borderRadius: BorderRadius.circular(20),
     border: Border.all(color: ColoresNana.moradoClaro, width: 2),
+  );
+}
+
+// Cada columna de la semana se puede tocar para ver lo que pasó ese día.
+class _DiaTocable extends StatelessWidget {
+  final DiaSemana dia;
+  final String etiqueta;
+  final Widget child;
+  const _DiaTocable({
+    required this.dia,
+    required this.etiqueta,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: '$etiqueta. Toca para ver el día',
+      excludeSemantics: true,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => mostrarDetalleDia(context, dia),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
+String tituloDia(DiaSemana d) {
+  const meses = [
+    'enero',
+    'febrero',
+    'marzo',
+    'abril',
+    'mayo',
+    'junio',
+    'julio',
+    'agosto',
+    'septiembre',
+    'octubre',
+    'noviembre',
+    'diciembre',
+  ];
+  final nombre = '${d.nombre[0].toUpperCase()}${d.nombre.substring(1)}';
+  return '$nombre ${d.fecha.day} de ${meses[d.fecha.month - 1]}';
+}
+
+// Hoja con lo que pasó ese día: medicinas, ánimo y cada cosa anotada.
+Future<void> mostrarDetalleDia(BuildContext context, DiaSemana d) {
+  return showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+    ),
+    builder: (context) => SafeArea(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(context).height * 0.8,
+        ),
+        child: ListView(
+          shrinkWrap: true,
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+          children: [
+            Text(
+              tituloDia(d),
+              style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                Chip(
+                  avatar: const Icon(
+                    Icons.medication,
+                    color: ColoresNana.morado,
+                  ),
+                  label: Text(
+                    d.posibles == 0
+                        ? 'Sin medicinas'
+                        : 'Medicinas: ${d.tomas} de ${d.posibles}',
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                ),
+                Chip(
+                  avatar: Icon(
+                    d.animo == null
+                        ? Icons.mood
+                        : CaritasAnimo.iconos[d.animo!],
+                    color: d.animo == null
+                        ? ColoresNana.gris
+                        : CaritasAnimo.colores[d.animo!],
+                  ),
+                  label: Text(
+                    d.animo == null
+                        ? 'Ánimo: sin dato'
+                        : 'Ánimo: ${CaritasAnimo.etiquetas[d.animo!]}',
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                ),
+              ],
+            ),
+            const TituloSeccion('Lo que se anotó'),
+            if (d.registros.isEmpty)
+              const Text(
+                'Ese día no se anotó nada.',
+                style: TextStyle(fontSize: 18, color: ColoresNana.tintaSuave),
+              ),
+            for (final r in d.registros)
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: CircleAvatar(
+                  backgroundColor: ColoresNana.moradoClaro,
+                  child: Icon(r.tipo.icono, color: ColoresNana.morado),
+                ),
+                title: Text(queHizo(r), style: const TextStyle(fontSize: 18)),
+                trailing: Text(
+                  horaDe(r.fecha),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: ColoresNana.tintaSuave,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    ),
   );
 }
