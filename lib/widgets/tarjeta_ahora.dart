@@ -204,10 +204,7 @@ class _Actividad extends StatelessWidget {
                   child: FilledButton.icon(
                     onPressed: onHecha,
                     icon: const Icon(Icons.check, size: 30),
-                    label: Text(
-                      'Ya',
-                      semanticsLabel: medicina ? 'Ya me la tomé' : 'Ya lo hice',
-                    ),
+                    label: Text(medicina ? 'Ya me la tomé' : 'Ya lo hice'),
                     style: FilledButton.styleFrom(
                       backgroundColor: yaToca
                           ? ColoresNana.morado

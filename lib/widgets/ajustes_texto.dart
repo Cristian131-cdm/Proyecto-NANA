@@ -26,6 +26,12 @@ final modosDeUso = [
     Ajustes.altoContraste,
   ),
   (
+    Icons.motion_photos_off_outlined,
+    'Menos movimiento',
+    'Sin animaciones ni cosas que se muevan',
+    Ajustes.menosMovimiento,
+  ),
+  (
     Icons.vibration,
     'Avisos con vibración y luz',
     'Por si no escuchas bien',
@@ -39,21 +45,31 @@ final modosDeUso = [
   ),
 ];
 
+// Las opciones que sirven a cualquiera, también a quien cuida.
+final modosUniversales = {Ajustes.altoContraste, Ajustes.menosMovimiento};
+
 // onCerrarSesion: si viene, al final de la hoja sale "Cerrar sesión".
-void mostrarAjustesTexto(BuildContext context, {VoidCallback? onCerrarSesion}) {
+// paraCuidador: solo las opciones universales (letra, colores, movimiento).
+void mostrarAjustesTexto(
+  BuildContext context, {
+  VoidCallback? onCerrarSesion,
+  bool paraCuidador = false,
+}) {
   showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
     ),
-    builder: (_) => _HojaTexto(onCerrarSesion: onCerrarSesion),
+    builder: (_) =>
+        _HojaTexto(onCerrarSesion: onCerrarSesion, paraCuidador: paraCuidador),
   );
 }
 
 class _HojaTexto extends StatelessWidget {
   final VoidCallback? onCerrarSesion;
-  const _HojaTexto({this.onCerrarSesion});
+  final bool paraCuidador;
+  const _HojaTexto({this.onCerrarSesion, this.paraCuidador = false});
 
   static const opciones = [
     (1.0, 'Normal', 22.0),
@@ -150,30 +166,33 @@ class _HojaTexto extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             for (final m in modosDeUso)
-              ValueListenableBuilder<bool>(
-                valueListenable: m.$4,
-                builder: (context, encendido, _) => SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  secondary: Icon(m.$1, color: ColoresNana.morado, size: 30),
-                  title: Text(
-                    m.$2,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
+              if (!paraCuidador || modosUniversales.contains(m.$4))
+                ValueListenableBuilder<bool>(
+                  valueListenable: m.$4,
+                  builder: (context, encendido, _) => SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    secondary: Icon(m.$1, color: ColoresNana.morado, size: 30),
+                    title: Text(
+                      m.$2,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
+                    subtitle: Text(m.$3, style: const TextStyle(fontSize: 15)),
+                    value: encendido,
+                    onChanged: (v) => m.$4.value = v,
                   ),
-                  subtitle: Text(m.$3, style: const TextStyle(fontSize: 15)),
-                  value: encendido,
-                  onChanged: (v) => m.$4.value = v,
                 ),
-              ),
             const InterruptorHuella(),
-            const SizedBox(height: 8),
-            const Text(
-              'Pronto: la voz, las señas y la vibración todavía no cambian '
-              'nada. Ya quedan guardados para cuando estén listos.',
-              style: TextStyle(fontSize: 14, color: Color(0xFF6B6485)),
-            ),
+            if (!paraCuidador) ...[
+              const SizedBox(height: 8),
+              const Text(
+                'Pronto: la voz, las señas y la vibración todavía no cambian '
+                'nada. Ya quedan guardados para cuando estén listos.',
+                style: TextStyle(fontSize: 14, color: ColoresNana.tintaSuave),
+              ),
+            ],
             if (onCerrarSesion case final salir?) ...[
               const SizedBox(height: 24),
               SizedBox(

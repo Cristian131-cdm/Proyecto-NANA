@@ -44,9 +44,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Hoy llevas 0 de 4'), findsOneWidget);
-    await tester.ensureVisible(find.text('Ya'));
+    await tester.ensureVisible(find.text('Ya me la tomé'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Ya'));
+    await tester.tap(find.text('Ya me la tomé'));
     await tester.pump();
     // El contador quedó arriba, fuera de la vista tras desplazar.
     await tester.pump();
@@ -74,7 +74,7 @@ void main() {
     expect(find.text('Losartán de las 8:00 sin confirmar'), findsOneWidget);
     await tester.tap(find.text('Ya la tomó'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Sí, ya'));
+    await tester.tap(find.text('Sí, ya se la tomó'));
     await tester.pumpAndSettle();
     expect(find.text('Rosa va bien hoy'), findsOneWidget);
     expect(find.text('Tomó Losartán 50 mg'), findsOneWidget);

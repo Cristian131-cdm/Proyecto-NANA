@@ -15,6 +15,8 @@ class Ajustes {
   static final ValueNotifier<bool> conSenas = ValueNotifier(false);
   static final ValueNotifier<bool> altoContraste = ValueNotifier(false);
   static final ValueNotifier<bool> avisoVibracion = ValueNotifier(false);
+  // Sin animaciones (además de lo que diga el sistema del celular).
+  static final ValueNotifier<bool> menosMovimiento = ValueNotifier(false);
 
   // Para quien no habla: contesta tocando, nada espera su voz.
   static final ValueNotifier<bool> sinVoz = ValueNotifier(false);
@@ -36,6 +38,7 @@ class Ajustes {
     'con_senas': conSenas,
     'alto_contraste': altoContraste,
     'aviso_vibracion': avisoVibracion,
+    'menos_movimiento': menosMovimiento,
     'sin_voz': sinVoz,
     'pantalla_es_boton': pantallaEsBoton,
     'huella_activada': huellaActivada,

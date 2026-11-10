@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../core/servicios.dart';
 import '../core/tema.dart';
 import '../models/medicamento.dart';
+import '../widgets/aviso.dart';
 
 const unidadesDosis = ['mg', 'mcg', 'g', 'ml', 'UI', 'gotas', 'tabletas'];
 
@@ -111,8 +112,16 @@ class _PestanaMedicamentosState extends State<PestanaMedicamentos> {
                     trailing: IconButton(
                       icon: const Icon(Icons.delete_outline),
                       tooltip: 'Borrar ${m.nombre}',
-                      onPressed: () =>
-                          Servicios.repo.borrarMedicamento(folio, m.id!),
+                      // Se borra al momento, con "Deshacer" por si fue sin querer.
+                      onPressed: () {
+                        Servicios.repo.borrarMedicamento(folio, m.id!);
+                        mostrarAviso(
+                          context,
+                          'Borré ${m.nombre}',
+                          onDeshacer: () =>
+                              Servicios.repo.guardarMedicamento(folio, m),
+                        );
+                      },
                     ),
                   ),
                 );

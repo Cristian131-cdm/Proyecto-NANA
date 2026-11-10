@@ -35,6 +35,7 @@ class NanaApp extends StatelessWidget {
       listenable: Listenable.merge([
         Ajustes.escalaTexto,
         Ajustes.altoContraste,
+        Ajustes.menosMovimiento,
       ]),
       builder: (context, _) {
         final escala = Ajustes.escalaTexto.value;
@@ -56,6 +57,10 @@ class NanaApp extends StatelessWidget {
                 textScaler: TextScaler.linear(escala * sistema),
                 // Con colores fuertes también la letra va en negritas.
                 boldText: fuerte || MediaQuery.boldTextOf(context),
+                // "Menos movimiento" apaga las animaciones de toda la app.
+                disableAnimations:
+                    Ajustes.menosMovimiento.value ||
+                    MediaQuery.disableAnimationsOf(context),
               ),
               child: MarcoAncho(child: child!),
             );

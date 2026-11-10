@@ -49,7 +49,7 @@ void main() {
       expect(find.text('Losartán 50 mg'), findsOneWidget);
       expect(find.bySemanticsLabel('Ya me la tomé'), findsOneWidget);
 
-      await t.tap(find.text('Ya'));
+      await t.tap(find.text('Ya me la tomé'));
       await t.tap(find.text('Losartán 50 mg'));
       expect(llamadas, ['hecha', 'abrir']);
     },
@@ -61,7 +61,7 @@ void main() {
     final llamadas = await pintar(t, QueToca.siguiente, actividad: _losartan);
     expect(find.text('Lo que sigue'), findsOneWidget);
     await t.tap(find.text('Losartán 50 mg'));
-    await t.tap(find.text('Ya'));
+    await t.tap(find.text('Ya me la tomé'));
     expect(llamadas, ['hecha']);
   });
 

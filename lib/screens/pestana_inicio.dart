@@ -95,11 +95,14 @@ class _Contenido extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('No', style: TextStyle(fontSize: 20)),
+            child: const Text('Todavía no', style: TextStyle(fontSize: 20)),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Sí, ya', style: TextStyle(fontSize: 20)),
+            child: const Text(
+              'Sí, ya se la tomó',
+              style: TextStyle(fontSize: 20),
+            ),
           ),
         ],
       ),

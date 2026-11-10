@@ -307,7 +307,7 @@ class _PanelCuidadorState extends State<PanelCuidador> {
           IconButton(
             icon: const Icon(Icons.text_fields, size: 28),
             tooltip: 'Tamaño de letra',
-            onPressed: () => mostrarAjustesTexto(context),
+            onPressed: () => mostrarAjustesTexto(context, paraCuidador: true),
           ),
           IconButton(
             icon: const Icon(Icons.settings_outlined, size: 28),

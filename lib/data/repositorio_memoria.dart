@@ -352,7 +352,9 @@ class RepositorioMemoria implements RepositorioNana {
     if (m.id == null) {
       lista.add(m.conId(_nuevoId()));
     } else {
-      lista[lista.indexWhere((x) => x.id == m.id)] = m;
+      // Si ya no está (se borró y se dio "Deshacer"), vuelve a entrar.
+      final i = lista.indexWhere((x) => x.id == m.id);
+      i == -1 ? lista.add(m) : lista[i] = m;
     }
     _avisar();
   }
