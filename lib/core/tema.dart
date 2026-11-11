@@ -14,6 +14,15 @@ class ColoresNana {
   static const alertaClaro = Color(0xFFFFF1D6);
   static const ok = Color(0xFF1F8A4C);
   static const okClaro = Color(0xFFDFF4E7);
+
+  // Mascota NANA (diseño B): borde lila con degradado, cascarón blanco
+  // perla y pantalla color ciruela.
+  static const mascotaBordeClaro = Color(0xFFB69CEB);
+  static const mascotaBordeOscuro = Color(0xFF7856B8);
+  static const mascotaCascaron = Color(0xFFF1ECF8);
+  static const mascotaCascaronSombra = Color(0xFFD7CDE9);
+  static const mascotaPantalla = Color(0xFF30223E);
+  static const mascotaPantallaOscura = Color(0xFF171021);
 }
 
 class TemaNana {

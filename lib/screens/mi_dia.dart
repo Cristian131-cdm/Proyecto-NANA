@@ -7,6 +7,7 @@ import '../models/actividad.dart';
 import '../models/medicamento.dart';
 import '../models/registro.dart';
 import '../models/rutina.dart';
+import '../widgets/icono_nana.dart';
 
 // Escucha medicinas, rutinas y registros de hoy y arma el día con ellos.
 class ConDia extends StatefulWidget {
@@ -137,11 +138,13 @@ class _FilaDia extends StatelessWidget {
                 : ahora
                 ? ColoresNana.moradoClaro
                 : const Color(0xFFF2F0F7),
-            child: Icon(
-              hecha ? Icons.check : actividad.tipo.icono,
-              size: 28,
-              color: estado.color,
-            ),
+            child: hecha
+                ? Icon(Icons.check, size: 28, color: estado.color)
+                : IconoActividad(
+                    actividad.tipo,
+                    tamano: 28,
+                    color: estado.color,
+                  ),
           ),
           const SizedBox(width: 14),
           Expanded(

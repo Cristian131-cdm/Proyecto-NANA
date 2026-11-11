@@ -50,6 +50,7 @@ dependencies:
     sdk: flutter
   flutter_tts: ^4.2.5
   speech_to_text: ^7.5.0
+  flutter_svg: ^2.3.4
 
 dev_dependencies:
   flutter_test:
@@ -74,6 +75,12 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  # Íconos (SVG) y expresiones de la mascota, diseño NANA B.
+  # Fuente: design/nana_b_2026-11-11/
+  assets:
+    - assets/iconos/
+    - assets/mascota/
 
   # To add assets to your application, add an assets section, like this:
   # assets:
@@ -106,17 +113,18 @@ flutter:
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
 
-# Ícono de la app. Los PNG salen de tool/generar_iconos.dart.
+# Ícono de la app: diseño NANA B (design/nana_b_2026-11-11/assets/icono_b).
+# tool/generar_iconos.dart sigue generando el splash.png del diseño anterior.
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/icono/icono.png"
+  image_path: "assets/icono/icono_b.png"
   adaptive_icon_background: "#5B3FA8"
-  adaptive_icon_foreground: "assets/icono/icono_frente.png"
+  adaptive_icon_foreground: "assets/icono/icono_frente_b.png"
   remove_alpha_ios: true
   web:
     generate: true
-    image_path: "assets/icono/icono.png"
+    image_path: "assets/icono/icono_b.png"
     background_color: "#FBFAFE"
     theme_color: "#5B3FA8"
 

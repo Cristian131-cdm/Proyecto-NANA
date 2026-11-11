@@ -4,6 +4,7 @@ import '../core/dia.dart';
 import '../core/tema.dart';
 import '../models/actividad.dart';
 import 'caritas_animo.dart';
+import 'icono_nana.dart';
 
 // La tarjeta grande del inicio del adulto: una sola cosa a la vez.
 // Qué muestra lo decide queToca() en core/dia.dart.
@@ -170,10 +171,10 @@ class _Actividad extends StatelessWidget {
                     CircleAvatar(
                       radius: 34,
                       backgroundColor: ColoresNana.moradoClaro,
-                      child: Icon(
-                        actividad.tipo.icono,
+                      child: IconoActividad(
+                        actividad.tipo,
                         color: ColoresNana.morado,
-                        size: 38,
+                        tamano: 38,
                       ),
                     ),
                     const SizedBox(width: 16),

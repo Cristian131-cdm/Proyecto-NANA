@@ -12,6 +12,7 @@ import '../models/rutina.dart';
 import '../widgets/aviso.dart';
 import '../widgets/caritas_animo.dart';
 import '../widgets/tarjeta_dato.dart';
+import '../widgets/icono_nana.dart';
 
 // Lo que el cuidador ve al abrir NANA: alertas, cómo va el día y la línea
 // de tiempo. Todo llega en tiempo real de Firestore.
@@ -522,7 +523,7 @@ class _Evento extends StatelessWidget {
             CircleAvatar(
               radius: 20,
               backgroundColor: color.withValues(alpha: 0.15),
-              child: Icon(actividad.tipo.icono, color: color, size: 22),
+              child: IconoActividad(actividad.tipo, color: color, tamano: 22),
             ),
             const SizedBox(width: 14),
             Expanded(

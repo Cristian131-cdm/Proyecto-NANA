@@ -26,6 +26,7 @@ import 'mi_familia.dart';
 import 'nana_escucha.dart';
 import 'recordatorio_alarma.dart';
 import 'tablero_frases.dart';
+import '../widgets/icono_nana.dart';
 
 // Inicio del adulto: una sola cosa a la vez (la tarjeta) y tres botones fijos.
 // La lista completa del día está en "Ver todo mi día" (mi_dia.dart).
@@ -575,7 +576,8 @@ class _PanelAdultoState extends State<PanelAdulto> {
                     child: ValueListenableBuilder<bool>(
                       valueListenable: Ajustes.sinVoz,
                       builder: (context, sinVoz, _) => _BotonGrande(
-                        icono: sinVoz ? Icons.touch_app : Icons.mic,
+                        icono: Icons.touch_app,
+                        iconoB: sinVoz ? null : IconoB.hablar,
                         texto: sinVoz ? 'Decir' : 'Hablar',
                         fondo: ColoresNana.azul,
                         frente: Colors.white,
@@ -594,6 +596,7 @@ class _PanelAdultoState extends State<PanelAdulto> {
                   Expanded(
                     child: _BotonGrande(
                       icono: Icons.family_restroom,
+                      iconoB: IconoB.familia,
                       texto: 'Familia',
                       fondo: ColoresNana.moradoClaro,
                       frente: ColoresNana.morado,
@@ -607,6 +610,7 @@ class _PanelAdultoState extends State<PanelAdulto> {
                 width: double.infinity,
                 child: _BotonGrande(
                   icono: Icons.notifications_active,
+                  iconoB: IconoB.ayuda,
                   texto: 'Necesito ayuda',
                   fondo: ColoresNana.alertaClaro,
                   frente: ColoresNana.alerta,
@@ -631,9 +635,12 @@ class _BotonGrande extends StatelessWidget {
   final Color? borde;
   final bool enFila; // ícono a un lado del texto, para el botón ancho
   final VoidCallback onTap;
+  // Ícono propio de NANA; si no hay, se usa [icono] de Material.
+  final IconoB? iconoB;
 
   const _BotonGrande({
     required this.icono,
+    this.iconoB,
     required this.texto,
     required this.fondo,
     required this.frente,
@@ -645,7 +652,10 @@ class _BotonGrande extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final partes = [
-      Icon(icono, size: 34, color: frente),
+      if (iconoB case final b?)
+        IconoNana(b, tamano: 34, color: frente)
+      else
+        Icon(icono, size: 34, color: frente),
       SizedBox(width: enFila ? 12 : 0, height: enFila ? 0 : 4),
       Flexible(
         child: Text(

@@ -5,12 +5,12 @@ import '../core/dia.dart';
 import '../core/semana.dart';
 import '../core/servicios.dart';
 import '../core/tema.dart';
-import '../models/actividad.dart';
 import '../models/medicamento.dart';
 import '../models/registro.dart';
 import '../models/rutina.dart';
 import '../widgets/caritas_animo.dart';
 import '../widgets/tarjeta_dato.dart';
+import '../widgets/icono_nana.dart';
 
 // Los últimos 7 días, calculados con lo que se anotó de verdad.
 class PestanaSemana extends StatefulWidget {
@@ -390,7 +390,7 @@ Future<void> mostrarDetalleDia(BuildContext context, DiaSemana d) {
                 contentPadding: EdgeInsets.zero,
                 leading: CircleAvatar(
                   backgroundColor: ColoresNana.moradoClaro,
-                  child: Icon(r.tipo.icono, color: ColoresNana.morado),
+                  child: IconoActividad(r.tipo, color: ColoresNana.morado),
                 ),
                 title: Text(queHizo(r), style: const TextStyle(fontSize: 18)),
                 trailing: Text(

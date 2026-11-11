@@ -180,6 +180,7 @@ class _SplashScreenState extends State<SplashScreen>
                             tamano: _tamanoMascota,
                             ojosCerrados: pico(_parpadeo),
                             escalaCorazon: escalaCorazon,
+                            ilustrada: false,
                           ),
                         ),
                       ),

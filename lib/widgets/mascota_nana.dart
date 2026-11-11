@@ -15,46 +15,121 @@ class MascotaNana extends StatelessWidget {
   final double ojosCerrados;
   final double escalaCorazon;
 
+  // true: la ilustración del diseño B (assets/mascota/), con volumen y luz.
+  // false: la misma NANA dibujada con código, para cuando se anima (parpadeo,
+  // corazón que late, boca que habla). Se usa sola si se pide animación.
+  final bool ilustrada;
+
   const MascotaNana({
     super.key,
     this.tamano = 84,
     this.ojosCerrados = 0,
     this.escalaCorazon = 1,
     this.estado = EstadoNana.normal,
+    this.ilustrada = true,
   });
+
+  // La ilustración deja ~12% de aire en cada lado; se agranda para que mida
+  // lo mismo que la dibujada.
+  static const _aireIlustracion = 0.76;
 
   @override
   Widget build(BuildContext context) {
+    final animada = ojosCerrados != 0 || escalaCorazon != 1;
+    if (ilustrada && !animada) {
+      return SizedBox(
+        width: tamano,
+        height: tamano,
+        child: OverflowBox(
+          maxWidth: tamano / _aireIlustracion,
+          maxHeight: tamano / _aireIlustracion,
+          child: Image.asset(
+            'assets/mascota/nana_${estado.name}.png',
+            width: tamano / _aireIlustracion,
+            height: tamano / _aireIlustracion,
+            fit: BoxFit.contain,
+            excludeFromSemantics: true,
+            gaplessPlayback: true,
+            // Si la imagen no carga, la dibujada.
+            errorBuilder: (_, _, _) => _dibujada(),
+          ),
+        ),
+      );
+    }
+    return _dibujada();
+  }
+
+  Widget _dibujada() {
+    final t = tamano;
     return SizedBox(
-      width: tamano,
-      height: tamano,
+      width: t,
+      height: t,
       child: Stack(
         alignment: Alignment.center,
         children: [
+          // Borde lila con degradado.
           Container(
             decoration: BoxDecoration(
-              color: ColoresNana.moradoClaro,
-              borderRadius: BorderRadius.circular(tamano * 0.38),
-              border: Border.all(color: ColoresNana.lila, width: tamano * 0.04),
+              borderRadius: BorderRadius.circular(t * 0.285),
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  ColoresNana.mascotaBordeClaro,
+                  ColoresNana.mascotaBordeOscuro,
+                ],
+              ),
             ),
           ),
-          Container(
-            width: tamano * 0.7,
-            height: tamano * 0.5,
-            decoration: BoxDecoration(
-              color: const Color(0xFF1A1426),
-              borderRadius: BorderRadius.circular(tamano * 0.2),
+          // Cascarón blanco perla.
+          Positioned.fill(
+            child: Padding(
+              padding: EdgeInsets.all(t * 0.04),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(t * 0.254),
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    stops: [0, 0.6, 1],
+                    colors: [
+                      Colors.white,
+                      ColoresNana.mascotaCascaron,
+                      ColoresNana.mascotaCascaronSombra,
+                    ],
+                  ),
+                ),
+              ),
             ),
-            child: CustomPaint(painter: _CaraPainter(ojosCerrados, estado)),
+          ),
+          // Pantalla con la cara.
+          Positioned(
+            top: t * 0.25,
+            child: Container(
+              width: t * 0.66,
+              height: t * 0.49,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(t * 0.16),
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    ColoresNana.mascotaPantalla,
+                    ColoresNana.mascotaPantallaOscura,
+                  ],
+                ),
+              ),
+              child: CustomPaint(painter: _CaraPainter(ojosCerrados, estado)),
+            ),
           ),
           Positioned(
-            bottom: tamano * 0.02,
+            bottom: t * 0.035,
             child: Transform.scale(
               scale: escalaCorazon,
               child: Icon(
                 Icons.favorite,
                 color: ColoresNana.lila,
-                size: tamano * 0.2,
+                size: t * 0.18,
               ),
             ),
           ),
