@@ -67,6 +67,7 @@ class _PestanaRutinasState extends State<PestanaRutinas> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'agregar-rutina',
         onPressed: _abrirFormulario,
         backgroundColor: ColoresNana.morado,
         foregroundColor: Colors.white,
@@ -78,11 +79,12 @@ class _PestanaRutinasState extends State<PestanaRutinas> {
         builder: (context, snap) {
           final rutinas = snap.data ?? const <Rutina>[];
           return ListView(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 90),
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 104),
             children: [
-              const Text(
-                'NANA le recuerda estas cosas a lo largo del día.',
-                style: TextStyle(fontSize: 16, color: ColoresNana.tintaSuave),
+              const CabeceraCuidador(
+                titulo: 'Rutinas del día',
+                detalle: 'NANA le recuerda estas cosas a lo largo del día.',
+                icono: Icons.event_note_outlined,
               ),
               const TituloSeccion('Comidas'),
               ..._de(rutinas, TipoActividad.comida),
@@ -99,11 +101,11 @@ class _PestanaRutinasState extends State<PestanaRutinas> {
     final deTipo = rutinas.where((r) => r.tipo == tipo).toList();
     if (deTipo.isEmpty) {
       return [
-        Text(
-          tipo == TipoActividad.comida
+        TarjetaDato(
+          icono: tipo.icono,
+          titulo: tipo == TipoActividad.comida
               ? 'Sin comidas todavía. Toca "Agregar".'
               : 'Sin actividades todavía. Toca "Agregar".',
-          style: const TextStyle(fontSize: 17, color: ColoresNana.tintaSuave),
         ),
       ];
     }

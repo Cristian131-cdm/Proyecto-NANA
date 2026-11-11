@@ -211,56 +211,38 @@ class _Contenido extends StatelessWidget {
         if (alertas.isEmpty && vencidas.isEmpty && !callado)
           _EstadoBien(adulto: nombre),
         TituloSeccion('Hoy lleva $listas de ${dia.length}'),
-        Row(
+        ColumnasCuidador(
+          maxColumnas: 4,
           children: [
-            Expanded(
-              child: _Recuadro(
-                icono: Icons.medication,
-                titulo: 'Medicinas',
-                valor: '$tomadas / ${meds.length}',
-                color: vencidas.isNotEmpty
-                    ? ColoresNana.alerta
-                    : meds.isNotEmpty && tomadas == meds.length
-                    ? ColoresNana.ok
-                    : ColoresNana.tinta,
-              ),
+            _Recuadro(
+              icono: Icons.medication,
+              titulo: 'Medicinas',
+              valor: '$tomadas / ${meds.length}',
+              color: vencidas.isNotEmpty
+                  ? ColoresNana.alerta
+                  : meds.isNotEmpty && tomadas == meds.length
+                  ? ColoresNana.ok
+                  : ColoresNana.tinta,
             ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _Recuadro(
-                icono: Icons.restaurant,
-                titulo: 'Comidas',
-                valor:
-                    '${hechas(TipoActividad.comida)} / '
-                    '${total(TipoActividad.comida)}',
-                color: ColoresNana.tinta,
-              ),
+            _Recuadro(
+              icono: Icons.restaurant,
+              titulo: 'Comidas',
+              valor:
+                  '${hechas(TipoActividad.comida)} / ${total(TipoActividad.comida)}',
+              color: ColoresNana.tinta,
             ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            Expanded(
-              child: _Recuadro(
-                icono: Icons.mood,
-                titulo: 'Ánimo',
-                valor: animo == null
-                    ? 'Sin dato'
-                    : CaritasAnimo.etiquetas[animo],
-                color: _colorAnimo(animo),
-              ),
+            _Recuadro(
+              icono: Icons.mood,
+              titulo: 'Ánimo',
+              valor: animo == null ? 'Sin dato' : CaritasAnimo.etiquetas[animo],
+              color: _colorAnimo(animo),
             ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _Recuadro(
-                icono: Icons.directions_walk,
-                titulo: 'Actividad',
-                valor:
-                    '${hechas(TipoActividad.ejercicio)} / '
-                    '${total(TipoActividad.ejercicio)}',
-                color: ColoresNana.tinta,
-              ),
+            _Recuadro(
+              icono: Icons.directions_walk,
+              titulo: 'Actividad',
+              valor:
+                  '${hechas(TipoActividad.ejercicio)} / ${total(TipoActividad.ejercicio)}',
+              color: ColoresNana.tinta,
             ),
           ],
         ),
@@ -293,15 +275,17 @@ class _Contenido extends StatelessWidget {
         ],
         const SizedBox(height: 24),
         if (llamarle != null)
-          SizedBox(
-            height: 60,
+          ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 64),
             child: FilledButton.icon(
               onPressed: llamarle,
               icon: const Icon(Icons.call),
               label: Text('Llamar a $nombre'),
               style: FilledButton.styleFrom(
                 backgroundColor: ColoresNana.azul,
-                shape: const StadiumBorder(),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
+                ),
                 textStyle: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -313,7 +297,7 @@ class _Contenido extends StatelessWidget {
         const Text(
           'NANA solo registra, recuerda y alerta. No da recomendaciones médicas.',
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 13, color: Color(0xFF6B6485)),
+          style: TextStyle(fontSize: 13, color: ColoresNana.tintaSuave),
         ),
       ],
     );
@@ -350,7 +334,7 @@ class _Alerta extends StatelessWidget {
           Row(
             children: [
               const Icon(
-                Icons.warning_amber_rounded,
+                Icons.notifications_active_outlined,
                 color: ColoresNana.alerta,
                 size: 30,
               ),
@@ -370,48 +354,44 @@ class _Alerta extends StatelessWidget {
           const SizedBox(height: 4),
           Text(detalle, style: const TextStyle(fontSize: 16)),
           const SizedBox(height: 14),
-          Row(
+          ColumnasCuidador(
             children: [
-              if (onLlamar != null) ...[
-                Expanded(
-                  child: SizedBox(
-                    height: 52,
-                    child: FilledButton.icon(
-                      onPressed: onLlamar,
-                      icon: const Icon(Icons.call),
-                      label: const Text('Llamar'),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: ColoresNana.alerta,
-                        shape: const StadiumBorder(),
-                        textStyle: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+              if (onLlamar != null)
+                FilledButton.icon(
+                  onPressed: onLlamar,
+                  icon: const Icon(Icons.call),
+                  label: const Text('Llamar'),
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(0, 64),
+                    padding: const EdgeInsets.all(16),
+                    backgroundColor: ColoresNana.alerta,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    textStyle: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-                if (textoResuelta != null) const SizedBox(width: 10),
-              ],
               if (textoResuelta != null)
-                Expanded(
-                  child: SizedBox(
-                    height: 52,
-                    child: OutlinedButton(
-                      onPressed: onResuelta,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: ColoresNana.alerta,
-                        backgroundColor: Colors.white,
-                        side: const BorderSide(color: ColoresNana.alerta),
-                        shape: const StadiumBorder(),
-                        textStyle: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      child: Text(textoResuelta!),
+                OutlinedButton(
+                  onPressed: onResuelta,
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(0, 64),
+                    padding: const EdgeInsets.all(16),
+                    foregroundColor: ColoresNana.alerta,
+                    backgroundColor: Colors.white,
+                    side: const BorderSide(color: ColoresNana.alerta),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    textStyle: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
+                  child: Text(textoResuelta!, textAlign: TextAlign.center),
                 ),
             ],
           ),
@@ -428,14 +408,14 @@ class _EstadoBien extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(22),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: ColoresNana.okClaro,
         borderRadius: BorderRadius.circular(24),
       ),
       child: Row(
         children: [
-          const Icon(Icons.check_circle, color: ColoresNana.ok, size: 44),
+          const Icon(Icons.check_circle, color: ColoresNana.ok, size: 36),
           const SizedBox(width: 16),
           Expanded(
             child: Text(
@@ -464,27 +444,22 @@ class _Recuadro extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: ColoresNana.moradoClaro, width: 2),
-      ),
+    return SuperficieCuidador(
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icono, size: 20, color: const Color(0xFF6B6485)),
+              Icon(icono, size: 20, color: ColoresNana.tintaSuave),
               const SizedBox(width: 6),
               Flexible(
                 child: Text(
                   titulo,
-                  overflow: TextOverflow.ellipsis,
+
                   style: const TextStyle(
                     fontSize: 15,
-                    color: Color(0xFF6B6485),
+                    color: ColoresNana.tintaSuave,
                   ),
                 ),
               ),
@@ -537,55 +512,53 @@ class _Evento extends StatelessWidget {
     final resaltar = estado == EstadoActividad.sinConfirmar;
     final apagado = estado == EstadoActividad.pendiente;
 
-    final fila = IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SizedBox(
-            width: 68,
-            child: Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(
-                actividad.hora,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
+    final fila = Padding(
+      padding: EdgeInsets.only(bottom: ultimo ? 0 : 10),
+      child: SuperficieCuidador(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CircleAvatar(
+              radius: 20,
+              backgroundColor: color.withValues(alpha: 0.15),
+              child: Icon(actividad.tipo.icono, color: color, size: 22),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    actividad.hora,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: ColoresNana.tintaSuave,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    actividad.titulo,
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: resaltar
+                          ? ColoresNana.alerta
+                          : apagado
+                          ? ColoresNana.tintaSuave
+                          : ColoresNana.tinta,
+                      fontWeight: resaltar
+                          ? FontWeight.w600
+                          : FontWeight.normal,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-          Column(
-            children: [
-              CircleAvatar(
-                radius: 20,
-                backgroundColor: color.withValues(alpha: 0.15),
-                child: Icon(actividad.tipo.icono, color: color, size: 22),
-              ),
-              if (!ultimo)
-                Expanded(
-                  child: Container(width: 2, color: ColoresNana.moradoClaro),
-                ),
-            ],
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.only(top: 9, bottom: ultimo ? 0 : 24),
-              child: Text(
-                actividad.titulo,
-                style: TextStyle(
-                  fontSize: 18,
-                  color: resaltar
-                      ? ColoresNana.alerta
-                      : apagado
-                      ? const Color(0xFF8A82A3)
-                      : ColoresNana.tinta,
-                  fontWeight: resaltar ? FontWeight.w600 : FontWeight.normal,
-                ),
-              ),
-            ),
-          ),
-        ],
+            if (onTap != null)
+              const Icon(Icons.chevron_right, color: ColoresNana.morado),
+          ],
+        ),
       ),
     );
     if (onTap == null) return fila;

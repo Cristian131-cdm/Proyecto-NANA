@@ -77,11 +77,12 @@ class VistaSemana extends StatelessWidget {
         total == 0 && dias.every((d) => d.animo == null && d.movimiento == 0);
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
       children: [
-        Text(
-          rangoSemana(dias),
-          style: const TextStyle(fontSize: 16, color: ColoresNana.tintaSuave),
+        CabeceraCuidador(
+          titulo: 'La semana de $adulto',
+          detalle: rangoSemana(dias),
+          icono: Icons.bar_chart_rounded,
         ),
         if (sinDatos) ...[
           const SizedBox(height: 12),
@@ -99,7 +100,7 @@ class VistaSemana extends StatelessWidget {
         Container(
           padding: const EdgeInsets.fromLTRB(12, 16, 12, 10),
           decoration: _caja,
-          child: Row(
+          child: _FilaSemana(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               for (final d in dias)
@@ -135,7 +136,7 @@ class VistaSemana extends StatelessWidget {
                             decoration: BoxDecoration(
                               color: d.completo
                                   ? ColoresNana.lila
-                                  : const Color(0xFFE8B260),
+                                  : ColoresNana.alerta,
                               borderRadius: const BorderRadius.vertical(
                                 top: Radius.circular(8),
                               ),
@@ -161,7 +162,7 @@ class VistaSemana extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: _caja,
-          child: Row(
+          child: _FilaSemana(
             children: [
               for (final d in dias)
                 Expanded(
@@ -243,7 +244,34 @@ class VistaSemana extends StatelessWidget {
   static final _caja = BoxDecoration(
     color: Colors.white,
     borderRadius: BorderRadius.circular(20),
-    border: Border.all(color: ColoresNana.moradoClaro, width: 2),
+    border: Border.all(color: ColoresNana.moradoClaro),
+  );
+}
+
+// Cada día conserva un ancho táctil legible, incluso con letra grande.
+class _FilaSemana extends StatelessWidget {
+  final List<Widget> children;
+  final CrossAxisAlignment crossAxisAlignment;
+  const _FilaSemana({
+    required this.children,
+    this.crossAxisAlignment = CrossAxisAlignment.center,
+  });
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, limites) {
+      final escala = MediaQuery.textScalerOf(context).scale(16) / 16;
+      final minimo = children.length * 64.0 * escala;
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: SizedBox(
+          width: minimo > limites.maxWidth ? minimo : limites.maxWidth,
+          child: Row(
+            crossAxisAlignment: crossAxisAlignment,
+            children: children,
+          ),
+        ),
+      );
+    },
   );
 }
 

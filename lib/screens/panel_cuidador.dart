@@ -254,54 +254,9 @@ class _PanelCuidadorState extends State<PanelCuidador> {
     return Scaffold(
       appBar: AppBar(
         titleSpacing: 12,
-        title: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: () => _cambiarAdulto(lista),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                AnilloDelDia(
-                  key: ValueKey('anillo-${adulto.folio}'),
-                  folio: adulto.folio,
-                  nombre: nombre,
-                ),
-                const SizedBox(width: 10),
-                Flexible(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        relacion.isEmpty ? nombre : '$nombre · $relacion',
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: ColoresNana.morado,
-                        ),
-                      ),
-                      Text(
-                        adulto.uidAdulto != null
-                            ? '● Usa NANA en su celular'
-                            : adulto.tieneCelular
-                            ? '○ Falta conectar su celular'
-                            : '○ Sin celular',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: adulto.uidAdulto != null
-                              ? ColoresNana.ok
-                              : const Color(0xFF6B6485),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Icon(Icons.expand_more, color: ColoresNana.morado),
-              ],
-            ),
-          ),
+        title: const Text(
+          'NANA',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         actions: [
           IconButton(
@@ -329,23 +284,94 @@ class _PanelCuidadorState extends State<PanelCuidador> {
         ],
       ),
       // IndexedStack para no perder lo que se hizo al cambiar de pestaña
-      body: IndexedStack(
-        index: _pestana,
-        children: [
-          PestanaInicio(key: ValueKey(adulto.folio), adulto: adulto),
-          PestanaMedicamentos(key: ValueKey(adulto.folio), folio: adulto.folio),
-          PestanaRutinas(key: ValueKey(adulto.folio), folio: adulto.folio),
-          PestanaSemana(
-            key: ValueKey(adulto.folio),
-            adulto: nombre,
-            folio: adulto.folio,
-          ),
-          PestanaHistorial(
-            key: ValueKey(adulto.folio),
-            adulto: nombre,
-            folio: adulto.folio,
-          ),
-        ],
+      body: SafeArea(
+        top: false,
+        bottom: false,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: () => _cambiarAdulto(lista),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 4,
+                    horizontal: 4,
+                  ),
+                  child: Row(
+                    children: [
+                      AnilloDelDia(
+                        key: ValueKey('anillo-${adulto.folio}'),
+                        folio: adulto.folio,
+                        nombre: nombre,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              relacion.isEmpty ? nombre : '$nombre · $relacion',
+
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: ColoresNana.morado,
+                              ),
+                            ),
+                            Text(
+                              adulto.uidAdulto != null
+                                  ? '● Usa NANA en su celular'
+                                  : adulto.tieneCelular
+                                  ? '○ Falta conectar su celular'
+                                  : '○ Sin celular',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: adulto.uidAdulto != null
+                                    ? ColoresNana.ok
+                                    : ColoresNana.tintaSuave,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.expand_more, color: ColoresNana.morado),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const Divider(height: 1, color: ColoresNana.moradoClaro),
+            Expanded(
+              child: IndexedStack(
+                index: _pestana,
+                children: [
+                  PestanaInicio(key: ValueKey(adulto.folio), adulto: adulto),
+                  PestanaMedicamentos(
+                    key: ValueKey(adulto.folio),
+                    folio: adulto.folio,
+                  ),
+                  PestanaRutinas(
+                    key: ValueKey(adulto.folio),
+                    folio: adulto.folio,
+                  ),
+                  PestanaSemana(
+                    key: ValueKey(adulto.folio),
+                    adulto: nombre,
+                    folio: adulto.folio,
+                  ),
+                  PestanaHistorial(
+                    key: ValueKey(adulto.folio),
+                    adulto: nombre,
+                    folio: adulto.folio,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
       bottomNavigationBar: NavigationBarTheme(
         data: NavigationBarThemeData(
@@ -359,11 +385,12 @@ class _PanelCuidadorState extends State<PanelCuidador> {
                   : FontWeight.normal,
               color: s.contains(WidgetState.selected)
                   ? ColoresNana.morado
-                  : const Color(0xFF6B6485),
+                  : ColoresNana.tintaSuave,
             ),
           ),
         ),
         child: NavigationBar(
+          height: 80,
           selectedIndex: _pestana,
           onDestinationSelected: (i) => setState(() => _pestana = i),
           destinations: [
