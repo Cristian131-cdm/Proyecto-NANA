@@ -112,7 +112,7 @@ class _FamiliaAlertasState extends State<FamiliaAlertas> {
             const Text(
               'De prueba: el código se activará cuando haya cuentas.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Color(0xFF6B6485)),
+              style: TextStyle(fontSize: 14, color: ColoresNana.tintaSuave),
             ),
           ],
         ),
@@ -157,7 +157,7 @@ class _FamiliaAlertasState extends State<FamiliaAlertas> {
     final adulto = widget.adulto;
     final yo = Servicios.repo.uid;
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
       children: [
         TituloSeccion('Quiénes cuidan a $adulto'),
         for (final f in familia)
@@ -243,16 +243,10 @@ class _Regla extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = encendida ? ColoresNana.alerta : const Color(0xFF8A82A3);
+    final color = encendida ? ColoresNana.morado : ColoresNana.tintaSuave;
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: ColoresNana.moradoClaro, width: 2),
-        ),
+      child: SuperficieCuidador(
         child: Column(
           children: [
             Row(
@@ -278,18 +272,24 @@ class _Regla extends StatelessWidget {
                         subtitulo,
                         style: const TextStyle(
                           fontSize: 15,
-                          color: Color(0xFF6B6485),
+                          color: ColoresNana.tintaSuave,
                         ),
                       ),
                     ],
                   ),
                 ),
-                Switch(
+              ],
+            ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Semantics(
+                label: titulo,
+                child: Switch(
                   value: encendida,
                   onChanged: onCambio,
                   activeThumbColor: ColoresNana.morado,
                 ),
-              ],
+              ),
             ),
             if (extra != null) ...[
               const SizedBox(height: 10),

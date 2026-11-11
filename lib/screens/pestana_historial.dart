@@ -165,11 +165,12 @@ class _PestanaHistorialState extends State<PestanaHistorial> {
         if (!c.fecha.isBefore(hoy)) c,
     ];
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
       children: [
-        Text(
-          'Lo que indicó el médico de $adulto',
-          style: const TextStyle(fontSize: 16, color: Color(0xFF6B6485)),
+        CabeceraCuidador(
+          titulo: 'Su expediente',
+          detalle: 'Lo que indicó el médico de $adulto',
+          icono: Icons.folder_outlined,
         ),
         const TituloSeccion('Recetas'),
         if (recetas.isEmpty) const _Vacio('Todavía no hay recetas guardadas.'),
@@ -185,8 +186,6 @@ class _PestanaHistorialState extends State<PestanaHistorial> {
           texto: 'Agregar receta',
           onPressed: _agregar,
         ),
-        const TituloSeccion('Datos de salud'),
-        _DatosSalud(salud: salud, onEditar: () => _editarSalud(salud)),
         const TituloSeccion('Próximas citas'),
         if (proximas.isEmpty) const _Vacio('No hay citas próximas.'),
         for (final c in proximas)
@@ -205,11 +204,15 @@ class _PestanaHistorialState extends State<PestanaHistorial> {
           texto: 'Agregar cita',
           onPressed: _agregarCita,
         ),
+        const TituloSeccion('Datos de salud'),
+        SuperficieCuidador(
+          child: _DatosSalud(salud: salud, onEditar: () => _editarSalud(salud)),
+        ),
         const SizedBox(height: 16),
         const Text(
           'NANA solo guarda lo que indicó un profesional de la salud.',
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 13, color: Color(0xFF6B6485)),
+          style: TextStyle(fontSize: 13, color: ColoresNana.tintaSuave),
         ),
       ],
     );
@@ -308,7 +311,7 @@ class _DatosSalud extends StatelessWidget {
             const SizedBox(height: 6),
             const Text(
               'Tomado de su expediente y revisado por la familia.',
-              style: TextStyle(fontSize: 14, color: Color(0xFF6B6485)),
+              style: TextStyle(fontSize: 14, color: ColoresNana.tintaSuave),
             ),
           ],
         ],

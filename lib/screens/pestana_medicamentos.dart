@@ -5,6 +5,7 @@ import '../core/servicios.dart';
 import '../core/tema.dart';
 import '../models/medicamento.dart';
 import '../widgets/aviso.dart';
+import '../widgets/tarjeta_dato.dart';
 
 const unidadesDosis = ['mg', 'mcg', 'g', 'ml', 'UI', 'gotas', 'tabletas'];
 
@@ -75,58 +76,51 @@ class _PestanaMedicamentosState extends State<PestanaMedicamentos> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'agregar-medicamento',
         onPressed: () => _abrirFormulario(context),
         backgroundColor: ColoresNana.morado,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add),
         label: const Text('Agregar', style: TextStyle(fontSize: 18)),
       ),
-      body: lista.isEmpty
-          ? const Center(
-              child: Text(
-                'Aún no hay medicamentos programados',
-                style: TextStyle(fontSize: 18),
-              ),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
-              itemCount: lista.length,
-              itemBuilder: (context, i) {
-                final m = lista[i];
-                return Card(
-                  child: ListTile(
-                    leading: const CircleAvatar(
-                      backgroundColor: ColoresNana.moradoClaro,
-                      child: Icon(Icons.medication, color: ColoresNana.morado),
-                    ),
-                    title: Text(
-                      '${m.nombre} · ${m.dosis}',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    subtitle: Text(
-                      '${m.hora.format(context)} · alerta si no confirma en ${m.ventanaMin} min',
-                    ),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete_outline),
-                      tooltip: 'Borrar ${m.nombre}',
-                      // Se borra al momento, con "Deshacer" por si fue sin querer.
-                      onPressed: () {
-                        Servicios.repo.borrarMedicamento(folio, m.id!);
-                        mostrarAviso(
-                          context,
-                          'Borré ${m.nombre}',
-                          onDeshacer: () =>
-                              Servicios.repo.guardarMedicamento(folio, m),
-                        );
-                      },
-                    ),
-                  ),
-                );
-              },
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 104),
+        children: [
+          CabeceraCuidador(
+            titulo: 'Medicamentos',
+            detalle: '${lista.length} programados',
+            icono: Icons.medication_outlined,
+          ),
+          const SizedBox(height: 16),
+          if (lista.isEmpty)
+            const TarjetaDato(
+              icono: Icons.medication_outlined,
+              titulo: 'Aún no hay medicamentos programados',
             ),
+          for (final m in lista)
+            TarjetaDato(
+              icono: Icons.medication_outlined,
+              titulo: '${m.nombre} · ${m.dosis}',
+              subtitulo:
+                  '${m.hora.format(context)} · alerta si no confirma en ${m.ventanaMin} min',
+              accion: IconButton(
+                icon: const Icon(Icons.delete_outline),
+                tooltip: 'Borrar ${m.nombre}',
+                color: ColoresNana.tintaSuave,
+                constraints: const BoxConstraints(minWidth: 64, minHeight: 64),
+                onPressed: () {
+                  Servicios.repo.borrarMedicamento(folio, m.id!);
+                  mostrarAviso(
+                    context,
+                    'Borré ${m.nombre}',
+                    onDeshacer: () =>
+                        Servicios.repo.guardarMedicamento(folio, m),
+                  );
+                },
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

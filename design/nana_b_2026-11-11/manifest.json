@@ -1,7 +1,7 @@
 {
   "design": "NANA B",
-  "status": "assets_only",
-  "generatedWith": "Built-in image_gen (mascot), original SVG (icons)",
+  "status": "resources_not_wired",
+  "mascotUsage": "Static illustrations only; preserve animated CustomPainter",
   "files": [
     {
       "path": "assets/mascota_b/nana_atenta.png",
@@ -9,9 +9,19 @@
       "sha256": "f4a65551d6c17baf9352c757d287a8b54a77db1e6e599d9e459b3f13e5a5ee4c"
     },
     {
+      "path": "assets/mascota_b/nana_atenta_512.png",
+      "bytes": 64002,
+      "sha256": "6de1cbcef2fd8bd8b45cda4f785f1bfe5afe01d121c9c04e801b3a12d9eb4ac4"
+    },
+    {
       "path": "assets/mascota_b/nana_contenta.png",
       "bytes": 1100868,
       "sha256": "c2c4c63501b629a02d45d32388104550b31f2de7c984b57625b761e1fd07af76"
+    },
+    {
+      "path": "assets/mascota_b/nana_contenta_512.png",
+      "bytes": 60900,
+      "sha256": "f5159c7f6c075c56683d15415fbe37bf2f39849f5057e00ee66134f5aa5e0143"
     },
     {
       "path": "assets/mascota_b/nana_dormida.png",
@@ -19,14 +29,39 @@
       "sha256": "fad97b3796103f7c96a8400fc8d6c09c2b626efcdace9cb5856502a4d8cff877"
     },
     {
+      "path": "assets/mascota_b/nana_dormida_512.png",
+      "bytes": 61074,
+      "sha256": "c8297f9d6470d1fbf12fabd4c6e481fe830c98e6d8ed2c12ef1d97030d4746e3"
+    },
+    {
       "path": "assets/mascota_b/nana_normal.png",
       "bytes": 1042666,
       "sha256": "1c968ceaeefd9034f9cc97c7ec91a06a8fe52d49353cb7cdc509fc3393917102"
     },
     {
+      "path": "assets/mascota_b/nana_normal_512.png",
+      "bytes": 58877,
+      "sha256": "a87cc111eb76728aff04e006e9a4c8e3a4132452ff70a36b0cd8186fb8fa560f"
+    },
+    {
+      "path": "assets/iconos_b/animo.svg",
+      "bytes": 240,
+      "sha256": "ff332137b1b3e51db8b157b69a73e5518ed29634a276dad1ab106ace49900625"
+    },
+    {
       "path": "assets/iconos_b/ayuda.svg",
-      "bytes": 305,
-      "sha256": "53c135227ac055dbfc6bade5b2a97ac876f614511fe28b747c40a6dc22227059"
+      "bytes": 222,
+      "sha256": "a0d5cb64b4850a3d4acb8e9bbe2d55c652547f4e51e6f40bce721cd69d9fa1c1"
+    },
+    {
+      "path": "assets/iconos_b/caminar.svg",
+      "bytes": 247,
+      "sha256": "84af609a3b0383a20dc7222d850e72b7732782e23ec21e213c1d3d41a4430e5c"
+    },
+    {
+      "path": "assets/iconos_b/comida.svg",
+      "bytes": 250,
+      "sha256": "c0a9d2756cc2299dba96efd86f5f978cb825bbeb35d3d9a3553d194042b2ccdc"
     },
     {
       "path": "assets/iconos_b/familia.svg",
@@ -37,6 +72,11 @@
       "path": "assets/iconos_b/hablar.svg",
       "bytes": 259,
       "sha256": "aa19873f73f6b6b999407a651eab217c55beac2771af353616c6f1179ef68458"
+    },
+    {
+      "path": "assets/iconos_b/llamar.svg",
+      "bytes": 265,
+      "sha256": "19a1bb8208ceeb8b4c779b5518501352120e0913a8cbfb0341a13084a2870e91"
     },
     {
       "path": "assets/iconos_b/mi_dia.svg",
@@ -52,6 +92,11 @@
       "path": "assets/iconos_b/pastilla.svg",
       "bytes": 264,
       "sha256": "4afcbc4321010fb93725c8be68747d5abbefce607f96160d3dde3925199dd2b2"
+    },
+    {
+      "path": "assets/iconos_b/senas.svg",
+      "bytes": 332,
+      "sha256": "c3522e87775a4c2f365419a224733ae23b119dadd99557b1d9f21f2578bd7240"
     },
     {
       "path": "assets/icono_b/icono.png",
