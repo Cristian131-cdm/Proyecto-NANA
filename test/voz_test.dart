@@ -117,6 +117,8 @@ void main() {
       expect(c('ayúdame, necesito ayuda'), 'Necesito ayuda');
       expect(c('¿qué me toca?'), '¿Qué sigue hoy?');
       expect(c('llama a mi hija'), 'familia');
+      expect(c('Quiero hablar con mi familia'), 'familia');
+      expect(c('quiero ver a mi nieto'), 'familia');
       expect(c('ya comí'), 'Ya comí');
     });
   });
