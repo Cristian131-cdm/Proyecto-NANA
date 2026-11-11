@@ -30,6 +30,15 @@ class NanaEscucha extends StatefulWidget {
 
   // Lo que se entiende al hablar. Las preocupantes van primero, para que
   // "ya tomé mi medicina pero me siento mal" cuente como "me siento mal".
+  // Con estas NANA deja de escuchar en cuanto las oye. Las demás ("ya comí")
+  // esperan la frase completa por si sigue "…pero me siento mal".
+  static const urgentes = {
+    'Necesito ayuda',
+    'Me siento mal',
+    'familia',
+    '¿Qué sigue hoy?',
+  };
+
   static const comandos = <(String, List<String>)>[
     ('Necesito ayuda', ['ayuda', 'auxilio', 'emergencia', 'me cai']),
     (
@@ -107,7 +116,10 @@ class _NanaEscuchaState extends State<NanaEscucha>
 
   Future<void> _escuchar() async {
     if (_cerrada || !mounted) return;
-    final oido = await Servicios.voz.escuchar();
+    final oido = await Servicios.voz.escuchar(
+      basta: (t) =>
+          NanaEscucha.urgentes.contains(entender(t, NanaEscucha.comandos)),
+    );
     if (_cerrada || !mounted) return;
     setState(() {
       _ultimoOido = oido;

@@ -19,8 +19,13 @@ abstract class Voz {
   Future<void> callar();
 
   // Escucha una sola frase y regresa lo que entendió, o null si no oyó nada,
-  // no hay micrófono o la persona no dio permiso.
-  Future<String?> escuchar({Duration maximo = const Duration(seconds: 8)});
+  // no hay micrófono o la persona no dio permiso. [basta]: si lo que lleva
+  // oído ya sirve (ej. ya dijo "me siento mal"), deja de escuchar en ese
+  // momento en vez de esperar a que se calle.
+  Future<String?> escuchar({
+    Duration maximo = const Duration(seconds: 8),
+    bool Function(String parcial)? basta,
+  });
   Future<void> dejarDeEscuchar();
 
   // Por qué falló la última vez que escuchó (para mostrarlo), o null.
@@ -65,6 +70,7 @@ class VozNula implements Voz {
   @override
   Future<String?> escuchar({
     Duration maximo = const Duration(seconds: 8),
+    bool Function(String parcial)? basta,
   }) async => respuestas.isEmpty ? null : respuestas.removeAt(0);
   @override
   Future<void> dejarDeEscuchar() async {}
@@ -141,16 +147,19 @@ class VozCelular implements Voz {
   @override
   Future<String?> escuchar({
     Duration maximo = const Duration(seconds: 8),
+    bool Function(String parcial)? basta,
   }) async {
     problema = null;
+    _basta = basta;
     try {
       _oidoListo ??= await _oido.initialize(
         debugLogging: kDebugMode,
         onStatus: (s) {
           debugPrint('NANA oído: $s');
-          // "notListening" llega ANTES del resultado final; solo "done"
-          // significa que ya no viene nada más.
-          if (s == SpeechToText.doneStatus) _terminar(null);
+          // En Android "notListening" y "done" llegan ANTES de la frase
+          // reconocida (hasta ~1 s después). Se le da un margen; si la frase
+          // llega antes, ella termina la espera.
+          if (s == SpeechToText.doneStatus) _terminarSiNoLlega();
         },
         onError: (e) {
           debugPrint(
@@ -190,13 +199,19 @@ class VozCelular implements Voz {
     await _oido.listen(
       onResult: (r) {
         debugPrint('NANA oyó: "${r.recognizedWords}" final=${r.finalResult}');
-        if (r.finalResult) _terminar(r.recognizedWords);
+        if (r.finalResult) {
+          _terminar(r.recognizedWords);
+        } else if (_basta?.call(r.recognizedWords) == true) {
+          // Ya dijo algo que NANA entiende: no hace falta esperar más.
+          _terminar(r.recognizedWords);
+          _oido.stop();
+        }
       },
       listenOptions: SpeechListenOptions(
         localeId: 'es_MX',
         listenFor: maximo,
         pauseFor: const Duration(seconds: 3),
-        partialResults: false,
+        partialResults: true,
         // Primero en el celular, para que la voz no salga del aparato.
         onDevice: !_conInternet,
         cancelOnError: true,
@@ -207,6 +222,15 @@ class VozCelular implements Voz {
       maximo + const Duration(seconds: 4),
       onTimeout: () => null,
     );
+  }
+
+  bool Function(String)? _basta;
+
+  void _terminarSiNoLlega() {
+    final e = _espera;
+    Future<void>.delayed(const Duration(milliseconds: 2500), () {
+      if (identical(e, _espera)) _terminar(null);
+    });
   }
 
   void _terminar(String? texto) {
@@ -224,10 +248,7 @@ class VozCelular implements Voz {
     try {
       await _oido.stop();
     } catch (_) {}
-    Future<void>.delayed(
-      const Duration(milliseconds: 1500),
-      () => _terminar(null),
-    );
+    _terminarSiNoLlega();
   }
 }
 

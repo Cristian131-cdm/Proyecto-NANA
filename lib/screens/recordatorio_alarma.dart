@@ -122,6 +122,8 @@ class _RecordatorioAlarmaState extends State<RecordatorioAlarma>
         await Future<void>.delayed(const Duration(seconds: 5));
       }
       if (_cerrado) return;
+      // Aquí se espera la frase completa: con "ya no quiero", el pedazo "ya"
+      // no debe contar como sí y anotar una medicina que no tomó.
       final oido = await Servicios.voz.escuchar();
       if (_cerrado || !mounted) return;
       switch (entender(oido, respuestasRecordatorio)) {
