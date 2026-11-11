@@ -6,6 +6,7 @@ import 'core/ajustes.dart';
 import 'core/avisos.dart';
 import 'core/servicios.dart';
 import 'core/tema.dart';
+import 'core/voz.dart';
 import 'data/repositorio_firebase.dart';
 import 'firebase_options.dart';
 import 'screens/candado.dart';
@@ -18,6 +19,7 @@ Future<void> main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   Servicios.repo = RepositorioFirebase();
   Servicios.avisos = AvisosLocales();
+  Servicios.voz = VozCelular();
   await Ajustes.cargar();
   VigilanteCandado.instancia.iniciar();
   await Servicios.alarmas.iniciar(abrirDesdeAlarma);

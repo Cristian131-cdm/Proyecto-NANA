@@ -4,6 +4,7 @@ import 'alarmas.dart';
 import 'avisos.dart';
 import 'biometria.dart';
 import 'lector_expediente.dart';
+import 'voz.dart';
 
 // Lo que la app usa por dentro. main() pone las versiones reales y las
 // pruebas ponen versiones de mentira, igual que con Ajustes.
@@ -13,6 +14,7 @@ class Servicios {
   static Alarmas alarmas = AlarmasLocales();
   static Avisos avisos = const AvisosNulos();
   static LectorExpediente lector = const LectorSimulado();
+  static Voz voz = VozNula();
 
   // La hora "de ahora"; las pruebas la fijan para que no dependan del reloj.
   static DateTime Function() reloj = DateTime.now;

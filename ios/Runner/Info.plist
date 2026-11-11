@@ -74,5 +74,9 @@
 		<false/>
 		<key>NSFaceIDUsageDescription</key>
 		<string>NANA usa Face ID para que solo tú abras tu información.</string>
+		<key>NSMicrophoneUsageDescription</key>
+		<string>NANA te escucha solo cuando tocas Hablar o le contestas un recordatorio. No se graba nada.</string>
+		<key>NSSpeechRecognitionUsageDescription</key>
+		<string>NANA entiende frases cortas como "ya me la tomé" o "al rato" para anotarlas por ti.</string>
 	</dict>
 </plist>

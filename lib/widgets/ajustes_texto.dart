@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/ajustes.dart';
+import '../core/servicios.dart';
 import '../core/tema.dart';
 import 'interruptor_huella.dart';
 
@@ -186,10 +187,12 @@ class _HojaTexto extends StatelessWidget {
                 ),
             const InterruptorHuella(),
             if (!paraCuidador) ...[
+              const SizedBox(height: 16),
+              const _VelocidadVoz(),
               const SizedBox(height: 8),
               const Text(
-                'Pronto: la voz, las señas y la vibración todavía no cambian '
-                'nada. Ya quedan guardados para cuando estén listos.',
+                'Pronto: las señas y la vibración todavía no cambian nada. '
+                'Ya quedan guardadas para cuando estén listas.',
                 style: TextStyle(fontSize: 14, color: ColoresNana.tintaSuave),
               ),
             ],
@@ -288,6 +291,55 @@ class TarjetaModo extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+// Qué tan rápido habla NANA. Al soltar, dice una frase para probar.
+class _VelocidadVoz extends StatelessWidget {
+  const _VelocidadVoz();
+
+  static String _nombre(double v) => v < 0.85
+      ? 'Despacio'
+      : v > 1.15
+      ? 'Rápido'
+      : 'Normal';
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<double>(
+      valueListenable: Ajustes.velocidadVoz,
+      builder: (context, v, _) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.speed, color: ColoresNana.morado, size: 30),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Voz de NANA: ${_nombre(v)}',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Slider(
+            value: v,
+            min: 0.6,
+            max: 1.4,
+            divisions: 4,
+            label: _nombre(v),
+            semanticFormatterCallback: (x) => 'Voz ${_nombre(x)}',
+            onChanged: (x) => Ajustes.velocidadVoz.value = x,
+            onChangeEnd: (_) =>
+                Servicios.voz.decir('Así hablo yo. Hola, soy NANA.'),
+          ),
+        ],
       ),
     );
   }

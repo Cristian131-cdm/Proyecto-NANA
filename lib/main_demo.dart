@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'core/ajustes.dart';
 import 'core/avisos.dart';
 import 'core/servicios.dart';
+import 'core/voz.dart';
 import 'data/demo.dart';
 import 'data/repositorio_memoria.dart';
 import 'main.dart';
@@ -20,6 +21,7 @@ Future<void> main() async {
   await cargarDemo(repo, 'rosa', DateTime.now());
   Servicios.repo = repo;
   Servicios.avisos = AvisosLocales();
+  Servicios.voz = VozCelular();
   await Ajustes.cargar();
   VigilanteCandado.instancia.iniciar();
   await Servicios.alarmas.iniciar(abrirDesdeAlarma);

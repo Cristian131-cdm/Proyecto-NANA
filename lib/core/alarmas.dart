@@ -13,6 +13,9 @@ abstract class Alarmas {
   Future<void> iniciar(void Function(String idMedicamento) alTocar);
   Future<void> programar(String nombreAdulto, List<Medicamento> meds);
 
+  // "Al rato": la misma alarma suena otra vez dentro de [en] (una sola vez).
+  Future<void> posponer(String idMedicamento, String texto, Duration en);
+
   // Si la app se abrió tocando una alarma, el id de esa medicina.
   String? get abiertaDesde;
 }
@@ -29,6 +32,10 @@ int idNotificacion(String idMedicamento) {
   }
   return h & 0x7fffffff;
 }
+
+// La alarma pospuesta usa otro id para no pisar la diaria.
+int idPospuesta(String idMedicamento) =>
+    idNotificacion('pospuesta-$idMedicamento');
 
 class AlarmasLocales implements Alarmas {
   final _plugin = FlutterLocalNotificationsPlugin();
@@ -124,7 +131,14 @@ class AlarmasLocales implements Alarmas {
           >();
       // Si no dan permiso de alarma exacta, suena unos minutos tarde.
       final exacta = await android?.canScheduleExactNotifications() ?? true;
-      await _plugin.cancelAllPendingNotifications();
+      // Quita las diarias de antes, pero deja las de "al rato".
+      final pospuestas = {
+        for (final m in meds)
+          if (m.id != null) idPospuesta(m.id!),
+      };
+      for (final p in await _plugin.pendingNotificationRequests()) {
+        if (!pospuestas.contains(p.id)) await _plugin.cancel(id: p.id);
+      }
       for (final m in meds) {
         if (m.id == null) continue;
         await _plugin.zonedSchedule(
@@ -142,6 +156,24 @@ class AlarmasLocales implements Alarmas {
       }
     } catch (e) {
       debugPrint('No se pudieron programar las alarmas: $e');
+    }
+  }
+
+  @override
+  Future<void> posponer(String idMedicamento, String texto, Duration en) async {
+    if (!_listo) return;
+    try {
+      await _plugin.zonedSchedule(
+        id: idPospuesta(idMedicamento),
+        scheduledDate: tz.TZDateTime.now(tz.local).add(en),
+        notificationDetails: _detalles,
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        title: 'Hora de tu medicina',
+        body: texto,
+        payload: idMedicamento,
+      );
+    } catch (e) {
+      debugPrint('No se pudo posponer la alarma: $e');
     }
   }
 }

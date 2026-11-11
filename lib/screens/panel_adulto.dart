@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../core/ajustes.dart';
 import '../core/dia.dart';
 import '../core/frases.dart';
+import '../core/lector.dart';
 import '../core/perfil_accesibilidad.dart';
 import '../core/servicios.dart';
 import '../core/tema.dart';
@@ -81,6 +82,9 @@ class _PanelAdultoState extends State<PanelAdulto> {
 
   String get _folio => _yo?.folio ?? '';
 
+  // Lo último que se mostró en el inicio, para que NANA lo lea.
+  String _textoInicio = '';
+
   int _hechas(List<Actividad> dia) =>
       dia.where((a) => a.estado == EstadoActividad.hecha).length;
 
@@ -150,7 +154,10 @@ class _PanelAdultoState extends State<PanelAdulto> {
   Future<void> _abrirRecordatorio(Actividad a) async {
     final hecho = await Navigator.push<bool>(
       context,
-      MaterialPageRoute(builder: (_) => RecordatorioAlarma(actividad: a)),
+      MaterialPageRoute(
+        builder: (_) =>
+            RecordatorioAlarma(actividad: a, nombre: _yo?.nombre ?? ''),
+      ),
     );
     if (hecho == true && mounted) _marcarHecha(a);
   }
@@ -324,6 +331,26 @@ class _PanelAdultoState extends State<PanelAdulto> {
     final estado = estadoNana(dia: dia, que: que, ahora: Servicios.reloj());
     final quieto = MediaQuery.disableAnimationsOf(context);
     final suave = Duration(milliseconds: quieto ? 0 : 350);
+    _textoInicio = textoDelDia(
+      saludo: '${_saludo()}, ${_yo?.nombre ?? ''}',
+      dia: dia,
+      animoHoy: animo,
+      ahora: Servicios.reloj(),
+    );
+    return LeerAlAbrir(
+      texto: () => _textoInicio,
+      child: _listaInicio(dia, animo, que, actividad, estado, suave),
+    );
+  }
+
+  Widget _listaInicio(
+    List<Actividad> dia,
+    int? animo,
+    QueToca que,
+    Actividad? actividad,
+    EstadoNana estado,
+    Duration suave,
+  ) {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
       children: [
@@ -497,6 +524,7 @@ class _PanelAdultoState extends State<PanelAdulto> {
     return Scaffold(
       appBar: AppBar(
         actions: [
+          BotonLeeme(texto: () => _textoInicio, color: ColoresNana.morado),
           Padding(
             padding: const EdgeInsets.only(right: 12),
             child: FilledButton.tonalIcon(
@@ -550,6 +578,9 @@ class _PanelAdultoState extends State<PanelAdulto> {
                               : NanaEscucha(
                                   nombre: _yo?.nombre ?? '',
                                   onFrase: _decir,
+                                  queSigue: () => _textoInicio,
+                                  onFamilia: () =>
+                                      _ir(MiFamilia(folio: _folio)),
                                 ),
                         ),
                       ),

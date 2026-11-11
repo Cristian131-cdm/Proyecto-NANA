@@ -23,6 +23,14 @@ class _AlarmasFalsas implements Alarmas {
   @override
   Future<void> programar(String nombreAdulto, List<Medicamento> meds) async =>
       programadas.add(meds);
+
+  final pospuestas = <String>[];
+  @override
+  Future<void> posponer(
+    String idMedicamento,
+    String texto,
+    Duration en,
+  ) async => pospuestas.add(idMedicamento);
 }
 
 void _celular(WidgetTester t) {

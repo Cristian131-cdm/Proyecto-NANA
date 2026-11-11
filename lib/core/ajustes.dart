@@ -5,12 +5,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 // porque dependen de quién lo tiene en la mano y de su pantalla.
 class Ajustes {
   static final ValueNotifier<double> escalaTexto = ValueNotifier(1.0);
+  // Qué tan rápido habla NANA: 0.6 despacio, 1 normal, 1.4 rápido.
+  static final ValueNotifier<double> velocidadVoz = ValueNotifier(1.0);
 
   // La encuesta de apariencia solo se muestra la primera vez
   static final ValueNotifier<bool> encuestaHecha = ValueNotifier(false);
 
-  // Cómo prefiere usar NANA. altoContraste ya cambia toda la app (main.dart);
-  // la voz, las señas y la vibración por ahora solo se guardan.
+  // Cómo prefiere usar NANA. altoContraste cambia toda la app (main.dart) y
+  // queMeHable hace que NANA lea cada pantalla (core/lector.dart); las señas
+  // y la vibración por ahora solo se guardan.
   static final ValueNotifier<bool> queMeHable = ValueNotifier(false);
   static final ValueNotifier<bool> conSenas = ValueNotifier(false);
   static final ValueNotifier<bool> altoContraste = ValueNotifier(false);
@@ -55,6 +58,7 @@ class Ajustes {
     await prefs.reload();
 
     escalaTexto.value = prefs.getDouble('escala_texto') ?? 1.0;
+    velocidadVoz.value = prefs.getDouble('velocidad_voz') ?? 1.0;
     discapacidadesAplicadas.value =
         prefs.getString('discapacidades_aplicadas') ?? '';
     for (final MapEntry(key: clave, value: n) in _interruptores.entries) {
@@ -64,6 +68,9 @@ class Ajustes {
     if (!primeraVez) return;
     escalaTexto.addListener(
       () => _prefs?.setDouble('escala_texto', escalaTexto.value),
+    );
+    velocidadVoz.addListener(
+      () => _prefs?.setDouble('velocidad_voz', velocidadVoz.value),
     );
     discapacidadesAplicadas.addListener(
       () => _prefs?.setString(

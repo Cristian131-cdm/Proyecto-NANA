@@ -212,3 +212,24 @@ String describirNana(EstadoNana e) => switch (e) {
   EstadoNana.dormida => 'NANA está dormida',
   EstadoNana.normal => 'NANA',
 };
+
+// Lo que NANA dice en voz alta del inicio y cuando le preguntan "¿qué sigue?".
+String textoDelDia({
+  required String saludo,
+  required List<Actividad> dia,
+  required int? animoHoy,
+  required DateTime ahora,
+}) {
+  final hechas = dia.where((a) => a.estado == EstadoActividad.hecha).length;
+  final (que, a) = queToca(dia: dia, animoHoy: animoHoy, ahora: ahora);
+  final cuenta = dia.isEmpty ? '' : ' Hoy llevas $hechas de ${dia.length}.';
+  final ahoraToca = switch (que) {
+    QueToca.actividad when a!.tipo == TipoActividad.medicina =>
+      'Ahora te toca tu ${a.titulo}.',
+    QueToca.actividad => 'Ahora te toca: ${a!.titulo}.',
+    QueToca.animo => '¿Cómo te sientes hoy?',
+    QueToca.siguiente => 'Lo que sigue: ${a!.titulo}, a las ${a.hora}.',
+    QueToca.listo => 'Ya hiciste todo lo de hoy. ¡Muy bien!',
+  };
+  return '$saludo.$cuenta $ahoraToca';
+}
