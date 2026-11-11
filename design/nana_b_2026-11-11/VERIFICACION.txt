@@ -1,0 +1,2 @@
+PASS: 18 asset hashes; PNG dimensions; SVG rendering; all gallery images decoded; no overflow at 360px.
+Flutter integration and device tests pending with Claude.
