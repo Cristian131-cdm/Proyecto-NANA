@@ -122,9 +122,13 @@ class _RecordatorioAlarmaState extends State<RecordatorioAlarma>
         await Future<void>.delayed(const Duration(seconds: 5));
       }
       if (_cerrado) return;
-      // Aquí se espera la frase completa: con "ya no quiero", el pedazo "ya"
-      // no debe contar como sí y anotar una medicina que no tomó.
-      final oido = await Servicios.voz.escuchar();
+      // Un "ya" suelto no cuenta antes de tiempo: puede seguir "…no". Lo
+      // demás ("sí", "ya me la tomé", "al rato") cuenta si no cambia en 1.5 s.
+      final oido = await Servicios.voz.escuchar(
+        sirve: (t) =>
+            normalizar(t) != 'ya' &&
+            entender(t, respuestasRecordatorio) != null,
+      );
       if (_cerrado || !mounted) return;
       switch (entender(oido, respuestasRecordatorio)) {
         case RespuestaRecordatorio.si:

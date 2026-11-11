@@ -119,6 +119,7 @@ class _NanaEscuchaState extends State<NanaEscucha>
     final oido = await Servicios.voz.escuchar(
       basta: (t) =>
           NanaEscucha.urgentes.contains(entender(t, NanaEscucha.comandos)),
+      sirve: (t) => entender(t, NanaEscucha.comandos) != null,
     );
     if (_cerrada || !mounted) return;
     setState(() {

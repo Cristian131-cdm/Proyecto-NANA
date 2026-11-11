@@ -21,10 +21,13 @@ abstract class Voz {
   // Escucha una sola frase y regresa lo que entendió, o null si no oyó nada,
   // no hay micrófono o la persona no dio permiso. [basta]: si lo que lleva
   // oído ya sirve (ej. ya dijo "me siento mal"), deja de escuchar en ese
-  // momento en vez de esperar a que se calle.
+  // momento en vez de esperar a que se calle. [sirve]: si lo que lleva oído
+  // ya se entiende y no cambia en 1.5 s, se toma como terminado (con ruido de
+  // fondo Android no nota el silencio y esperaría hasta [maximo]).
   Future<String?> escuchar({
     Duration maximo = const Duration(seconds: 8),
     bool Function(String parcial)? basta,
+    bool Function(String parcial)? sirve,
   });
   Future<void> dejarDeEscuchar();
 
@@ -71,6 +74,7 @@ class VozNula implements Voz {
   Future<String?> escuchar({
     Duration maximo = const Duration(seconds: 8),
     bool Function(String parcial)? basta,
+    bool Function(String parcial)? sirve,
   }) async => respuestas.isEmpty ? null : respuestas.removeAt(0);
   @override
   Future<void> dejarDeEscuchar() async {}
@@ -148,9 +152,11 @@ class VozCelular implements Voz {
   Future<String?> escuchar({
     Duration maximo = const Duration(seconds: 8),
     bool Function(String parcial)? basta,
+    bool Function(String parcial)? sirve,
   }) async {
     problema = null;
     _basta = basta;
+    _sirve = sirve;
     try {
       _oidoListo ??= await _oido.initialize(
         debugLogging: kDebugMode,
@@ -205,6 +211,18 @@ class VozCelular implements Voz {
           // Ya dijo algo que NANA entiende: no hace falta esperar más.
           _terminar(r.recognizedWords);
           _oido.stop();
+        } else if (_sirve?.call(r.recognizedWords) == true) {
+          // Se entiende: si no dice nada más en 1.5 s, ya terminó.
+          final dicho = r.recognizedWords;
+          _calma?.cancel();
+          _calma = Timer(const Duration(milliseconds: 1500), () {
+            if (identical(espera, _espera)) {
+              _terminar(dicho);
+              _oido.stop();
+            }
+          });
+        } else {
+          _calma?.cancel();
         }
       },
       listenOptions: SpeechListenOptions(
@@ -225,6 +243,8 @@ class VozCelular implements Voz {
   }
 
   bool Function(String)? _basta;
+  bool Function(String)? _sirve;
+  Timer? _calma;
 
   void _terminarSiNoLlega() {
     final e = _espera;
@@ -234,6 +254,7 @@ class VozCelular implements Voz {
   }
 
   void _terminar(String? texto) {
+    _calma?.cancel();
     final e = _espera;
     if (e != null && !e.isCompleted) {
       e.complete(texto == null || texto.trim().isEmpty ? null : texto);
