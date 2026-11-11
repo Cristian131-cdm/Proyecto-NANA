@@ -195,6 +195,13 @@ class _PanelAdultoState extends State<PanelAdulto> {
     );
   }
 
+  Widget _nanaEscucha() => NanaEscucha(
+    nombre: _yo?.nombre ?? '',
+    onFrase: _decir,
+    queSigue: () => _textoInicio,
+    onFamilia: () => _ir(MiFamilia(folio: _folio)),
+  );
+
   void _ir(Widget pantalla) =>
       Navigator.push(context, MaterialPageRoute(builder: (_) => pantalla));
 
@@ -574,14 +581,11 @@ class _PanelAdultoState extends State<PanelAdulto> {
                         frente: Colors.white,
                         onTap: () => _ir(
                           sinVoz
-                              ? TableroFrases(onFrase: _decir)
-                              : NanaEscucha(
-                                  nombre: _yo?.nombre ?? '',
+                              ? TableroFrases(
                                   onFrase: _decir,
-                                  queSigue: () => _textoInicio,
-                                  onFamilia: () =>
-                                      _ir(MiFamilia(folio: _folio)),
-                                ),
+                                  onHablar: () => _ir(_nanaEscucha()),
+                                )
+                              : _nanaEscucha(),
                         ),
                       ),
                     ),

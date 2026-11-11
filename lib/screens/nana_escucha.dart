@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/ajustes.dart';
 import '../core/lector.dart';
 import '../core/servicios.dart';
 import '../core/tema.dart';
@@ -80,6 +81,7 @@ class _NanaEscuchaState extends State<NanaEscucha>
 
   bool _cerrada = false;
   String? _ultimoOido;
+  String? _problema;
 
   @override
   void initState() {
@@ -107,14 +109,20 @@ class _NanaEscuchaState extends State<NanaEscucha>
     if (_cerrada || !mounted) return;
     final oido = await Servicios.voz.escuchar();
     if (_cerrada || !mounted) return;
-    setState(() => _ultimoOido = oido);
+    setState(() {
+      _ultimoOido = oido;
+      _problema = Servicios.voz.problema;
+    });
     final c = entender(oido, NanaEscucha.comandos);
+    // Si estaba en "Contestar tocando" y sí habló, el botón vuelve a ser
+    // "Hablar": nadie tiene que buscar el ajuste.
+    if (c != null && Ajustes.sinVoz.value) Ajustes.sinVoz.value = false;
     switch (c) {
       case null:
         await nanaDice(
           context,
           oido == null
-              ? 'No te escuché. Toca el micrófono para hablar otra vez.'
+              ? '${_problema ?? 'No te escuché'}. Toca el botón azul para hablar otra vez.'
               : 'No te entendí. Puedes tocar lo que me quieres decir.',
           siempre: true,
         );
@@ -181,10 +189,10 @@ class _NanaEscuchaState extends State<NanaEscucha>
             ),
             const SizedBox(height: 16),
             _BotonMicrofono(onTap: _escuchar),
-            if (_ultimoOido != null) ...[
+            if (_ultimoOido != null || _problema != null) ...[
               const SizedBox(height: 8),
               Text(
-                'Escuché: "$_ultimoOido"',
+                _ultimoOido != null ? 'Escuché: "$_ultimoOido"' : _problema!,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 18,
@@ -322,7 +330,11 @@ class _BotonMicrofono extends StatelessWidget {
             child: FilledButton.icon(
               onPressed: escuchando ? Servicios.voz.dejarDeEscuchar : onTap,
               icon: Icon(escuchando ? Icons.mic : Icons.mic_none, size: 34),
-              label: Text(escuchando ? 'Te escucho…' : 'Toca para hablar'),
+              label: Text(
+                escuchando
+                    ? 'Te escucho… (toca al terminar)'
+                    : 'Toca para hablar',
+              ),
               style: FilledButton.styleFrom(
                 backgroundColor: escuchando
                     ? ColoresNana.alerta

@@ -11,6 +11,7 @@ import 'package:nana_app/models/actividad.dart';
 import 'package:nana_app/models/medicamento.dart';
 import 'package:nana_app/screens/nana_escucha.dart';
 import 'package:nana_app/screens/recordatorio_alarma.dart';
+import 'package:nana_app/screens/tablero_frases.dart';
 
 class _AlarmasFalsas implements Alarmas {
   final pospuestas = <String>[];
@@ -211,5 +212,45 @@ void main() {
     await t.pump(const Duration(seconds: 1));
     await t.pump(const Duration(seconds: 1));
     expect(dichas, ['Me siento mal']);
+  });
+
+  testWidgets('Si estaba en "Decir" y habla, el botón vuelve a ser Hablar', (
+    t,
+  ) async {
+    Ajustes.sinVoz.value = true;
+    Servicios.voz = VozNula(respuestas: ['ya comí']);
+    await t.pumpWidget(
+      MaterialApp(
+        home: NanaEscucha(nombre: 'Rosa', onFrase: (_) {}),
+      ),
+    );
+    await _esperar(t);
+    expect(Ajustes.sinVoz.value, isFalse);
+  });
+
+  testWidgets('"Decir" tiene a la mano "Mejor quiero hablar"', (t) async {
+    var hablar = 0;
+    await t.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => TextButton(
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) =>
+                    TableroFrases(onFrase: (_) {}, onHablar: () => hablar++),
+              ),
+            ),
+            child: const Text('abrir'),
+          ),
+        ),
+      ),
+    );
+    await t.tap(find.text('abrir'));
+    await t.pumpAndSettle();
+    await t.tap(find.text('Mejor quiero hablar'));
+    await t.pumpAndSettle();
+    expect(hablar, 1);
+    expect(find.byType(TableroFrases), findsNothing);
   });
 }

@@ -8,7 +8,9 @@ import 'senas.dart';
 // con un ícono grande; tocarlo es decirlo.
 class TableroFrases extends StatelessWidget {
   final ValueChanged<String> onFrase;
-  const TableroFrases({super.key, required this.onFrase});
+  // "Mejor quiero hablar": abre Hablar con NANA con el micrófono.
+  final VoidCallback? onHablar;
+  const TableroFrases({super.key, required this.onFrase, this.onHablar});
 
   static const cuadros = [
     ('Ya tomé mi medicina', Icons.medication),
@@ -33,6 +35,29 @@ class TableroFrases extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          if (onHablar case final hablar?) ...[
+            SizedBox(
+              height: 64,
+              child: FilledButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  hablar();
+                },
+                icon: const Icon(Icons.mic, size: 30),
+                label: const Text('Mejor quiero hablar'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: ColoresNana.azul,
+                  foregroundColor: Colors.white,
+                  shape: const StadiumBorder(),
+                  textStyle: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
           // De dos en dos; cada fila crece con la letra grande en vez de cortarla.
           for (var i = 0; i < cuadros.length; i += 2)
             Padding(

@@ -22,7 +22,24 @@ abstract class Voz {
   // no hay micrófono o la persona no dio permiso.
   Future<String?> escuchar({Duration maximo = const Duration(seconds: 8)});
   Future<void> dejarDeEscuchar();
+
+  // Por qué falló la última vez que escuchó (para mostrarlo), o null.
+  String? get problema;
 }
+
+// Lo que se le dice a la persona según el error del reconocimiento.
+String explicarProblema(String error) => switch (error) {
+  'error_permission' || 'error_insufficient_permissions' =>
+    'NANA no tiene permiso de usar el micrófono',
+  'error_no_match' || 'error_speech_timeout' => 'No te escuché',
+  'error_network' ||
+  'error_network_timeout' ||
+  'error_server' ||
+  'error_server_disconnected' => 'No hay internet para entenderte',
+  'error_busy' || 'error_recognizer_busy' => 'El micrófono está ocupado',
+  'sin_reconocimiento' => 'Este celular no tiene reconocimiento de voz',
+  _ => 'No pude escuchar',
+};
 
 // En pruebas y en web: no suena nada, pero recuerda qué se dijo y puede
 // "oír" lo que la prueba le ponga en [respuestas].
@@ -51,6 +68,8 @@ class VozNula implements Voz {
   }) async => respuestas.isEmpty ? null : respuestas.removeAt(0);
   @override
   Future<void> dejarDeEscuchar() async {}
+  @override
+  String? problema;
 }
 
 class VozCelular implements Voz {
@@ -103,49 +122,91 @@ class VozCelular implements Voz {
   }
 
   @override
+  String? problema;
+  String? _error;
+  // Si el reconocimiento sin internet no existe en este celular, se usa el
+  // de Google con internet (solo manda la frase, no se guarda en NANA).
+  bool _conInternet = false;
+
+  // Errores que significan "este cel no reconoce sin internet".
+  static const _faltaSinInternet = {
+    'error_language_unavailable',
+    'error_language_not_supported',
+    'error_client',
+    'error_server_disconnected',
+    'error_cannot_check_support',
+    'error_too_many_requests',
+  };
+
+  @override
   Future<String?> escuchar({
     Duration maximo = const Duration(seconds: 8),
   }) async {
+    problema = null;
     try {
       _oidoListo ??= await _oido.initialize(
+        debugLogging: kDebugMode,
         onStatus: (s) {
-          if (s == SpeechToText.doneStatus ||
-              s == SpeechToText.notListeningStatus) {
-            _terminar(null);
-          }
+          debugPrint('NANA oído: $s');
+          // "notListening" llega ANTES del resultado final; solo "done"
+          // significa que ya no viene nada más.
+          if (s == SpeechToText.doneStatus) _terminar(null);
         },
-        onError: (_) => _terminar(null),
+        onError: (e) {
+          debugPrint(
+            'NANA oído error: ${e.errorMsg} (permanente: ${e.permanent})',
+          );
+          _error = e.errorMsg;
+          _terminar(null);
+        },
       );
-      if (_oidoListo != true) return null;
+      if (_oidoListo != true) {
+        problema = explicarProblema('sin_reconocimiento');
+        return null;
+      }
       // No escucha mientras ella misma habla.
       await callar();
-      final espera = _espera = Completer<String?>();
-      _escuchando.value = true;
-      await _oido.listen(
-        onResult: (r) {
-          if (r.finalResult) _terminar(r.recognizedWords);
-        },
-        listenOptions: SpeechListenOptions(
-          localeId: 'es_MX',
-          listenFor: maximo,
-          pauseFor: const Duration(seconds: 3),
-          partialResults: false,
-          // Se reconoce en el celular: la voz no sale del aparato.
-          onDevice: true,
-          cancelOnError: true,
-          listenMode: ListenMode.confirmation,
-        ),
-      );
-      return await espera.future.timeout(
-        maximo + const Duration(seconds: 2),
-        onTimeout: () => null,
-      );
+      var oido = await _unaVez(maximo);
+      if (oido == null && !_conInternet && _faltaSinInternet.contains(_error)) {
+        debugPrint('NANA: sin reconocimiento sin internet, uso el de Google');
+        _conInternet = true;
+        oido = await _unaVez(maximo);
+      }
+      if (oido == null && _error != null) problema = explicarProblema(_error!);
+      return oido;
     } catch (e) {
       debugPrint('NANA no pudo escuchar: $e');
+      problema = explicarProblema('');
       return null;
     } finally {
       _escuchando.value = false;
     }
+  }
+
+  Future<String?> _unaVez(Duration maximo) async {
+    _error = null;
+    final espera = _espera = Completer<String?>();
+    _escuchando.value = true;
+    await _oido.listen(
+      onResult: (r) {
+        debugPrint('NANA oyó: "${r.recognizedWords}" final=${r.finalResult}');
+        if (r.finalResult) _terminar(r.recognizedWords);
+      },
+      listenOptions: SpeechListenOptions(
+        localeId: 'es_MX',
+        listenFor: maximo,
+        pauseFor: const Duration(seconds: 3),
+        partialResults: false,
+        // Primero en el celular, para que la voz no salga del aparato.
+        onDevice: !_conInternet,
+        cancelOnError: true,
+        listenMode: ListenMode.confirmation,
+      ),
+    );
+    return espera.future.timeout(
+      maximo + const Duration(seconds: 4),
+      onTimeout: () => null,
+    );
   }
 
   void _terminar(String? texto) {
@@ -158,10 +219,15 @@ class VozCelular implements Voz {
 
   @override
   Future<void> dejarDeEscuchar() async {
+    // Al parar, Android todavía entrega lo que alcanzó a oír; si no llega
+    // nada en un momento, se da por terminado.
     try {
       await _oido.stop();
     } catch (_) {}
-    _terminar(null);
+    Future<void>.delayed(
+      const Duration(milliseconds: 1500),
+      () => _terminar(null),
+    );
   }
 }
 
