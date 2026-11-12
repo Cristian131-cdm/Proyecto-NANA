@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../core/tema.dart';
+import 'camara_senas.dart';
+
+export 'camara_senas.dart';
 import '../widgets/aviso.dart';
 
 /// LSM mínima del Charter: NANA muestra frases en señas con un avatar o
@@ -137,10 +140,14 @@ class ConsentimientoCamara extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
-              onPressed: () => Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (_) => const CamaraSenas()),
-              ),
+              // La frase que salga de la cámara regresa a quien abrió esto.
+              onPressed: () async {
+                final frase = await Navigator.push<String>(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CamaraSenas()),
+                );
+                if (context.mounted) Navigator.pop(context, frase);
+              },
               icon: const Icon(Icons.videocam, size: 30),
               label: const Text('Sí, usar la cámara'),
             ),
@@ -188,115 +195,10 @@ class _Promesa extends StatelessWidget {
   }
 }
 
-/// Maqueta de la cámara. No abre la cámara real: el reconocimiento de señas
-/// quedó como trabajo futuro (opción 2 acordada con el equipo).
-class CamaraSenas extends StatelessWidget {
-  const CamaraSenas({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF1A1426),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: [
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFB3261E),
-                    borderRadius: BorderRadius.circular(99),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.fiber_manual_record,
-                        color: Colors.white,
-                        size: 18,
-                      ),
-                      SizedBox(width: 6),
-                      Text(
-                        'Cámara encendida',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF2B2240),
-                    borderRadius: BorderRadius.circular(28),
-                    border: Border.all(color: ColoresNana.lila, width: 2),
-                  ),
-                  child: const Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.back_hand_outlined,
-                        size: 96,
-                        color: Colors.white70,
-                      ),
-                      SizedBox(height: 16),
-                      Text(
-                        'Haz tu seña frente a la cámara',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 22, color: Colors.white),
-                      ),
-                      SizedBox(height: 6),
-                      Text(
-                        'De prueba: todavía no reconoce señas',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 16, color: Colors.white70),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                height: 80,
-                child: FilledButton.icon(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.videocam_off, size: 32),
-                  label: const Text('Apagar cámara'),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: const Color(0xFFB3261E),
-                    shape: const StadiumBorder(),
-                    textStyle: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Atajo para que cualquier pantalla abra el flujo con permiso previo.
-void abrirHablarConSenas(BuildContext context) {
-  Navigator.push(
+/// Abre el flujo de señas con el permiso antes. Regresa la frase que la
+/// persona dijo con señas y confirmó, o null si salió sin decir nada.
+Future<String?> abrirHablarConSenas(BuildContext context) {
+  return Navigator.push<String>(
     context,
     MaterialPageRoute(builder: (_) => const ConsentimientoCamara()),
   );

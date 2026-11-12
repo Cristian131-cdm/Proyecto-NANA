@@ -15,6 +15,11 @@ class ColoresNana {
   static const ok = Color(0xFF1F8A4C);
   static const okClaro = Color(0xFFDFF4E7);
 
+  // Pantalla de la cámara: fondo oscuro y el rojo de "cámara encendida".
+  static const noche = Color(0xFF1A1426);
+  static const nocheClara = Color(0xFF2B2240);
+  static const encendido = Color(0xFFB3261E);
+
   // Mascota NANA (diseño B): borde lila con degradado, cascarón blanco
   // perla y pantalla color ciruela.
   static const mascotaBordeClaro = Color(0xFFB69CEB);

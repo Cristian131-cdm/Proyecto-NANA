@@ -274,7 +274,10 @@ class _NanaEscuchaState extends State<NanaEscucha>
                   child: _Forma(
                     icono: Icons.videocam_outlined,
                     titulo: 'Hablar con señas',
-                    onTap: () => abrirHablarConSenas(context),
+                    onTap: () async {
+                      final frase = await abrirHablarConSenas(context);
+                      if (frase != null && mounted) _decir(frase);
+                    },
                   ),
                 ),
               ],

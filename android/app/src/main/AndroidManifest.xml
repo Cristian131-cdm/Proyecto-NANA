@@ -9,6 +9,11 @@
     <!-- Escuchar "ya me la tomé" o "al rato" (speech_to_text). Solo cuando
          la persona toca Hablar o contesta un recordatorio. -->
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <!-- Ver las señas de la mano (camera). Solo en la pantalla "Hablar con
+         señas", después de que la persona dice que sí. No se graba nada. -->
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-feature android:name="android.hardware.camera" android:required="false"/>
+    <uses-feature android:name="android.hardware.camera.front" android:required="false"/>
     <application
         android:label="NANA"
         android:name="${applicationName}"

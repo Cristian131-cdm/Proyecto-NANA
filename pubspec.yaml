@@ -51,6 +51,8 @@ dependencies:
   flutter_tts: ^4.2.5
   speech_to_text: ^7.5.0
   flutter_svg: ^2.3.4
+  camera: ^0.12.2
+  hand_landmarker: ^3.1.0
 
 dev_dependencies:
   flutter_test:
@@ -81,6 +83,8 @@ flutter:
   assets:
     - assets/iconos/
     - assets/logo/
+    # Ejemplos de señas que vienen con la app (puntos de la mano, sin imagen).
+    - assets/senas/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

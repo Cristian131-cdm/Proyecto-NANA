@@ -106,7 +106,12 @@ class TableroFrases extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () => abrirHablarConSenas(context),
+                  onPressed: () async {
+                    final frase = await abrirHablarConSenas(context);
+                    if (frase != null && context.mounted) {
+                      _decir(context, frase);
+                    }
+                  },
                   icon: const Icon(Icons.videocam_outlined, size: 28),
                   label: const Text('Con señas'),
                   style: OutlinedButton.styleFrom(
