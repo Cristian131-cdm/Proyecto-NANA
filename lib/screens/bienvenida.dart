@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/tema.dart';
 import '../widgets/formulario.dart';
-import '../widgets/mascota_nana.dart';
+import '../widgets/logo_nana.dart';
 import 'cuenta_cuidador.dart';
 import 'entrar_con_codigo.dart';
 import 'registro_adulto.dart';
@@ -23,7 +23,7 @@ class Bienvenida extends StatelessWidget {
             padding: const EdgeInsets.all(28),
             child: Column(
               children: [
-                const MascotaNana(tamano: 140),
+                const LogoNana(tamano: 150),
                 const SizedBox(height: 20),
                 const Text(
                   'NANA',

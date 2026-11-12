@@ -76,11 +76,11 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
-  # Íconos (SVG) y expresiones de la mascota, diseño NANA B.
-  # Fuente: design/nana_b_2026-11-11/
+  # Íconos (SVG) del diseño NANA B. Fuente: design/nana_b_2026-11-11/.
+  # La mascota se dibuja con código (widgets/mascota_nana.dart).
   assets:
     - assets/iconos/
-    - assets/mascota/
+    - assets/logo/
 
   # To add assets to your application, add an assets section, like this:
   # assets:
