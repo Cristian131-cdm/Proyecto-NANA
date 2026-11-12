@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/dia.dart';
+import '../core/lector.dart';
 import '../core/servicios.dart';
 import '../core/tema.dart';
 import '../models/actividad.dart';
@@ -56,7 +57,7 @@ class _ConDiaState extends State<ConDia> {
 }
 
 // "Ver todo mi día": la lista completa, para quien sí la quiere ver.
-class MiDia extends StatelessWidget {
+class MiDia extends StatefulWidget {
   final String folio;
   final ValueChanged<Actividad> onHecha;
   final ValueChanged<Actividad> onAbrir;
@@ -69,22 +70,43 @@ class MiDia extends StatelessWidget {
   });
 
   @override
+  State<MiDia> createState() => _MiDiaState();
+}
+
+class _MiDiaState extends State<MiDia> {
+  // Lo último que se mostró, para que NANA lo lea.
+  String _texto = '';
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Todo mi día')),
+      appBar: AppBar(
+        title: const Text('Todo mi día'),
+        actions: [
+          BotonLeeme(texto: () => _texto, color: ColoresNana.morado),
+          const SizedBox(width: 8),
+        ],
+      ),
       body: ConDia(
-        folio: folio,
-        builder: (dia, _) => ListView(
-          padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
-          children: [
-            for (final a in dia)
-              _FilaDia(
-                actividad: a,
-                onHecha: () => onHecha(a),
-                onAbrir: () => onAbrir(a),
-              ),
-          ],
-        ),
+        folio: widget.folio,
+        builder: (dia, _) {
+          _texto = textoMiDia(dia);
+          return LeerAlAbrir(
+            texto: () => _texto,
+            listo: dia.isNotEmpty,
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+              children: [
+                for (final a in dia)
+                  _FilaDia(
+                    actividad: a,
+                    onHecha: () => widget.onHecha(a),
+                    onAbrir: () => widget.onAbrir(a),
+                  ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

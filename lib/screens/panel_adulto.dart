@@ -347,6 +347,7 @@ class _PanelAdultoState extends State<PanelAdulto> {
     );
     return LeerAlAbrir(
       texto: () => _textoInicio,
+      listo: dia.isNotEmpty,
       child: _listaInicio(dia, animo, que, actividad, estado, suave),
     );
   }

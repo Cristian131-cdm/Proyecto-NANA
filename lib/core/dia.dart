@@ -233,3 +233,20 @@ String textoDelDia({
   };
   return '$saludo.$cuenta $ahoraToca';
 }
+
+// Lo que NANA lee en "Todo mi día": cada cosa con su hora y cómo va.
+String textoMiDia(List<Actividad> dia) {
+  if (dia.isEmpty) return 'Hoy no tienes nada anotado.';
+  final hechas = dia.where((a) => a.estado == EstadoActividad.hecha).length;
+  final b = StringBuffer('Tu día. Llevas $hechas de ${dia.length}. ');
+  for (final a in dia) {
+    final como = switch (a.estado) {
+      EstadoActividad.hecha => 'listo',
+      EstadoActividad.ahora => 'toca ahora',
+      EstadoActividad.pendiente => 'más tarde',
+      EstadoActividad.sinConfirmar => 'falta confirmar',
+    };
+    b.write('${a.hora}, ${a.titulo}: $como. ');
+  }
+  return b.toString().trim();
+}

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/lector.dart';
 import '../core/servicios.dart';
 import '../core/tema.dart';
 import '../models/adulto.dart';
@@ -16,11 +17,26 @@ class MiFamilia extends StatefulWidget {
 
 class _MiFamiliaState extends State<MiFamilia> {
   late final _familia = Servicios.repo.familiaDe(widget.folio);
+  String _texto = '';
+
+  static String _leer(List<Familiar> lista) {
+    if (lista.isEmpty) return 'Todavía no tienes familia conectada.';
+    final nombres = lista.map((f) => f.nombre).join(', ');
+    final conTelefono = lista.any((f) => f.telefono != null);
+    return 'Tu familia: $nombres. '
+        '${conTelefono ? 'Toca Llamar para hablarles.' : ''}';
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Mi familia')),
+      appBar: AppBar(
+        title: const Text('Mi familia'),
+        actions: [
+          BotonLeeme(texto: () => _texto, color: ColoresNana.morado),
+          const SizedBox(width: 8),
+        ],
+      ),
       body: StreamBuilder<List<Familiar>>(
         stream: _familia,
         builder: (context, snap) {
@@ -28,6 +44,7 @@ class _MiFamiliaState extends State<MiFamilia> {
           if (lista == null) {
             return const Center(child: CircularProgressIndicator());
           }
+          _texto = _leer(lista);
           if (lista.isEmpty) {
             return const Padding(
               padding: EdgeInsets.all(24),
@@ -37,9 +54,12 @@ class _MiFamiliaState extends State<MiFamilia> {
               ),
             );
           }
-          return ListView(
-            padding: const EdgeInsets.all(20),
-            children: [for (final f in lista) _Tarjeta(f)],
+          return LeerAlAbrir(
+            texto: () => _texto,
+            child: ListView(
+              padding: const EdgeInsets.all(20),
+              children: [for (final f in lista) _Tarjeta(f)],
+            ),
           );
         },
       ),

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 
@@ -34,29 +36,61 @@ Future<void> nanaDice(
 }
 
 // Envuelve una pantalla: al abrirla, si "Que me hable" está prendido, NANA
-// lee [texto]; al salir se calla.
+// lee [texto]; al salir se calla. [listo]: false mientras los datos siguen
+// cargando, para no leer una pantalla vacía; si en 3 s no llegan, lee lo
+// que haya.
 class LeerAlAbrir extends StatefulWidget {
   final String Function() texto;
+  final bool listo;
   final Widget child;
-  const LeerAlAbrir({super.key, required this.texto, required this.child});
+  const LeerAlAbrir({
+    super.key,
+    required this.texto,
+    required this.child,
+    this.listo = true,
+  });
 
   @override
   State<LeerAlAbrir> createState() => _LeerAlAbrirState();
 }
 
 class _LeerAlAbrirState extends State<LeerAlAbrir> {
+  bool _leido = false;
+  Timer? _espera;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // TalkBack ya lee la pantalla nueva solo; NANA solo habla si no está.
-      if (!mounted || lectorDelSistemaActivo(context)) return;
-      if (Ajustes.queMeHable.value) Servicios.voz.decir(widget.texto());
+      if (!mounted) return;
+      if (widget.listo) {
+        _leer();
+      } else {
+        _espera = Timer(const Duration(seconds: 3), _leer);
+      }
     });
   }
 
   @override
+  void didUpdateWidget(LeerAlAbrir old) {
+    super.didUpdateWidget(old);
+    if (widget.listo && !old.listo) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _leer());
+    }
+  }
+
+  void _leer() {
+    _espera?.cancel();
+    if (_leido || !mounted) return;
+    _leido = true;
+    // TalkBack ya lee la pantalla nueva solo; NANA solo habla si no está.
+    if (lectorDelSistemaActivo(context)) return;
+    if (Ajustes.queMeHable.value) Servicios.voz.decir(widget.texto());
+  }
+
+  @override
   void dispose() {
+    _espera?.cancel();
     Servicios.voz.callar();
     super.dispose();
   }
