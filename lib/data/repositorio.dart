@@ -22,8 +22,8 @@ const errorCodigo =
 // Hay dos códigos de 6 números y no se pueden cruzar: el del celular del
 // adulto y el que invita a un familiar a cuidar.
 const errorCodigoFamiliar =
-    'Ese código es para un familiar. Entra con tu cuenta de cuidador y toca '
-    '"Me invitaron, tengo un código".';
+    'Ese código es para un familiar. Regresa, toca "Soy cuidador o familiar" '
+    'y luego "Tengo un código de invitación".';
 const errorCodigoDelAdulto =
     'Ese código es para el celular de la persona mayor. Pide que te inviten '
     'desde "Familia y alertas".';
@@ -67,6 +67,8 @@ abstract class RepositorioNana {
     String folio, {
     bool familiar = false,
   });
+  // Antes de crear su cuenta, el invitado ve a quién va a cuidar.
+  Future<Invitacion> revisarInvitacion(String codigo);
   // Quien tiene cuenta de cuidador canjea la invitación y queda como
   // cuidador de ese adulto.
   Future<Adulto> unirmeComoFamiliar(String codigo, String parentesco);

@@ -5,7 +5,7 @@ import '../widgets/formulario.dart';
 import '../widgets/logo_nana.dart';
 import 'cuenta_cuidador.dart';
 import 'entrar_con_codigo.dart';
-import 'registro_adulto.dart';
+import 'unirme_con_codigo.dart';
 
 // Primera pantalla para quien no tiene sesión en este celular.
 class Bienvenida extends StatelessWidget {
@@ -41,7 +41,7 @@ class Bienvenida extends StatelessWidget {
                 ),
                 const SizedBox(height: 48),
                 ElevatedButton(
-                  onPressed: () => _ir(context, const OpcionesAdulto()),
+                  onPressed: () => _ir(context, const EntrarConCodigo()),
                   child: const Text('Soy adulto mayor'),
                 ),
                 const SizedBox(height: 16),
@@ -58,42 +58,6 @@ class Bienvenida extends StatelessWidget {
   }
 }
 
-class OpcionesAdulto extends StatelessWidget {
-  const OpcionesAdulto({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return PantallaPaso(
-      titulo: '¡Hola! ¿Cómo quieres entrar?',
-      subtitulo: 'Si tu familia ya usa NANA, te dieron un código de 6 números.',
-      children: [
-        ElevatedButton(
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const EntrarConCodigo()),
-          ),
-          child: const Text('Entrar con un código'),
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          'Este código es para la persona mayor. Si eres familiar, regresa '
-          'y toca "Soy cuidador o familiar".',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 18, color: ColoresNana.tintaSuave),
-        ),
-        const SizedBox(height: 16),
-        BotonSecundario(
-          texto: 'Registrarme',
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const RegistroAdulto()),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 class OpcionesCuidador extends StatelessWidget {
   const OpcionesCuidador({super.key});
 
@@ -101,9 +65,7 @@ class OpcionesCuidador extends StatelessWidget {
   Widget build(BuildContext context) {
     return PantallaPaso(
       titulo: 'Cuida a tu familiar con NANA',
-      subtitulo:
-          'Crea tu cuenta y después das de alta a quien vas a cuidar. '
-          'Si te invitaron con un código, también empieza por crear tu cuenta.',
+      subtitulo: 'Crea tu cuenta y después das de alta a quien vas a cuidar.',
       children: [
         ElevatedButton(
           onPressed: () => Navigator.push(
@@ -123,6 +85,19 @@ class OpcionesCuidador extends StatelessWidget {
               builder: (_) => const CuentaCuidador(crear: false),
             ),
           ),
+        ),
+        const SizedBox(height: 8),
+        // Para quien todavía no tiene cuenta y alguien de la familia lo invitó.
+        TextButton(
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const InvitadoConCodigo()),
+          ),
+          style: TextButton.styleFrom(
+            minimumSize: const Size(double.infinity, 56),
+            textStyle: const TextStyle(fontSize: 20),
+          ),
+          child: const Text('Tengo un código de invitación'),
         ),
       ],
     );

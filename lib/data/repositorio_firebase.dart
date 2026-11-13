@@ -40,7 +40,8 @@ class RepositorioFirebase implements RepositorioNana {
       rethrow;
     } on FirebaseAuthException catch (e) {
       throw ErrorNana(switch (e.code) {
-        'email-already-in-use' => 'Ese correo ya tiene cuenta. Inicia sesión.',
+        'email-already-in-use' || 'credential-already-in-use' =>
+          'Ese correo ya tiene cuenta. Inicia sesión.',
         'invalid-credential' ||
         'wrong-password' ||
         'user-not-found' ||
@@ -103,10 +104,20 @@ class RepositorioFirebase implements RepositorioNana {
     required String correo,
     required String contrasena,
   }) => _intentar(() async {
-    final c = await _auth.createUserWithEmailAndPassword(
-      email: correo.trim(),
-      password: contrasena,
-    );
+    // Quien revisó una invitación ya tiene una sesión anónima: esa misma se
+    // convierte en su cuenta, en vez de dejar una sesión huérfana.
+    final actual = _auth.currentUser;
+    final c = actual != null && actual.isAnonymous
+        ? await actual.linkWithCredential(
+            EmailAuthProvider.credential(
+              email: correo.trim(),
+              password: contrasena,
+            ),
+          )
+        : await _auth.createUserWithEmailAndPassword(
+            email: correo.trim(),
+            password: contrasena,
+          );
     await _guardarUsuario(
       c.user!.uid,
       nombre: nombre,
@@ -203,6 +214,25 @@ class RepositorioFirebase implements RepositorioNana {
     return (await adultoPropio())!;
   });
 
+  // Las reglas piden sesión para leer un código, así que quien todavía no
+  // tiene cuenta entra como anónimo (igual que el celular del adulto).
+  @override
+  Future<Invitacion> revisarInvitacion(String codigo) => _intentar(() async {
+    if (_auth.currentUser == null) await _auth.signInAnonymously();
+    final d = (await _codigos.doc(codigo).get()).data();
+    if (d == null ||
+        d['usado'] == true ||
+        (d['expira'] as Timestamp).toDate().isBefore(DateTime.now())) {
+      throw const ErrorNana(errorCodigo);
+    }
+    if (d['tipo'] != 'familiar') throw const ErrorNana(errorCodigoDelAdulto);
+    return Invitacion(
+      codigo: codigo,
+      nombreAdulto: d['nombreAdulto'] as String? ?? '',
+      nombreInvita: d['nombreInvita'] as String? ?? '',
+    );
+  });
+
   // Un familiar con cuenta de cuidador canjea su invitación. Todavía no puede
   // leer al adulto (no es de la familia), así que todo va en un batch y las
   // reglas revisan el código ahí mismo.
@@ -296,6 +326,7 @@ class RepositorioFirebase implements RepositorioNana {
   }) => _intentar(() async {
     final adulto = (await _adultos.doc(folio).get()).data() ?? {};
     final expira = DateTime.now().add(vigenciaCodigo);
+    final invita = familiar ? (await usuarioActual())?.nombre ?? '' : '';
     // Si el número ya existe, las reglas niegan pisarlo; se prueba con otro.
     for (var intento = 0; intento < 5; intento++) {
       final codigo = codigoAlAzar(_azar);
@@ -308,6 +339,7 @@ class RepositorioFirebase implements RepositorioNana {
           'expira': Timestamp.fromDate(expira),
           'usado': false,
           if (familiar) 'tipo': 'familiar',
+          if (familiar) 'nombreInvita': invita,
         });
         return CodigoVinculacion(
           codigo: codigo,

@@ -114,21 +114,6 @@ class _AltaAdultoState extends State<AltaAdulto> {
       barra: 'Paso 1 de 2',
       titulo: '¿A quién vas a cuidar?',
       children: [
-        // Si alguien de la familia ya la dio de alta, no hay que repetirlo.
-        BotonSecundario(
-          texto: 'Me invitaron, tengo un código',
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const UnirmeConCodigo()),
-          ),
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          'Si nadie te invitó, llena sus datos aquí abajo.',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 18, color: ColoresNana.tintaSuave),
-        ),
-        const SizedBox(height: 20),
         CampoNana(
           controller: _nombre,
           etiqueta: 'Nombre',
@@ -158,6 +143,19 @@ class _AltaAdultoState extends State<AltaAdulto> {
         ],
         const SizedBox(height: 28),
         BotonPrincipal(texto: 'Siguiente', onPressed: _siguiente),
+        const SizedBox(height: 8),
+        // Si alguien de la familia ya la dio de alta, no hay que repetirlo.
+        TextButton(
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const UnirmeConCodigo()),
+          ),
+          style: TextButton.styleFrom(
+            minimumSize: const Size(double.infinity, 56),
+            textStyle: const TextStyle(fontSize: 20),
+          ),
+          child: const Text('¿Te invitaron? Usa tu código'),
+        ),
       ],
     );
   }

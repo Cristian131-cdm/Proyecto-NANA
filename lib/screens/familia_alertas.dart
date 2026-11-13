@@ -15,9 +15,9 @@ import '../widgets/tarjeta_dato.dart';
 String textoInvitacion(String adulto, String codigo) =>
     'Te invito a cuidar a $adulto en NANA.\n'
     '1. Descarga NANA y toca "Soy cuidador o familiar".\n'
-    '2. Crea tu cuenta de familiar.\n'
-    '3. Toca "Me invitaron, tengo un código" y escribe: '
+    '2. Toca "Tengo un código de invitación" y escribe: '
     '${formatearCodigo(codigo)}\n'
+    '3. Llena tus datos para crear tu cuenta.\n'
     'El código sirve una sola vez y vence en 24 horas.';
 
 class FamiliaAlertas extends StatefulWidget {
@@ -127,8 +127,9 @@ class _FamiliaAlertasState extends State<FamiliaAlertas> {
             ),
             const SizedBox(height: 12),
             const Text(
-              'Sirve una sola vez y vence en 24 horas. Tu familiar crea su '
-              'cuenta en NANA y toca "Me invitaron, tengo un código".',
+              'Sirve una sola vez y vence en 24 horas. Tu familiar abre '
+              'NANA, toca "Soy cuidador o familiar" y luego "Tengo un código '
+              'de invitación".',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 16, color: ColoresNana.tintaSuave),
             ),

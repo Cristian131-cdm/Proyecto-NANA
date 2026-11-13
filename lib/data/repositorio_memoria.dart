@@ -111,6 +111,7 @@ class RepositorioMemoria implements RepositorioNana {
       <(String, String), String>{}; // (folio, uid) → parentesco
   final _codigos =
       <String, (CodigoVinculacion, bool)>{}; // código → (datos, usado)
+  final _invita = <String, String>{}; // código → nombre de quien invitó
   final _medicamentos = <String, List<Medicamento>>{};
   final _registros = <String, List<Registro>>{};
   final _alertas = <String, List<Alerta>>{};
@@ -248,6 +249,22 @@ class RepositorioMemoria implements RepositorioNana {
   }
 
   @override
+  Future<Invitacion> revisarInvitacion(String codigo) async {
+    final guardado = _codigos[codigo];
+    if (guardado == null ||
+        guardado.$2 ||
+        reloj().isAfter(guardado.$1.expira)) {
+      throw const ErrorNana(errorCodigo);
+    }
+    if (!guardado.$1.familiar) throw const ErrorNana(errorCodigoDelAdulto);
+    return Invitacion(
+      codigo: codigo,
+      nombreAdulto: _adultos[guardado.$1.folio]?.nombre ?? '',
+      nombreInvita: _invita[codigo] ?? '',
+    );
+  }
+
+  @override
   Future<Adulto> unirmeComoFamiliar(String codigo, String parentesco) async {
     final uid = _uid;
     final guardado = _codigos[codigo];
@@ -319,6 +336,7 @@ class RepositorioMemoria implements RepositorioNana {
       familiar: familiar,
     );
     _codigos[codigo] = (datos, false);
+    if (familiar) _invita[codigo] = _usuarios[_uid]?.nombre ?? '';
     return datos;
   }
 

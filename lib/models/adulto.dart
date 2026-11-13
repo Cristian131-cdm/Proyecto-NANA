@@ -32,6 +32,20 @@ class Familiar {
   const Familiar({required this.uid, required this.nombre, this.telefono});
 }
 
+// Lo que ve el invitado antes de crear su cuenta: a quién va a cuidar y
+// quién lo invitó.
+class Invitacion {
+  final String codigo;
+  final String nombreAdulto;
+  final String nombreInvita;
+
+  const Invitacion({
+    required this.codigo,
+    required this.nombreAdulto,
+    this.nombreInvita = '',
+  });
+}
+
 class CodigoVinculacion {
   final String codigo;
   final String folio;

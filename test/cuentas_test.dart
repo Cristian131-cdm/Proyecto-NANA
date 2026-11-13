@@ -96,7 +96,6 @@ void main() {
 
     await t.pumpWidget(const MaterialApp(home: Bienvenida()));
     await _tocar(t, 'Soy adulto mayor');
-    await _tocar(t, 'Entrar con un código');
     await t.enterText(find.byType(TextField), codigo.codigo);
     await _tocar(t, 'Entrar');
 
@@ -107,7 +106,6 @@ void main() {
   testWidgets('Un código que no existe muestra un aviso amable', (t) async {
     await t.pumpWidget(const MaterialApp(home: Bienvenida()));
     await _tocar(t, 'Soy adulto mayor');
-    await _tocar(t, 'Entrar con un código');
     await t.enterText(find.byType(TextField), '000000');
     await _tocar(t, 'Entrar');
 
@@ -117,7 +115,6 @@ void main() {
   testWidgets('El botón Entrar espera a tener 6 números', (t) async {
     await t.pumpWidget(const MaterialApp(home: Bienvenida()));
     await _tocar(t, 'Soy adulto mayor');
-    await _tocar(t, 'Entrar con un código');
     await t.enterText(find.byType(TextField), '48291');
     await t.pump();
 

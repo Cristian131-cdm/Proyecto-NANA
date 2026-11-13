@@ -73,6 +73,19 @@ class _EntrarConCodigoState extends State<EntrarConCodigo> {
           ocupado: _ocupado,
           onPressed: listo ? _entrar : null,
         ),
+        const SizedBox(height: 20),
+        const Text(
+          '¿No tienes código? Pídeselo a tu familiar: lo saca desde su '
+          'cuenta de NANA.',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 18, color: ColoresNana.tintaSuave),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'Si eres familiar, regresa y toca "Soy cuidador o familiar".',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 18, color: ColoresNana.tintaSuave),
+        ),
       ],
     );
   }

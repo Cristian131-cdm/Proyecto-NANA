@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 
 import '../core/servicios.dart';
 import '../data/repositorio.dart';
+import '../models/adulto.dart';
 import '../widgets/aviso.dart';
 import '../widgets/formulario.dart';
+import 'alta_adulto.dart';
 import 'arranque.dart';
+import 'panel_cuidador.dart';
 import 'recomendar_huella.dart';
 
 final _correoValido = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
@@ -12,7 +15,10 @@ final _correoValido = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
 // Crear cuenta o iniciar sesión del cuidador, según [crear].
 class CuentaCuidador extends StatefulWidget {
   final bool crear;
-  const CuentaCuidador({super.key, required this.crear});
+  // Si viene de una invitación, al crear la cuenta queda como cuidador de
+  // esa persona y entra directo a su panel.
+  final Invitacion? invitacion;
+  const CuentaCuidador({super.key, required this.crear, this.invitacion});
 
   @override
   State<CuentaCuidador> createState() => _CuentaCuidadorState();
@@ -24,6 +30,8 @@ class _CuentaCuidadorState extends State<CuentaCuidador> {
   final _telefono = TextEditingController();
   final _correo = TextEditingController();
   final _contrasena = TextEditingController();
+  String? _parentesco;
+  bool _cuentaCreada = false;
   bool _intento = false;
   bool _ocupado = false;
   String? _error;
@@ -52,7 +60,8 @@ class _CuentaCuidadorState extends State<CuentaCuidador> {
   bool get _valido =>
       _errorCorreo == null &&
       _errorContrasena == null &&
-      (!widget.crear || (_errorNombre == null && _errorTelefono == null));
+      (!widget.crear || (_errorNombre == null && _errorTelefono == null)) &&
+      (widget.invitacion == null || _parentesco != null);
 
   Future<void> _enviar() async {
     setState(() => _intento = true);
@@ -63,7 +72,8 @@ class _CuentaCuidadorState extends State<CuentaCuidador> {
     });
     try {
       final repo = Servicios.repo;
-      if (widget.crear) {
+      // Si el canje falló y vuelve a intentar, la cuenta ya existe.
+      if (widget.crear && !_cuentaCreada) {
         await repo.crearCuentaCuidador(
           nombre: _nombre.text.trim(),
           apellidos: _apellidos.text.trim(),
@@ -71,8 +81,17 @@ class _CuentaCuidadorState extends State<CuentaCuidador> {
           correo: _correo.text.trim(),
           contrasena: _contrasena.text,
         );
-      } else {
+        _cuentaCreada = true;
+      } else if (!widget.crear) {
         await repo.iniciarSesion(_correo.text.trim(), _contrasena.text);
+      }
+      final inv = widget.invitacion;
+      if (inv != null) {
+        await repo.unirmeComoFamiliar(inv.codigo, _parentesco!);
+        if (mounted) {
+          await entrarRecomendandoHuella(context, const PanelCuidador());
+        }
+        return;
       }
       final destino = await destinoInicial();
       if (mounted) await entrarRecomendandoHuella(context, destino);
@@ -108,10 +127,22 @@ class _CuentaCuidadorState extends State<CuentaCuidador> {
     String? si(String? e) => _intento ? e : null;
     void cambio(String _) => setState(() {});
 
+    final inv = widget.invitacion;
     return PantallaPaso(
-      barra: crear ? 'Crear cuenta' : 'Iniciar sesión',
-      titulo: crear ? 'Tus datos' : 'Qué gusto verte',
-      subtitulo: crear
+      barra: inv != null
+          ? 'Código de invitación'
+          : crear
+          ? 'Crear cuenta'
+          : 'Iniciar sesión',
+      titulo: inv != null
+          ? 'Vas a cuidar a ${inv.nombreAdulto}'
+          : crear
+          ? 'Tus datos'
+          : 'Qué gusto verte',
+      subtitulo: inv != null
+          ? '${inv.nombreInvita.isEmpty ? '' : 'Te invitó ${inv.nombreInvita}. '}'
+                'Llena tus datos para crear tu cuenta.'
+          : crear
           ? 'Con ellos te avisamos si tu familiar necesita algo.'
           : null,
       children: [
@@ -157,9 +188,29 @@ class _CuentaCuidadorState extends State<CuentaCuidador> {
           ],
           onChanged: cambio,
         ),
+        if (inv != null) ...[
+          Text(
+            '¿Qué es tuyo ${inv.nombreAdulto}?',
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+          SelectorParentesco(
+            valor: _parentesco,
+            onCambio: (p) => setState(() => _parentesco = p),
+          ),
+          if (_intento && _parentesco == null) ...[
+            const SizedBox(height: 12),
+            const MensajeError('Elige qué es tuyo'),
+          ],
+          const SizedBox(height: 20),
+        ],
         const SizedBox(height: 8),
         BotonPrincipal(
-          texto: crear ? 'Crear mi cuenta' : 'Entrar',
+          texto: inv != null
+              ? 'Unirme'
+              : crear
+              ? 'Crear mi cuenta'
+              : 'Entrar',
           ocupado: _ocupado,
           onPressed: _enviar,
         ),
