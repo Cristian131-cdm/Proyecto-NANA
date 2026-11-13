@@ -118,18 +118,19 @@ flutter:
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
 
-# Ícono de la app: diseño NANA B (design/nana_b_2026-11-11/assets/icono_b).
+# Ícono de la app: imagen de Cris (design/icono_c_2026-11-12/original.webp).
+# El frente del ícono adaptable es la misma mascota sin el fondo crema.
 # tool/generar_iconos.dart sigue generando el splash.png del diseño anterior.
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/icono/icono_b.png"
-  adaptive_icon_background: "#5B3FA8"
-  adaptive_icon_foreground: "assets/icono/icono_frente_b.png"
+  image_path: "assets/icono/icono_c.png"
+  adaptive_icon_background: "#FBF3EC"
+  adaptive_icon_foreground: "assets/icono/icono_frente_c.png"
   remove_alpha_ios: true
   web:
     generate: true
-    image_path: "assets/icono/icono_b.png"
+    image_path: "assets/icono/icono_c.png"
     background_color: "#FBFAFE"
     theme_color: "#5B3FA8"
 
