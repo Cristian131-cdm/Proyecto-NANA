@@ -172,6 +172,7 @@ class RepositorioFirebase implements RepositorioNana {
         (d['expira'] as Timestamp).toDate().isBefore(DateTime.now())) {
       throw const ErrorNana(errorCodigo);
     }
+    if (d['tipo'] == 'familiar') throw const ErrorNana(errorCodigoFamiliar);
     final folio = d['folio'] as String;
     final nombre = d['nombreAdulto'] as String? ?? '';
     final apellidos = d['apellidosAdulto'] as String? ?? '';
@@ -201,6 +202,55 @@ class RepositorioFirebase implements RepositorioNana {
     }
     return (await adultoPropio())!;
   });
+
+  // Un familiar con cuenta de cuidador canjea su invitación. Todavía no puede
+  // leer al adulto (no es de la familia), así que todo va en un batch y las
+  // reglas revisan el código ahí mismo.
+  @override
+  Future<Adulto> unirmeComoFamiliar(String codigo, String parentesco) =>
+      _intentar(() async {
+        final u = uid;
+        if (u == null) throw const ErrorNana(errorCodigo);
+        final d = (await _codigos.doc(codigo).get()).data();
+        if (d == null ||
+            d['usado'] == true ||
+            (d['expira'] as Timestamp).toDate().isBefore(DateTime.now())) {
+          throw const ErrorNana(errorCodigo);
+        }
+        if (d['tipo'] != 'familiar') {
+          throw const ErrorNana(errorCodigoDelAdulto);
+        }
+        final folio = d['folio'] as String;
+        final mios = await _adultos
+            .where('idsCuidadores', arrayContains: u)
+            .get();
+        if (mios.docs.any((a) => a.id == folio)) {
+          throw const ErrorNana(errorYaLaCuidas);
+        }
+        final yo = (await _usuarios.doc(u).get()).data() ?? {};
+
+        final batch = _db.batch()
+          ..update(_codigos.doc(codigo), {'usado': true, 'usadoPor': u})
+          ..update(_adultos.doc(folio), {
+            'idsCuidadores': FieldValue.arrayUnion([u]),
+            'codigoFamiliar': codigo,
+          })
+          ..set(_de(folio, 'cuidadores').doc(u), {
+            'nombre': yo['nombre'] ?? '',
+            'telefono': yo['telefono'],
+            'parentesco': parentesco,
+            'fechaIni': FieldValue.serverTimestamp(),
+            'estado': 'activo',
+          });
+        try {
+          await batch.commit();
+        } on FirebaseException catch (e) {
+          // Si las reglas lo niegan es que alguien lo usó o venció entre medio.
+          if (e.code == 'permission-denied') throw const ErrorNana(errorCodigo);
+          rethrow;
+        }
+        return _adulto(await _adultos.doc(folio).get(), parentesco: parentesco);
+      });
 
   @override
   Future<void> cerrarSesion() => _auth.signOut();
@@ -240,7 +290,10 @@ class RepositorioFirebase implements RepositorioNana {
   });
 
   @override
-  Future<CodigoVinculacion> generarCodigo(String folio) => _intentar(() async {
+  Future<CodigoVinculacion> generarCodigo(
+    String folio, {
+    bool familiar = false,
+  }) => _intentar(() async {
     final adulto = (await _adultos.doc(folio).get()).data() ?? {};
     final expira = DateTime.now().add(vigenciaCodigo);
     // Si el número ya existe, las reglas niegan pisarlo; se prueba con otro.
@@ -254,8 +307,14 @@ class RepositorioFirebase implements RepositorioNana {
           'creadoPor': uid,
           'expira': Timestamp.fromDate(expira),
           'usado': false,
+          if (familiar) 'tipo': 'familiar',
         });
-        return CodigoVinculacion(codigo: codigo, folio: folio, expira: expira);
+        return CodigoVinculacion(
+          codigo: codigo,
+          folio: folio,
+          expira: expira,
+          familiar: familiar,
+        );
       } on FirebaseException catch (e) {
         if (e.code != 'permission-denied') rethrow;
       }

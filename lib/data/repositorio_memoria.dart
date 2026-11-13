@@ -222,6 +222,7 @@ class RepositorioMemoria implements RepositorioNana {
         reloj().isAfter(guardado.$1.expira)) {
       throw const ErrorNana(errorCodigo);
     }
+    if (guardado.$1.familiar) throw const ErrorNana(errorCodigoFamiliar);
     final folio = guardado.$1.folio;
     final uid = _uid ?? _nuevoId();
     final adulto = _adultos[folio]!;
@@ -244,6 +245,37 @@ class RepositorioMemoria implements RepositorioNana {
     _codigos[codigo] = (guardado.$1, true);
     _avisar();
     return _adultos[folio]!;
+  }
+
+  @override
+  Future<Adulto> unirmeComoFamiliar(String codigo, String parentesco) async {
+    final uid = _uid;
+    final guardado = _codigos[codigo];
+    if (uid == null ||
+        guardado == null ||
+        guardado.$2 ||
+        reloj().isAfter(guardado.$1.expira)) {
+      throw const ErrorNana(errorCodigo);
+    }
+    if (!guardado.$1.familiar) throw const ErrorNana(errorCodigoDelAdulto);
+    final folio = guardado.$1.folio;
+    final adulto = _adultos[folio]!;
+    if (adulto.idsCuidadores.contains(uid)) {
+      throw const ErrorNana(errorYaLaCuidas);
+    }
+    _adultos[folio] = Adulto(
+      folio: folio,
+      nombre: adulto.nombre,
+      apellidos: adulto.apellidos,
+      tieneCelular: adulto.tieneCelular,
+      uidAdulto: adulto.uidAdulto,
+      idsCuidadores: [...adulto.idsCuidadores, uid],
+      telefono: adulto.telefono,
+    );
+    _parentescos[(folio, uid)] = parentesco;
+    _codigos[codigo] = (guardado.$1, true);
+    _avisar();
+    return _vistoPor(_adultos[folio]!, uid);
   }
 
   @override
@@ -272,7 +304,10 @@ class RepositorioMemoria implements RepositorioNana {
   }
 
   @override
-  Future<CodigoVinculacion> generarCodigo(String folio) async {
+  Future<CodigoVinculacion> generarCodigo(
+    String folio, {
+    bool familiar = false,
+  }) async {
     var codigo = codigoAlAzar(_azar);
     while (_codigos.containsKey(codigo)) {
       codigo = codigoAlAzar(_azar);
@@ -281,6 +316,7 @@ class RepositorioMemoria implements RepositorioNana {
       codigo: codigo,
       folio: folio,
       expira: reloj().add(vigenciaCodigo),
+      familiar: familiar,
     );
     _codigos[codigo] = (datos, false);
     return datos;

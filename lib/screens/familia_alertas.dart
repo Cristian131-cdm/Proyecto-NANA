@@ -1,22 +1,24 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../core/codigo.dart';
 import '../core/servicios.dart';
 import '../core/tema.dart';
+import '../data/repositorio.dart';
 import '../models/adulto.dart';
 import '../models/alerta.dart';
 import '../widgets/aviso.dart';
 import '../widgets/tarjeta_dato.dart';
 
-// Sin 0/O ni 1/I para que el código no se confunda al dictarlo.
-String generarCodigo([Random? azar]) {
-  const letras = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  final r = azar ?? Random.secure();
-  return List.generate(6, (_) => letras[r.nextInt(letras.length)]).join();
-}
+// Lo que se manda por WhatsApp con el código de invitación.
+String textoInvitacion(String adulto, String codigo) =>
+    'Te invito a cuidar a $adulto en NANA.\n'
+    '1. Descarga NANA y toca "Soy cuidador o familiar".\n'
+    '2. Crea tu cuenta de familiar.\n'
+    '3. Toca "Me invitaron, tengo un código" y escribe: '
+    '${formatearCodigo(codigo)}\n'
+    'El código sirve una sola vez y vence en 24 horas.';
 
 class FamiliaAlertas extends StatefulWidget {
   final String adulto;
@@ -86,11 +88,25 @@ class _FamiliaAlertasState extends State<FamiliaAlertas> {
     );
   }
 
-  void _invitar() {
-    final codigo = generarCodigo();
-    final texto =
-        'Te invito a cuidar a ${widget.adulto} en NANA. '
-        'Abre la app y escribe este código: $codigo';
+  bool _invitando = false;
+
+  Future<void> _invitar() async {
+    if (_invitando) return;
+    setState(() => _invitando = true);
+    final String codigo;
+    try {
+      codigo = (await Servicios.repo.generarCodigo(
+        widget.folio,
+        familiar: true,
+      )).codigo;
+    } on ErrorNana catch (e) {
+      if (mounted) mostrarAviso(context, e.mensaje);
+      return;
+    } finally {
+      if (mounted) setState(() => _invitando = false);
+    }
+    if (!mounted) return;
+    final texto = textoInvitacion(widget.adulto, codigo);
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
@@ -100,19 +116,21 @@ class _FamiliaAlertasState extends State<FamiliaAlertas> {
           mainAxisSize: MainAxisSize.min,
           children: [
             SelectableText(
-              codigo,
+              formatearCodigo(codigo),
+              semanticsLabel: codigo.split('').join(' '),
               style: const TextStyle(
                 fontSize: 40,
                 fontWeight: FontWeight.bold,
-                letterSpacing: 6,
+                letterSpacing: 4,
                 color: ColoresNana.morado,
               ),
             ),
             const SizedBox(height: 12),
             const Text(
-              'De prueba: el código se activará cuando haya cuentas.',
+              'Sirve una sola vez y vence en 24 horas. Tu familiar crea su '
+              'cuenta en NANA y toca "Me invitaron, tengo un código".',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: ColoresNana.tintaSuave),
+              style: TextStyle(fontSize: 16, color: ColoresNana.tintaSuave),
             ),
           ],
         ),
@@ -171,7 +189,9 @@ class _FamiliaAlertasState extends State<FamiliaAlertas> {
           ),
         BotonSecundario(
           icono: Icons.person_add_alt_1,
-          texto: 'Invitar a alguien con código',
+          texto: _invitando
+              ? 'Creando el código…'
+              : 'Invitar a alguien con código',
           onPressed: _invitar,
         ),
         const TituloSeccion('¿Cuándo te aviso?'),

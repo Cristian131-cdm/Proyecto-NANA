@@ -8,6 +8,7 @@ import 'arranque.dart';
 import 'codigo_vinculacion.dart';
 import 'formulario_salud.dart';
 import 'panel_cuidador.dart';
+import 'unirme_con_codigo.dart';
 
 // Después de crear su cuenta, el cuidador da de alta a quien va a cuidar.
 class AltaAdulto extends StatefulWidget {
@@ -113,6 +114,21 @@ class _AltaAdultoState extends State<AltaAdulto> {
       barra: 'Paso 1 de 2',
       titulo: '¿A quién vas a cuidar?',
       children: [
+        // Si alguien de la familia ya la dio de alta, no hay que repetirlo.
+        BotonSecundario(
+          texto: 'Me invitaron, tengo un código',
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const UnirmeConCodigo()),
+          ),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'Si nadie te invitó, llena sus datos aquí abajo.',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 18, color: ColoresNana.tintaSuave),
+        ),
+        const SizedBox(height: 20),
         CampoNana(
           controller: _nombre,
           etiqueta: 'Nombre',
@@ -132,23 +148,9 @@ class _AltaAdultoState extends State<AltaAdulto> {
           style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
-        Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: [
-            for (final p in AltaAdulto.parentescos)
-              ChoiceChip(
-                label: Text(p, style: const TextStyle(fontSize: 20)),
-                selected: _parentesco == p,
-                showCheckmark: true,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 10,
-                ),
-                selectedColor: ColoresNana.moradoClaro,
-                onSelected: (_) => setState(() => _parentesco = p),
-              ),
-          ],
+        SelectorParentesco(
+          valor: _parentesco,
+          onCambio: (p) => setState(() => _parentesco = p),
         ),
         if (faltaParentesco) ...[
           const SizedBox(height: 12),
@@ -186,6 +188,36 @@ class _AltaAdultoState extends State<AltaAdulto> {
           ),
           child: const Text('Regresar'),
         ),
+      ],
+    );
+  }
+}
+
+// Las opciones de "¿Qué es tuyo?", iguales al dar de alta y al unirse.
+class SelectorParentesco extends StatelessWidget {
+  final String? valor;
+  final ValueChanged<String> onCambio;
+  const SelectorParentesco({
+    super.key,
+    required this.valor,
+    required this.onCambio,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 10,
+      runSpacing: 10,
+      children: [
+        for (final p in AltaAdulto.parentescos)
+          ChoiceChip(
+            label: Text(p, style: const TextStyle(fontSize: 20)),
+            selected: valor == p,
+            showCheckmark: true,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            selectedColor: ColoresNana.moradoClaro,
+            onSelected: (_) => onCambio(p),
+          ),
       ],
     );
   }

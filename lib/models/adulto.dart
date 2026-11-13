@@ -36,10 +36,13 @@ class CodigoVinculacion {
   final String codigo;
   final String folio;
   final DateTime expira;
+  // true: invita a un familiar a cuidar. false: vincula el celular del adulto.
+  final bool familiar;
 
   const CodigoVinculacion({
     required this.codigo,
     required this.folio,
     required this.expira,
+    this.familiar = false,
   });
 }

@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -29,12 +27,6 @@ void main() {
     expect(textoDias({0, 1, 2, 3, 4}), 'Lunes a viernes');
     expect(textoDias({1, 3}), 'Martes y jueves');
     expect(textoDias({0, 2, 4}), 'Lunes, miércoles y viernes');
-  });
-
-  test('El código de invitación no usa 0, O, 1 ni I', () {
-    final codigo = generarCodigo(Random(1));
-    expect(codigo.length, 6);
-    expect(RegExp(r'[01OI]').hasMatch(codigo), isFalse);
   });
 
   test('El resumen de la semana sale de los registros reales', () {

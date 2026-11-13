@@ -37,7 +37,9 @@ String textoPdf(String s) {
     final c = String.fromCharCode(r);
     if (cambios.containsKey(c)) {
       b.write(cambios[c]);
-    } else if (r == 0x0A || (r >= 0x20 && r <= 0x7E) || (r >= 0xA1 && r <= 0xFF)) {
+    } else if (r == 0x0A ||
+        (r >= 0x20 && r <= 0x7E) ||
+        (r >= 0xA1 && r <= 0xFF)) {
       b.write(c);
     }
   }
@@ -115,10 +117,7 @@ Future<Uint8List> reporteSemanaPdf(
   final sinDatos =
       t.tomas == 0 && dias.every((d) => d.animo == null && d.movimiento == 0);
 
-  final doc = pw.Document(
-    title: 'Reporte semanal de $quien',
-    author: 'NANA',
-  );
+  final doc = pw.Document(title: 'Reporte semanal de $quien', author: 'NANA');
   doc.addPage(
     pw.MultiPage(
       pageFormat: PdfPageFormat.letter,
@@ -126,9 +125,7 @@ Future<Uint8List> reporteSemanaPdf(
       theme: pw.ThemeData.withFont(
         base: pw.Font.helvetica(),
         bold: pw.Font.helveticaBold(),
-      ).copyWith(
-        defaultTextStyle: pw.TextStyle(fontSize: 11.5, color: _tinta),
-      ),
+      ).copyWith(defaultTextStyle: pw.TextStyle(fontSize: 11.5, color: _tinta)),
       footer: (context) => pw.Container(
         padding: const pw.EdgeInsets.only(top: 8),
         decoration: pw.BoxDecoration(

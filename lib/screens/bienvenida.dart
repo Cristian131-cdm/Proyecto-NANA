@@ -74,6 +74,13 @@ class OpcionesAdulto extends StatelessWidget {
           ),
           child: const Text('Entrar con un código'),
         ),
+        const SizedBox(height: 8),
+        const Text(
+          'Este código es para la persona mayor. Si eres familiar, regresa '
+          'y toca "Soy cuidador o familiar".',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 18, color: ColoresNana.tintaSuave),
+        ),
         const SizedBox(height: 16),
         BotonSecundario(
           texto: 'Registrarme',
@@ -94,7 +101,9 @@ class OpcionesCuidador extends StatelessWidget {
   Widget build(BuildContext context) {
     return PantallaPaso(
       titulo: 'Cuida a tu familiar con NANA',
-      subtitulo: 'Crea tu cuenta y después das de alta a quien vas a cuidar.',
+      subtitulo:
+          'Crea tu cuenta y después das de alta a quien vas a cuidar. '
+          'Si te invitaron con un código, también empieza por crear tu cuenta.',
       children: [
         ElevatedButton(
           onPressed: () => Navigator.push(

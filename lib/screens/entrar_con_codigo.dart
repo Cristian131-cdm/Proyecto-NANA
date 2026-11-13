@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../core/codigo.dart';
 import '../core/servicios.dart';
 import '../core/tema.dart';
 import '../data/repositorio.dart';
+import '../widgets/campo_codigo.dart';
 import '../widgets/formulario.dart';
 import 'arranque.dart';
 import 'recomendar_huella.dart';
@@ -62,28 +62,10 @@ class _EntrarConCodigoState extends State<EntrarConCodigo> {
       subtitulo: 'Son 6 números. Te lo dio tu familia.',
       children: [
         if (_error != null) MensajeError(_error!),
-        TextField(
+        CampoCodigo(
           controller: _codigo,
-          autofocus: true,
-          keyboardType: TextInputType.number,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-            LengthLimitingTextInputFormatter(6),
-          ],
-          textAlign: TextAlign.center,
           onChanged: (_) => setState(() => _error = null),
-          onSubmitted: (_) => _entrar(),
-          style: const TextStyle(
-            fontSize: 40,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 12,
-            color: ColoresNana.morado,
-          ),
-          decoration: InputDecoration(
-            hintText: '······',
-            semanticCounterText: 'Código de 6 números',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(20)),
-          ),
+          onSubmitted: _entrar,
         ),
         const SizedBox(height: 24),
         BotonPrincipal(

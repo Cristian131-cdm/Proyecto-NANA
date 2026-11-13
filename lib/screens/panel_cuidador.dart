@@ -20,6 +20,7 @@ import 'arranque.dart';
 import 'bienvenida.dart';
 import 'codigo_vinculacion.dart';
 import 'familia_alertas.dart';
+import 'unirme_con_codigo.dart';
 import 'pestana_historial.dart';
 import 'pestana_inicio.dart';
 import 'pestana_medicamentos.dart';
@@ -125,6 +126,11 @@ class _PanelCuidadorState extends State<PanelCuidador> {
                 ),
                 ('alta', Icons.person_add_alt, 'Cuidar a otra persona'),
                 (
+                  'unirme',
+                  Icons.group_add_outlined,
+                  'Me invitaron, tengo un código',
+                ),
+                (
                   'demo',
                   Icons.auto_awesome_outlined,
                   'Cargar datos de demostración',
@@ -162,6 +168,11 @@ class _PanelCuidadorState extends State<PanelCuidador> {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const AltaAdulto()),
+        );
+      case 'unirme':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const UnirmeConCodigo()),
         );
       case 'demo':
         final si = await showDialog<bool>(
@@ -223,6 +234,18 @@ class _PanelCuidadorState extends State<PanelCuidador> {
               BotonPrincipal(
                 texto: 'Dar de alta',
                 onPressed: () => entrarA(context, const AltaAdulto()),
+              ),
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const UnirmeConCodigo()),
+                ),
+                style: TextButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 56),
+                  textStyle: const TextStyle(fontSize: 20),
+                ),
+                child: const Text('Me invitaron, tengo un código'),
               ),
             ],
           );

@@ -51,12 +51,26 @@ service cloud.firestore {
           && soloCambia(['uidAdulto', 'tieneCelular', 'codigoCanjeado'])
           && request.resource.data.uidAdulto == request.auth.uid
           && get(/databases/$(database)/documents/codigos/$(request.resource.data.codigoCanjeado)).data.usado == false
+          && get(/databases/$(database)/documents/codigos/$(request.resource.data.codigoCanjeado)).data.get('tipo', 'adulto') != 'familiar'
           && getAfter(/databases/$(database)/documents/codigos/$(request.resource.data.codigoCanjeado)).data.folio == folio
           && getAfter(/databases/$(database)/documents/codigos/$(request.resource.data.codigoCanjeado)).data.usadoPor == request.auth.uid;
 
+      // Invitación familiar: quien tiene cuenta se agrega a sí mismo (y solo a
+      // sí mismo) como cuidador, si en el mismo batch marca como usado un
+      // código vigente de este folio que sea de tipo 'familiar'.
+      allow update: if conSesion()
+          && soloCambia(['idsCuidadores', 'codigoFamiliar'])
+          && !(request.auth.uid in resource.data.idsCuidadores)
+          && request.resource.data.idsCuidadores == resource.data.idsCuidadores.concat([request.auth.uid])
+          && get(/databases/$(database)/documents/codigos/$(request.resource.data.codigoFamiliar)).data.usado == false
+          && get(/databases/$(database)/documents/codigos/$(request.resource.data.codigoFamiliar)).data.get('tipo', 'adulto') == 'familiar'
+          && getAfter(/databases/$(database)/documents/codigos/$(request.resource.data.codigoFamiliar)).data.folio == folio
+          && getAfter(/databases/$(database)/documents/codigos/$(request.resource.data.codigoFamiliar)).data.usadoPor == request.auth.uid;
+
       allow delete: if false;
 
-      // Al dar de alta, el cuidador escribe su fila en el mismo batch que el adulto.
+      // Al dar de alta (o al unirse con una invitación), el cuidador escribe su
+      // fila en el mismo batch en que queda en idsCuidadores.
       match /cuidadores/{uid} {
         allow read: if conSesion() && esFamilia(adulto(folio));
         allow create: if conSesion() && request.auth.uid == uid

@@ -86,7 +86,10 @@ void main() {
   });
 
   test('El texto del PDF conserva acentos y quita lo que no se dibuja', () {
-    expect(textoPdf('¿Cómo está la abuela Ñoña?'), '¿Cómo está la abuela Ñoña?');
+    expect(
+      textoPdf('¿Cómo está la abuela Ñoña?'),
+      '¿Cómo está la abuela Ñoña?',
+    );
     expect(textoPdf('Hola 💜 mamá'), 'Hola mamá');
     expect(textoPdf('“bien” — dijo'), '"bien" - dijo');
   });

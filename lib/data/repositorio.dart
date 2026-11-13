@@ -19,6 +19,16 @@ class ErrorNana implements Exception {
 const errorCodigo =
     'Ese código no existe o ya venció. Pídele uno nuevo a tu familia.';
 
+// Hay dos códigos de 6 números y no se pueden cruzar: el del celular del
+// adulto y el que invita a un familiar a cuidar.
+const errorCodigoFamiliar =
+    'Ese código es para un familiar. Entra con tu cuenta de cuidador y toca '
+    '"Me invitaron, tengo un código".';
+const errorCodigoDelAdulto =
+    'Ese código es para el celular de la persona mayor. Pide que te inviten '
+    'desde "Familia y alertas".';
+const errorYaLaCuidas = 'Ya cuidas a esta persona. No necesitas el código.';
+
 // Todo lo que las pantallas leen o escriben. Hay dos versiones:
 // RepositorioFirebase (la real) y RepositorioMemoria (pruebas y demo sin internet).
 abstract class RepositorioNana {
@@ -52,7 +62,14 @@ abstract class RepositorioNana {
     required bool tieneCelular,
     String? telefono,
   });
-  Future<CodigoVinculacion> generarCodigo(String folio);
+  // familiar: true invita a otra persona a cuidar al mismo adulto.
+  Future<CodigoVinculacion> generarCodigo(
+    String folio, {
+    bool familiar = false,
+  });
+  // Quien tiene cuenta de cuidador canjea la invitación y queda como
+  // cuidador de ese adulto.
+  Future<Adulto> unirmeComoFamiliar(String codigo, String parentesco);
   Stream<bool> codigoUsado(String codigo);
   Stream<List<Adulto>> adultosACargo();
   Future<Adulto?> adultoPropio();
