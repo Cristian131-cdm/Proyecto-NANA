@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../core/dia.dart';
+import '../core/reporte_pdf.dart';
 import '../core/semana.dart';
 import '../core/servicios.dart';
 import '../core/tema.dart';
 import '../models/medicamento.dart';
 import '../models/registro.dart';
 import '../models/rutina.dart';
+import '../widgets/aviso.dart';
 import '../widgets/caritas_animo.dart';
 import '../widgets/tarjeta_dato.dart';
 import '../widgets/icono_nana.dart';
@@ -60,18 +62,13 @@ class VistaSemana extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final total = dias.fold(0, (a, d) => a + d.tomas);
-    final posibles = dias.fold(0, (a, d) => a + d.posibles);
-    final faltas = [
-      for (final d in dias)
-        if (d.posibles > 0 && !d.completo) d.nombre,
-    ];
-    final mal = [
-      for (final d in dias)
-        if (d.horaMal != null) d,
-    ];
-    final movimiento = dias.fold(0, (a, d) => a + d.movimiento);
-    final movimientoPosible = dias.fold(0, (a, d) => a + d.movimientoPosible);
+    final t = TotalesSemana(dias);
+    final total = t.tomas;
+    final posibles = t.posibles;
+    final faltas = t.faltas;
+    final mal = t.mal;
+    final movimiento = t.movimiento;
+    final movimientoPosible = t.movimientoPosible;
     final maxPorDia = dias.fold(1, (a, d) => d.posibles > a ? d.posibles : a);
     final sinDatos =
         total == 0 && dias.every((d) => d.animo == null && d.movimiento == 0);
@@ -230,13 +227,7 @@ class VistaSemana extends StatelessWidget {
             color: ColoresNana.azul,
           ),
         const SizedBox(height: 12),
-        BotonSecundario(
-          icono: Icons.share,
-          texto: 'Mandar resumen a la familia',
-          onPressed: () => SharePlus.instance.share(
-            ShareParams(text: resumenSemana(adulto, dias)),
-          ),
-        ),
+        _BotonReporte(adulto: adulto, dias: dias),
       ],
     );
   }
@@ -245,6 +236,61 @@ class VistaSemana extends StatelessWidget {
     color: Colors.white,
     borderRadius: BorderRadius.circular(20),
     border: Border.all(color: ColoresNana.moradoClaro),
+  );
+}
+
+// Arma el PDF de la semana y abre la hoja de compartir del celular.
+class _BotonReporte extends StatefulWidget {
+  final String adulto;
+  final List<DiaSemana> dias;
+  const _BotonReporte({required this.adulto, required this.dias});
+
+  @override
+  State<_BotonReporte> createState() => _BotonReporteState();
+}
+
+class _BotonReporteState extends State<_BotonReporte> {
+  bool _ocupado = false;
+
+  Future<void> _mandar() async {
+    if (_ocupado) return;
+    setState(() => _ocupado = true);
+    try {
+      final hoy = Servicios.reloj();
+      final bytes = await reporteSemanaPdf(
+        widget.adulto,
+        widget.dias,
+        generado: hoy,
+      );
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [
+            XFile.fromData(
+              bytes,
+              mimeType: 'application/pdf',
+              name: nombreReporte(widget.adulto, hoy),
+            ),
+          ],
+          // Algunas apps ignoran `name` de XFile y usan este.
+          fileNameOverrides: [nombreReporte(widget.adulto, hoy)],
+          text: resumenSemana(widget.adulto, widget.dias),
+          subject: 'Reporte semanal de ${widget.adulto}',
+        ),
+      );
+    } catch (_) {
+      if (mounted) {
+        mostrarAviso(context, 'No se pudo armar el reporte. Intenta de nuevo.');
+      }
+    } finally {
+      if (mounted) setState(() => _ocupado = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => BotonSecundario(
+    icono: _ocupado ? Icons.hourglass_top : Icons.picture_as_pdf,
+    texto: _ocupado ? 'Armando el reporte…' : 'Mandar reporte en PDF',
+    onPressed: _mandar,
   );
 }
 
@@ -302,25 +348,6 @@ class _DiaTocable extends StatelessWidget {
       ),
     );
   }
-}
-
-String tituloDia(DiaSemana d) {
-  const meses = [
-    'enero',
-    'febrero',
-    'marzo',
-    'abril',
-    'mayo',
-    'junio',
-    'julio',
-    'agosto',
-    'septiembre',
-    'octubre',
-    'noviembre',
-    'diciembre',
-  ];
-  final nombre = '${d.nombre[0].toUpperCase()}${d.nombre.substring(1)}';
-  return '$nombre ${d.fecha.day} de ${meses[d.fecha.month - 1]}';
 }
 
 // Hoja con lo que pasó ese día: medicinas, ánimo y cada cosa anotada.

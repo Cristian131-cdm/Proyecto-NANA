@@ -109,36 +109,66 @@ DiaSemana _dia(
   );
 }
 
+const _meses = [
+  'enero',
+  'febrero',
+  'marzo',
+  'abril',
+  'mayo',
+  'junio',
+  'julio',
+  'agosto',
+  'septiembre',
+  'octubre',
+  'noviembre',
+  'diciembre',
+];
+
 String rangoSemana(List<DiaSemana> dias) {
   final a = dias.first.fecha;
   final b = dias.last.fecha;
-  const meses = [
-    'enero',
-    'febrero',
-    'marzo',
-    'abril',
-    'mayo',
-    'junio',
-    'julio',
-    'agosto',
-    'septiembre',
-    'octubre',
-    'noviembre',
-    'diciembre',
-  ];
   return a.month == b.month
-      ? 'Del ${a.day} al ${b.day} de ${meses[b.month - 1]}'
-      : 'Del ${a.day} de ${meses[a.month - 1]} al ${b.day} de ${meses[b.month - 1]}';
+      ? 'Del ${a.day} al ${b.day} de ${_meses[b.month - 1]}'
+      : 'Del ${a.day} de ${_meses[a.month - 1]} al ${b.day} de ${_meses[b.month - 1]}';
+}
+
+// 'Jueves 12 de noviembre'
+String tituloDia(DiaSemana d) {
+  final nombre = '${d.nombre[0].toUpperCase()}${d.nombre.substring(1)}';
+  return '$nombre ${d.fecha.day} de ${_meses[d.fecha.month - 1]}';
+}
+
+// '12 de noviembre de 2026'
+String fechaLarga(DateTime f) =>
+    '${f.day} de ${_meses[f.month - 1]} de ${f.year}';
+
+// Las cuentas de la semana que usan la pestaña, el texto y el PDF.
+class TotalesSemana {
+  final int tomas;
+  final int posibles;
+  final List<String> faltas; // nombres de los días con medicinas sin tomar
+  final List<DiaSemana> mal; // días en que dijo sentirse mal
+  final int movimiento;
+  final int movimientoPosible;
+
+  TotalesSemana(List<DiaSemana> dias)
+    : tomas = dias.fold(0, (a, d) => a + d.tomas),
+      posibles = dias.fold(0, (a, d) => a + d.posibles),
+      faltas = [
+        for (final d in dias)
+          if (d.posibles > 0 && !d.completo) d.nombre,
+      ],
+      mal = [
+        for (final d in dias)
+          if (d.horaMal != null) d,
+      ],
+      movimiento = dias.fold(0, (a, d) => a + d.movimiento),
+      movimientoPosible = dias.fold(0, (a, d) => a + d.movimientoPosible);
 }
 
 // Texto que se comparte por WhatsApp, SMS, etc. Solo datos, sin consejos.
 String resumenSemana(String adulto, List<DiaSemana> dias) {
-  final total = dias.fold(0, (a, d) => a + d.tomas);
-  final posibles = dias.fold(0, (a, d) => a + d.posibles);
-  final faltas = [
-    for (final d in dias)
-      if (d.posibles > 0 && !d.completo) d.nombre,
-  ];
+  final t = TotalesSemana(dias);
   final animos = [
     for (final d in dias)
       if (d.animo != null)
@@ -147,15 +177,19 @@ String resumenSemana(String adulto, List<DiaSemana> dias) {
   return [
     'Resumen de la semana de $adulto (NANA)',
     rangoSemana(dias),
-    posibles == 0
+    t.posibles == 0
         ? 'Medicinas: no tiene medicinas registradas'
-        : 'Medicinas a tiempo: $total de $posibles'
-              '${faltas.isEmpty ? '' : ' · faltó el ${faltas.join(' y el ')}'}',
+        : 'Medicinas a tiempo: ${t.tomas} de ${t.posibles}'
+              '${t.faltas.isEmpty ? '' : ' · faltó el ${t.faltas.join(' y el ')}'}',
     animos.isEmpty
         ? 'Cómo se sintió: no lo registró esta semana'
         : 'Cómo se sintió: ${animos.join(', ')}',
-    'NANA solo registra, recuerda y alerta. No da recomendaciones médicas.',
+    avisoAlcance,
   ].join('\n');
 }
+
+// Alcance del Charter: va al pie de todo lo que se comparte.
+const avisoAlcance =
+    'NANA solo registra, recuerda y alerta. No da recomendaciones médicas.';
 
 String horaDe(DateTime f) => horaCorta(TimeOfDay.fromDateTime(f));
