@@ -312,56 +312,73 @@ class _PanelCuidadorState extends State<PanelCuidador> {
         bottom: false,
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(16),
-                onTap: () => _cambiarAdulto(lista),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 4,
-                    horizontal: 4,
-                  ),
-                  child: Row(
-                    children: [
-                      AnilloDelDia(
-                        key: ValueKey('anillo-${adulto.folio}'),
-                        folio: adulto.folio,
-                        nombre: nombre,
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              relacion.isEmpty ? nombre : '$nombre · $relacion',
-
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: ColoresNana.morado,
-                              ),
-                            ),
-                            Text(
-                              adulto.uidAdulto != null
-                                  ? '● Usa NANA en su celular'
-                                  : adulto.tieneCelular
-                                  ? '○ Falta conectar su celular'
-                                  : '○ Sin celular',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: adulto.uidAdulto != null
-                                    ? ColoresNana.ok
-                                    : ColoresNana.tintaSuave,
-                              ),
-                            ),
-                          ],
+            // En pantallas bajitas con letra grande el encabezado cede
+            // espacio (y se desliza) para que las pestañas sigan cabiendo.
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight:
+                    (MediaQuery.sizeOf(context).height -
+                        MediaQuery.paddingOf(context).vertical -
+                        kToolbarHeight -
+                        80) *
+                    0.5,
+              ),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(16),
+                  onTap: () => _cambiarAdulto(lista),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 4,
+                      horizontal: 4,
+                    ),
+                    child: Row(
+                      children: [
+                        AnilloDelDia(
+                          key: ValueKey('anillo-${adulto.folio}'),
+                          folio: adulto.folio,
+                          nombre: nombre,
                         ),
-                      ),
-                      const Icon(Icons.expand_more, color: ColoresNana.morado),
-                    ],
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                relacion.isEmpty
+                                    ? nombre
+                                    : '$nombre · $relacion',
+
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: ColoresNana.morado,
+                                ),
+                              ),
+                              Text(
+                                adulto.uidAdulto != null
+                                    ? '● Usa NANA en su celular'
+                                    : adulto.tieneCelular
+                                    ? '○ Falta conectar su celular'
+                                    : '○ Sin celular',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: adulto.uidAdulto != null
+                                      ? ColoresNana.ok
+                                      : ColoresNana.tintaSuave,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(
+                          Icons.expand_more,
+                          color: ColoresNana.morado,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

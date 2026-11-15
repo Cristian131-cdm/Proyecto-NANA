@@ -6,6 +6,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import '../widgets/caritas_animo.dart';
+import '../widgets/logo_nana.dart';
 import 'dia.dart';
 import 'semana.dart';
 import 'tema.dart';
@@ -56,7 +57,7 @@ String nombreReporte(String adulto, DateTime fecha) {
 
 Future<Uint8List?> _logo() async {
   try {
-    final datos = await rootBundle.load('assets/logo/nana.png');
+    final datos = await rootBundle.load(LogoNana.archivo);
     return datos.buffer.asUint8List();
   } catch (_) {
     return null; // sin logo el reporte sale igual

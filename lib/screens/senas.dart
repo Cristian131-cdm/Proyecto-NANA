@@ -26,32 +26,31 @@ class VerEnSenas extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
         children: [
-          AspectRatio(
-            aspectRatio: 4 / 3,
-            child: Container(
-              decoration: BoxDecoration(
-                color: ColoresNana.moradoClaro,
-                borderRadius: BorderRadius.circular(28),
-              ),
-              child: const Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.sign_language,
-                    size: 80,
-                    color: ColoresNana.morado,
-                  ),
-                  SizedBox(height: 12),
-                  Text(
-                    'Aquí va el video en señas',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    'Todavía no hay videos grabados',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ],
-              ),
+          // Alto mínimo, no fijo: con letra grande la caja crece.
+          Container(
+            constraints: const BoxConstraints(minHeight: 220),
+            padding: const EdgeInsets.all(20),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: ColoresNana.moradoClaro,
+              borderRadius: BorderRadius.circular(28),
+            ),
+            child: const Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.sign_language, size: 80, color: ColoresNana.morado),
+                SizedBox(height: 12),
+                Text(
+                  'Aquí va el video en señas',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  'Todavía no hay videos grabados',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 20),

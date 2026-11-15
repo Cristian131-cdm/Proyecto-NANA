@@ -5,6 +5,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 // porque dependen de quién lo tiene en la mano y de su pantalla.
 class Ajustes {
   static final ValueNotifier<double> escalaTexto = ValueNotifier(1.0);
+
+  // La letra de NANA se multiplica por la del celular. Sin tope, letra
+  // "enorme" en los dos lados daba 3x y las pantallas dejaban de caber.
+  static const escalaMaxima = 2.0;
+  static double escalaTotal(double sistema) =>
+      (escalaTexto.value * sistema).clamp(0.85, escalaMaxima);
   // Qué tan rápido habla NANA: 0.6 despacio, 1 normal, 1.4 rápido.
   static final ValueNotifier<double> velocidadVoz = ValueNotifier(1.0);
 

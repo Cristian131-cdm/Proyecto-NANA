@@ -141,11 +141,13 @@ class _CamaraSenasState extends State<CamaraSenas> {
               Row(
                 children: [
                   // Mantener apretado: el equipo le enseña señas a NANA.
-                  GestureDetector(
-                    // Escondido a propósito: no es un botón para el lector.
-                    excludeFromSemantics: true,
-                    onLongPress: _ensenar,
-                    child: _PildoraCamara(encendida: _error == null),
+                  Flexible(
+                    child: GestureDetector(
+                      // Escondido a propósito: no es un botón para el lector.
+                      excludeFromSemantics: true,
+                      onLongPress: _ensenar,
+                      child: _PildoraCamara(encendida: _error == null),
+                    ),
                   ),
                 ],
               ),
@@ -263,12 +265,14 @@ class _PildoraCamara extends StatelessWidget {
           size: 18,
         ),
         const SizedBox(width: 6),
-        Text(
-          encendida ? 'Cámara encendida' : 'Cámara apagada',
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+        Flexible(
+          child: Text(
+            encendida ? 'Cámara encendida' : 'Cámara apagada',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
         ),
       ],
@@ -283,27 +287,30 @@ class _Mensaje extends StatelessWidget {
   const _Mensaje({required this.icono, required this.titulo, this.detalle});
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.all(24),
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(icono, size: 80, color: Colors.white70),
-        const SizedBox(height: 16),
-        Text(
-          titulo,
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 22, color: Colors.white),
-        ),
-        if (detalle != null) ...[
-          const SizedBox(height: 6),
+  Widget build(BuildContext context) => Center(
+    // Con letra grande o pantalla bajita el mensaje se puede deslizar.
+    child: SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icono, size: 80, color: Colors.white70),
+          const SizedBox(height: 16),
           Text(
-            detalle!,
+            titulo,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 18, color: Colors.white70),
+            style: const TextStyle(fontSize: 22, color: Colors.white),
           ),
+          if (detalle != null) ...[
+            const SizedBox(height: 6),
+            Text(
+              detalle!,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 18, color: Colors.white70),
+            ),
+          ],
         ],
-      ],
+      ),
     ),
   );
 }

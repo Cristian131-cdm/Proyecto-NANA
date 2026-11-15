@@ -567,60 +567,69 @@ class _PanelAdultoState extends State<PanelAdulto> {
         ),
         child: SafeArea(
           top: false,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
+          // En pantallas bajitas (plegable cerrado) con letra grande los
+          // botones no caben: ocupan a lo más 60 % y se deslizan.
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.sizeOf(context).height * 0.6,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Expanded(
-                    // Quien no habla "dice" tocando cuadros con ícono.
-                    child: ValueListenableBuilder<bool>(
-                      valueListenable: Ajustes.sinVoz,
-                      builder: (context, sinVoz, _) => _BotonGrande(
-                        icono: Icons.touch_app,
-                        iconoB: sinVoz ? null : IconoB.hablar,
-                        texto: sinVoz ? 'Decir' : 'Hablar',
-                        fondo: ColoresNana.azul,
-                        frente: Colors.white,
-                        onTap: () => _ir(
-                          sinVoz
-                              ? TableroFrases(
-                                  onFrase: _decir,
-                                  onHablar: () => _ir(_nanaEscucha()),
-                                )
-                              : _nanaEscucha(),
+                  Row(
+                    children: [
+                      Expanded(
+                        // Quien no habla "dice" tocando cuadros con ícono.
+                        child: ValueListenableBuilder<bool>(
+                          valueListenable: Ajustes.sinVoz,
+                          builder: (context, sinVoz, _) => _BotonGrande(
+                            icono: Icons.touch_app,
+                            iconoB: sinVoz ? null : IconoB.hablar,
+                            texto: sinVoz ? 'Decir' : 'Hablar',
+                            fondo: ColoresNana.azul,
+                            frente: Colors.white,
+                            onTap: () => _ir(
+                              sinVoz
+                                  ? TableroFrases(
+                                      onFrase: _decir,
+                                      onHablar: () => _ir(_nanaEscucha()),
+                                    )
+                                  : _nanaEscucha(),
+                            ),
+                          ),
                         ),
                       ),
-                    ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _BotonGrande(
+                          icono: Icons.family_restroom,
+                          iconoB: IconoB.familia,
+                          texto: 'Familia',
+                          fondo: ColoresNana.moradoClaro,
+                          frente: ColoresNana.morado,
+                          onTap: () => _ir(MiFamilia(folio: _folio)),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
                     child: _BotonGrande(
-                      icono: Icons.family_restroom,
-                      iconoB: IconoB.familia,
-                      texto: 'Familia',
-                      fondo: ColoresNana.moradoClaro,
-                      frente: ColoresNana.morado,
-                      onTap: () => _ir(MiFamilia(folio: _folio)),
+                      icono: Icons.notifications_active,
+                      iconoB: IconoB.ayuda,
+                      texto: 'Necesito ayuda',
+                      fondo: ColoresNana.alertaClaro,
+                      frente: ColoresNana.alerta,
+                      borde: ColoresNana.alerta,
+                      enFila: true,
+                      onTap: _confirmarAviso,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: _BotonGrande(
-                  icono: Icons.notifications_active,
-                  iconoB: IconoB.ayuda,
-                  texto: 'Necesito ayuda',
-                  fondo: ColoresNana.alertaClaro,
-                  frente: ColoresNana.alerta,
-                  borde: ColoresNana.alerta,
-                  enFila: true,
-                  onTap: _confirmarAviso,
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),

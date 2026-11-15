@@ -43,7 +43,6 @@ class NanaApp extends StatelessWidget {
         Ajustes.menosMovimiento,
       ]),
       builder: (context, _) {
-        final escala = Ajustes.escalaTexto.value;
         final fuerte = Ajustes.altoContraste.value;
         return MaterialApp(
           title: 'NANA',
@@ -59,7 +58,7 @@ class NanaApp extends StatelessWidget {
             final sistema = MediaQuery.textScalerOf(context).scale(1.0);
             final contenido = MediaQuery(
               data: MediaQuery.of(context).copyWith(
-                textScaler: TextScaler.linear(escala * sistema),
+                textScaler: TextScaler.linear(Ajustes.escalaTotal(sistema)),
                 // Con colores fuertes también la letra va en negritas.
                 boldText: fuerte || MediaQuery.boldTextOf(context),
                 // "Menos movimiento" apaga las animaciones de toda la app.

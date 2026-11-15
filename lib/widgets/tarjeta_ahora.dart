@@ -155,12 +155,15 @@ class _Actividad extends StatelessWidget {
                       size: 26,
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      cuando,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: ColoresNana.morado,
+                    // Con letra grande baja a otro renglón en vez de salirse.
+                    Flexible(
+                      child: Text(
+                        cuando,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: ColoresNana.morado,
+                        ),
                       ),
                     ),
                   ],
