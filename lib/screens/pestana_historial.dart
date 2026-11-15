@@ -1,4 +1,8 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+
+import '../core/fotos_locales.dart';
 
 import '../core/servicios.dart';
 import '../core/tema.dart';
@@ -42,8 +46,11 @@ class _PestanaHistorialState extends State<PestanaHistorial> {
       context: context,
       isScrollControlled: true,
       builder: (_) => FormularioReceta(
-        onGuardar: (r) {
-          Servicios.repo.guardarReceta(widget.folio, r);
+        onGuardar: (r, foto) {
+          // El id se decide aquí para poder ligar la foto, que no sube.
+          final id = 'r${DateTime.now().microsecondsSinceEpoch}';
+          Servicios.repo.guardarReceta(widget.folio, r.conId(id));
+          if (foto != null) Servicios.fotos.guardar(id, foto);
           mostrarAviso(context, 'Receta guardada');
         },
       ),
@@ -99,33 +106,71 @@ class _PestanaHistorialState extends State<PestanaHistorial> {
   void _verDetalle(Receta r) {
     showModalBottomSheet<void>(
       context: context,
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              r.indicacion,
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            Text('Indicó: ${r.medico}', style: const TextStyle(fontSize: 18)),
-            Text(
-              'Fecha: ${fechaCorta(r.fecha)}',
-              style: const TextStyle(fontSize: 18),
-            ),
-            const SizedBox(height: 20),
-            TextButton.icon(
-              onPressed: () {
-                Servicios.repo.borrarReceta(widget.folio, r.id!);
-                Navigator.pop(context);
-              },
-              icon: const Icon(Icons.delete_outline),
-              label: const Text('Eliminar receta'),
-              style: TextButton.styleFrom(foregroundColor: ColoresNana.alerta),
-            ),
-          ],
+      isScrollControlled: true,
+      builder: (context) => SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                r.indicacion,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text('Indicó: ${r.medico}', style: const TextStyle(fontSize: 18)),
+              Text(
+                'Fecha: ${fechaCorta(r.fecha)}',
+                style: const TextStyle(fontSize: 18),
+              ),
+              FutureBuilder<Uint8List?>(
+                future: Servicios.fotos.leer(r.id!),
+                builder: (context, foto) => foto.data == null
+                    ? const SizedBox()
+                    : Padding(
+                        padding: const EdgeInsets.only(top: 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: Image.memory(
+                                foto.data!,
+                                semanticLabel: 'Foto de la receta',
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            const Text(
+                              avisoFotoLocal,
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: ColoresNana.tintaSuave,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+              ),
+              const SizedBox(height: 20),
+              TextButton.icon(
+                onPressed: () {
+                  Servicios.repo.borrarReceta(widget.folio, r.id!);
+                  Servicios.fotos.borrar(r.id!);
+                  Navigator.pop(context);
+                },
+                icon: const Icon(Icons.delete_outline),
+                label: const Text('Eliminar receta'),
+                style: TextButton.styleFrom(
+                  foregroundColor: ColoresNana.alerta,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -328,8 +373,12 @@ class _DatosSalud extends StatelessWidget {
   }
 }
 
+const avisoFotoLocal =
+    'La foto se queda solo en este celular. No se sube y nadie más la ve.';
+
 class FormularioReceta extends StatefulWidget {
-  final ValueChanged<Receta> onGuardar;
+  // La foto es opcional y nunca sale del celular.
+  final void Function(Receta receta, Uint8List? foto) onGuardar;
   const FormularioReceta({super.key, required this.onGuardar});
 
   @override
@@ -341,6 +390,16 @@ class _FormularioRecetaState extends State<FormularioReceta> {
   final _indicacion = TextEditingController();
   DateTime _fecha = DateTime.now();
   bool _intento = false;
+  Uint8List? _foto;
+
+  Future<void> _elegirFoto() async {
+    try {
+      final foto = await Servicios.fotos.elegir();
+      if (foto != null && mounted) setState(() => _foto = foto);
+    } on FotoMuyGrande {
+      if (mounted) mostrarAviso(context, 'Esa foto pesa más de 10 MB');
+    }
+  }
 
   @override
   void dispose() {
@@ -370,6 +429,7 @@ class _FormularioRecetaState extends State<FormularioReceta> {
         fecha: _fecha,
         indicacion: _indicacion.text.trim(),
       ),
+      _foto,
     );
     Navigator.pop(context);
   }
@@ -429,6 +489,26 @@ class _FormularioRecetaState extends State<FormularioReceta> {
                 minimumSize: const Size(double.infinity, 52),
               ),
             ),
+            if (Servicios.fotos.disponible) ...[
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: _elegirFoto,
+                icon: Icon(
+                  _foto == null ? Icons.add_a_photo_outlined : Icons.check,
+                ),
+                label: Text(
+                  _foto == null ? 'Agregar foto (opcional)' : 'Foto agregada',
+                ),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 52),
+                ),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                avisoFotoLocal,
+                style: TextStyle(fontSize: 13, color: ColoresNana.tintaSuave),
+              ),
+            ],
             const SizedBox(height: 20),
             ElevatedButton(onPressed: _guardar, child: const Text('Guardar')),
           ],

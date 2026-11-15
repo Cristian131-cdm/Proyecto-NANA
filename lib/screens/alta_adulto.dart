@@ -33,7 +33,8 @@ class _AltaAdultoState extends State<AltaAdulto> {
   final _apellidos = TextEditingController();
   final _telefono = TextEditingController();
   String? _parentesco;
-  int _paso = 1; // 1 quién es, 2 ¿tiene celular?
+  int _paso = 1; // 1 quién es, 2 permiso para guardar, 3 ¿tiene celular?
+  bool _acepto = false;
   bool _intento = false;
   bool _ocupado = false;
   String? _error;
@@ -103,15 +104,72 @@ class _AltaAdultoState extends State<AltaAdulto> {
   Widget build(BuildContext context) {
     return switch (_paso) {
       1 => _pasoQuien(),
+      2 => _pasoPermiso(),
       _ => _pasoCelular(),
     };
+  }
+
+  // Antes de guardar nada de la persona, el encargado sabe qué se guarda y
+  // lo acepta. Sin esto no se da de alta.
+  Widget _pasoPermiso() {
+    return PantallaPaso(
+      // Con llave propia cada paso abre desde arriba.
+      key: const ValueKey('paso2'),
+      barra: 'Paso 2 de 3',
+      titulo: 'Antes de guardar sus datos',
+      subtitulo: 'NANA guarda lo mínimo, con tu permiso.',
+      children: [
+        for (final (icono, texto) in avisosDeDatos(_quien))
+          Padding(
+            padding: const EdgeInsets.only(bottom: 14),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(icono, color: ColoresNana.morado, size: 28),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(texto, style: const TextStyle(fontSize: 18)),
+                ),
+              ],
+            ),
+          ),
+        const SizedBox(height: 4),
+        CheckboxListTile(
+          value: _acepto,
+          onChanged: (v) => setState(() => _acepto = v ?? false),
+          controlAffinity: ListTileControlAffinity.leading,
+          contentPadding: EdgeInsets.zero,
+          activeColor: ColoresNana.morado,
+          title: Text(
+            'Estoy de acuerdo y $_quien también lo sabe',
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+        ),
+        const SizedBox(height: 16),
+        BotonPrincipal(
+          texto: 'Continuar',
+          onPressed: _acepto ? () => setState(() => _paso = 3) : null,
+        ),
+        const SizedBox(height: 8),
+        TextButton(
+          onPressed: () => setState(() => _paso = 1),
+          style: TextButton.styleFrom(
+            minimumSize: const Size(double.infinity, 56),
+            textStyle: const TextStyle(fontSize: 20),
+          ),
+          child: const Text('Regresar'),
+        ),
+      ],
+    );
   }
 
   Widget _pasoQuien() {
     final faltaNombre = _intento && _quien.isEmpty;
     final faltaParentesco = _intento && _parentesco == null;
     return PantallaPaso(
-      barra: 'Paso 1 de 2',
+      // Con llave propia cada paso abre desde arriba.
+      key: const ValueKey('paso1'),
+      barra: 'Paso 1 de 3',
       titulo: '¿A quién vas a cuidar?',
       children: [
         CampoNana(
@@ -162,7 +220,9 @@ class _AltaAdultoState extends State<AltaAdulto> {
 
   Widget _pasoCelular() {
     return PantallaPaso(
-      barra: 'Paso 2 de 2',
+      // Con llave propia cada paso abre desde arriba.
+      key: const ValueKey('paso3'),
+      barra: 'Paso 3 de 3',
       titulo: '¿$_quien tiene celular propio?',
       subtitulo: 'Si tiene, te damos un código para que use NANA en su propio celular.',
       children: [
@@ -179,7 +239,7 @@ class _AltaAdultoState extends State<AltaAdulto> {
         ),
         const SizedBox(height: 8),
         TextButton(
-          onPressed: _ocupado ? null : () => setState(() => _paso = 1),
+          onPressed: _ocupado ? null : () => setState(() => _paso = 2),
           style: TextButton.styleFrom(
             minimumSize: const Size(double.infinity, 56),
             textStyle: const TextStyle(fontSize: 20),
@@ -190,6 +250,30 @@ class _AltaAdultoState extends State<AltaAdulto> {
     );
   }
 }
+
+// Lo que se le explica al encargado antes de guardar datos de la persona.
+// El mismo texto sale en "Tus datos" (PantallaPrivacidad).
+List<(IconData, String)> avisosDeDatos(String quien) => [
+  (
+    Icons.folder_outlined,
+    'Se guardan sus medicinas y rutinas, cuándo las confirma, cómo dice '
+        'sentirse y los datos de salud que tú escribas.',
+  ),
+  (
+    Icons.group_outlined,
+    'Solo los ven $quien y la familia que tú invites con un código.',
+  ),
+  (
+    Icons.no_photography_outlined,
+    'NANA nunca sube documentos. Si agregas la foto de una receta, se queda '
+        'solo en tu celular.',
+  ),
+  (
+    Icons.delete_outline,
+    'Puedes borrar todos sus datos cuando quieras, desde "Familia y '
+        'alertas".',
+  ),
+];
 
 // Las opciones de "¿Qué es tuyo?", iguales al dar de alta y al unirse.
 class SelectorParentesco extends StatelessWidget {

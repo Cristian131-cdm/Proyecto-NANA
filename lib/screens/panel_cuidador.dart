@@ -293,8 +293,11 @@ class _PanelCuidadorState extends State<PanelCuidador> {
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) =>
-                    FamiliaAlertas(adulto: nombre, folio: adulto.folio),
+                builder: (_) => FamiliaAlertas(
+                  adulto: nombre,
+                  folio: adulto.folio,
+                  puedeBorrar: adulto.creadoPor == Servicios.repo.uid,
+                ),
               ),
             ),
           ),

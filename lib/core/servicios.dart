@@ -3,6 +3,7 @@ import '../data/repositorio_memoria.dart';
 import 'alarmas.dart';
 import 'avisos.dart';
 import 'biometria.dart';
+import 'fotos_locales.dart';
 import 'lector_expediente.dart';
 import 'senas/catalogo.dart';
 import 'senas/ojo.dart';
@@ -17,6 +18,8 @@ class Servicios {
   static Avisos avisos = const AvisosNulos();
   static LectorExpediente lector = const LectorSimulado();
   static Voz voz = VozNula();
+  // Fotos de recetas: solo en este celular, nunca en la nube.
+  static FotosLocales fotos = const SinFotos();
 
   // Señas: cómo se prende la cámara y dónde están los ejemplos guardados.
   static OjoSenas Function() crearOjo = OjoSinCamara.new;

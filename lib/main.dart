@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'core/ajustes.dart';
 import 'core/avisos.dart';
+import 'core/fotos_sin_disco.dart' if (dart.library.io) 'core/fotos_disco.dart';
 import 'core/senas/ojo_sin_camara.dart'
     if (dart.library.io) 'core/senas/ojo_camara.dart';
 import 'core/servicios.dart';
@@ -22,6 +23,7 @@ Future<void> main() async {
   Servicios.repo = RepositorioFirebase();
   Servicios.avisos = AvisosLocales();
   Servicios.voz = VozCelular();
+  Servicios.fotos = crearFotos();
   Servicios.crearOjo = crearOjoCamara;
   await Ajustes.cargar();
   VigilanteCandado.instancia.iniciar();

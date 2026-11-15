@@ -307,6 +307,12 @@ class RepositorioFirebase implements RepositorioNana {
         'idsCuidadores': [u],
         'creadoPor': u,
         'fechaReg': FieldValue.serverTimestamp(),
+        // Solo se llega aquí después de aceptar la pantalla de permiso.
+        'consentimiento': {
+          'por': u,
+          'fecha': FieldValue.serverTimestamp(),
+          'version': 1,
+        },
       })
       ..set(ref.collection('cuidadores').doc(u), {
         'nombre': yo?.nombre ?? '',
@@ -317,6 +323,36 @@ class RepositorioFirebase implements RepositorioNana {
       });
     await batch.commit();
     return ref.id;
+  });
+
+  // Primero lo de adentro (las reglas todavía necesitan leer al adulto) y al
+  // final el adulto. Los códigos viejos no se pueden listar: vencen solos.
+  @override
+  Future<void> borrarAdulto(String folio) => _intentar(() async {
+    final doc = await _adultos.doc(folio).get();
+    if (!doc.exists) return;
+    if (doc.data()?['creadoPor'] != uid) {
+      throw const ErrorNana(errorSoloEncargado);
+    }
+    for (final sub in const [
+      'medicamentos',
+      'registros',
+      'alertas',
+      'rutinas',
+      'recetas',
+      'citas',
+      'cuidadores',
+    ]) {
+      final docs = (await _de(folio, sub).get()).docs;
+      for (var i = 0; i < docs.length; i += 400) {
+        final batch = _db.batch();
+        for (final d in docs.skip(i).take(400)) {
+          batch.delete(d.reference);
+        }
+        await batch.commit();
+      }
+    }
+    await _adultos.doc(folio).delete();
   });
 
   @override
@@ -372,6 +408,11 @@ class RepositorioFirebase implements RepositorioNana {
       idsCuidadores: List<String>.from(d['idsCuidadores'] ?? const []),
       parentesco: parentesco,
       telefono: d['telefono'],
+      creadoPor: d['creadoPor'],
+      consentimiento:
+          ((d['consentimiento'] as Map<String, dynamic>?)?['fecha']
+                  as Timestamp?)
+              ?.toDate(),
     );
   }
 

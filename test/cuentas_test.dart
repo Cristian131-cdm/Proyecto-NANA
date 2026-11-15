@@ -17,6 +17,9 @@ Future<void> _escribir(WidgetTester t, String etiqueta, String texto) async {
 }
 
 Future<void> _tocar(WidgetTester t, String texto) async {
+  // Un campo con el cursor jala la lista de regreso hacia él.
+  FocusManager.instance.primaryFocus?.unfocus();
+  await t.pump();
   await t.ensureVisible(find.text(texto));
   await t.pumpAndSettle();
   await t.tap(find.text(texto));
@@ -32,6 +35,18 @@ Future<void> _bajarYTocar(WidgetTester t, String texto) async {
   );
   await t.pumpAndSettle();
   await t.tap(find.text(texto));
+}
+
+// Paso 2 del alta: sin palomear el permiso no se puede continuar.
+Future<void> _aceptarPermiso(WidgetTester t) async {
+  expect(find.text('Antes de guardar sus datos'), findsOneWidget);
+  await _bajarYTocar(t, 'Continuar');
+  await t.pumpAndSettle();
+  expect(find.text('¿Rosa tiene celular propio?'), findsNothing);
+  await _bajarYTocar(t, 'Estoy de acuerdo y Rosa también lo sabe');
+  await t.pumpAndSettle();
+  await _bajarYTocar(t, 'Continuar');
+  await t.pumpAndSettle();
 }
 
 Future<void> _crearCuentaDeAna(WidgetTester t) async {
@@ -74,6 +89,7 @@ void main() {
     await _escribir(t, 'Nombre', 'Rosa');
     await _tocar(t, 'mamá');
     await _tocar(t, 'Siguiente');
+    await _aceptarPermiso(t);
     expect(find.text('¿Rosa tiene celular propio?'), findsOneWidget);
 
     await _tocar(t, 'Sí, tiene celular');
@@ -149,6 +165,7 @@ void main() {
     await _escribir(t, 'Nombre', 'Rosa');
     await _tocar(t, 'mamá');
     await _tocar(t, 'Siguiente');
+    await _aceptarPermiso(t);
     await _tocar(t, 'No tiene');
     await _bajarYTocar(t, 'Lo hago después');
     await t.pumpAndSettle();

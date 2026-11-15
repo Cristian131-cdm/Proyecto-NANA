@@ -8,6 +8,11 @@ class Adulto {
   final List<String> idsCuidadores;
   final String? parentesco; // cómo lo llama quien está viendo: mamá, papá...
   final String? telefono;
+  final String?
+  creadoPor; // uid de quien lo dio de alta: el encargado principal
+  // Cuándo aceptó el encargado que NANA guarde sus datos. null en las altas
+  // anteriores a la pantalla de permiso.
+  final DateTime? consentimiento;
 
   const Adulto({
     required this.folio,
@@ -18,6 +23,8 @@ class Adulto {
     this.idsCuidadores = const [],
     this.parentesco,
     this.telefono,
+    this.creadoPor,
+    this.consentimiento,
   });
 
   bool get tieneFamilia => idsCuidadores.isNotEmpty;

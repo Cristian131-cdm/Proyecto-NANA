@@ -10,6 +10,7 @@ import '../models/adulto.dart';
 import '../models/alerta.dart';
 import '../widgets/aviso.dart';
 import '../widgets/tarjeta_dato.dart';
+import 'arranque.dart';
 
 // Lo que se manda por WhatsApp con el código de invitación.
 String textoInvitacion(String adulto, String codigo) =>
@@ -23,7 +24,14 @@ String textoInvitacion(String adulto, String codigo) =>
 class FamiliaAlertas extends StatefulWidget {
   final String adulto;
   final String folio;
-  const FamiliaAlertas({super.key, required this.adulto, required this.folio});
+  // true para quien dio de alta a la persona: puede borrar todos sus datos.
+  final bool puedeBorrar;
+  const FamiliaAlertas({
+    super.key,
+    required this.adulto,
+    required this.folio,
+    this.puedeBorrar = false,
+  });
 
   @override
   State<FamiliaAlertas> createState() => _FamiliaAlertasState();
@@ -89,6 +97,48 @@ class _FamiliaAlertasState extends State<FamiliaAlertas> {
   }
 
   bool _invitando = false;
+
+  Future<void> _borrarTodo() async {
+    final adulto = widget.adulto;
+    final si = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        title: Text('¿Borrar todo lo de $adulto?'),
+        content: Text(
+          'Se borran sus medicinas, rutinas, registros, recetas, citas, datos '
+          'de salud y alertas, para toda la familia. $adulto ya no podrá '
+          'usar NANA con su código. No se puede deshacer.',
+          style: const TextStyle(fontSize: 18),
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('No, conservar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: ColoresNana.alerta),
+            child: const Text('Sí, borrar todo'),
+          ),
+        ],
+      ),
+    );
+    if (si != true || !mounted) return;
+    try {
+      // Las fotos de sus recetas que estén en este celular también se van.
+      final recetas = await Servicios.repo.recetas(widget.folio).first;
+      for (final r in recetas) {
+        if (r.id != null) await Servicios.fotos.borrar(r.id!);
+      }
+      await Servicios.repo.borrarAdulto(widget.folio);
+      final destino = await destinoInicial();
+      if (!mounted) return;
+      entrarA(context, destino);
+    } on ErrorNana catch (e) {
+      if (mounted) mostrarAviso(context, e.mensaje);
+    }
+  }
 
   Future<void> _invitar() async {
     if (_invitando) return;
@@ -239,6 +289,14 @@ class _FamiliaAlertasState extends State<FamiliaAlertas> {
             MaterialPageRoute(builder: (_) => const PantallaPrivacidad()),
           ),
         ),
+        if (widget.puedeBorrar)
+          TarjetaDato(
+            icono: Icons.delete_forever_outlined,
+            titulo: 'Borrar todos los datos de $adulto',
+            subtitulo: 'No se puede deshacer',
+            color: ColoresNana.alerta,
+            onTap: _borrarTodo,
+          ),
       ],
     );
   }
@@ -330,15 +388,23 @@ class PantallaPrivacidad extends StatelessWidget {
     (
       Icons.folder_outlined,
       'Qué guarda NANA',
-      'Las rutinas y medicinas que registra la familia, cuándo se confirmaron, '
-          'cómo se sintió (las caritas), las recetas que se capturan y las '
-          'alertas que se mandaron.',
+      'Lo mínimo y con tu permiso: las medicinas y rutinas que registra la '
+          'familia, cuándo se confirmaron, cómo se sintió (las caritas), los '
+          'datos de salud y recetas que la familia escribe, y las alertas.',
+    ),
+    (
+      Icons.no_photography_outlined,
+      'Tus documentos no se suben',
+      'NANA nunca guarda en la nube la foto o el PDF de una receta o '
+          'expediente. Si agregas la foto de una receta, se queda solo en el '
+          'celular donde la agregaste: nadie más la ve y se borra si '
+          'desinstalas NANA.',
     ),
     (
       Icons.group_outlined,
       'Quién lo ve',
-      'Solo las personas de la familia que se vincularon con código. '
-          'Quien administra decide quién recibe alertas y quién solo ve el resumen.',
+      'Solo la persona mayor y la familia que se unió con un código de '
+          'invitación. Nadie más, y NANA no vende ni comparte datos.',
     ),
     (
       Icons.fingerprint,
@@ -351,6 +417,12 @@ class PantallaPrivacidad extends StatelessWidget {
       'Lo que NANA no hace',
       'No da consejos médicos ni cambia dosis. No graba, no usa la cámara '
           'a escondidas y no rastrea dónde estás.',
+    ),
+    (
+      Icons.delete_outline,
+      'Borrar los datos',
+      'Quien dio de alta a la persona puede borrar todo lo suyo desde '
+          '"Familia y alertas". Se borra de inmediato y no se puede recuperar.',
     ),
   ];
 

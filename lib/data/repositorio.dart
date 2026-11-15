@@ -27,6 +27,8 @@ const errorCodigoFamiliar =
 const errorCodigoDelAdulto =
     'Ese código es para el celular de la persona mayor. Pide que te inviten '
     'desde "Familia y alertas".';
+const errorSoloEncargado =
+    'Solo quien dio de alta a esta persona puede borrar sus datos.';
 const errorYaLaCuidas = 'Ya cuidas a esta persona. No necesitas el código.';
 
 // Todo lo que las pantallas leen o escriben. Hay dos versiones:
@@ -63,6 +65,9 @@ abstract class RepositorioNana {
     String? telefono,
   });
   // familiar: true invita a otra persona a cuidar al mismo adulto.
+  // Borra al adulto y todo lo suyo (medicinas, registros, alertas, rutinas,
+  // recetas, citas y familia). Solo quien lo dio de alta. No se puede deshacer.
+  Future<void> borrarAdulto(String folio);
   Future<CodigoVinculacion> generarCodigo(
     String folio, {
     bool familiar = false,

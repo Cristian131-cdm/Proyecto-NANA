@@ -67,7 +67,8 @@ service cloud.firestore {
           && getAfter(/databases/$(database)/documents/codigos/$(request.resource.data.codigoFamiliar)).data.folio == folio
           && getAfter(/databases/$(database)/documents/codigos/$(request.resource.data.codigoFamiliar)).data.usadoPor == request.auth.uid;
 
-      allow delete: if false;
+      // "Borrar todos los datos": solo quien dio de alta a la persona.
+      allow delete: if conSesion() && resource.data.creadoPor == request.auth.uid;
 
       // Al dar de alta (o al unirse con una invitación), el cuidador escribe su
       // fila en el mismo batch en que queda en idsCuidadores.
@@ -76,7 +77,8 @@ service cloud.firestore {
         allow create: if conSesion() && request.auth.uid == uid
             && request.auth.uid in adultoDespues(folio).idsCuidadores;
         allow update: if conSesion() && request.auth.uid == uid;
-        allow delete: if false;
+        allow delete: if conSesion()
+            && adulto(folio).creadoPor == request.auth.uid;
       }
 
       match /{coleccion}/{id} {

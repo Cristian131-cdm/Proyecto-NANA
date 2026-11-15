@@ -54,6 +54,7 @@ dependencies:
   camera: ^0.12.2
   hand_landmarker: ^3.1.0
   pdf: ^3.13.1
+  path_provider: ^2.1.6
 
 dev_dependencies:
   flutter_test:

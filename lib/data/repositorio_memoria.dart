@@ -52,6 +52,7 @@ class RepositorioMemoria implements RepositorioNana {
       uidAdulto: 'rosa-cel',
       idsCuidadores: ['ana'],
       telefono: '5500000001',
+      creadoPor: 'ana',
     );
     _parentescos[('rosa', 'ana')] = 'mamá';
     _medicamentos['rosa'] = [
@@ -242,6 +243,8 @@ class RepositorioMemoria implements RepositorioNana {
       uidAdulto: uid,
       idsCuidadores: adulto.idsCuidadores,
       telefono: adulto.telefono,
+      creadoPor: adulto.creadoPor,
+      consentimiento: adulto.consentimiento,
     );
     _codigos[codigo] = (guardado.$1, true);
     _avisar();
@@ -288,6 +291,8 @@ class RepositorioMemoria implements RepositorioNana {
       uidAdulto: adulto.uidAdulto,
       idsCuidadores: [...adulto.idsCuidadores, uid],
       telefono: adulto.telefono,
+      creadoPor: adulto.creadoPor,
+      consentimiento: adulto.consentimiento,
     );
     _parentescos[(folio, uid)] = parentesco;
     _codigos[codigo] = (guardado.$1, true);
@@ -314,10 +319,37 @@ class RepositorioMemoria implements RepositorioNana {
       tieneCelular: tieneCelular,
       idsCuidadores: [_uid!],
       telefono: telefono,
+      creadoPor: _uid,
+      // Solo se llega aquí después de aceptar la pantalla de permiso.
+      consentimiento: reloj(),
     );
     _parentescos[(folio, _uid!)] = parentesco;
     _avisar();
     return folio;
+  }
+
+  @override
+  Future<void> borrarAdulto(String folio) async {
+    final adulto = _adultos[folio];
+    if (adulto == null) return;
+    if (adulto.creadoPor != _uid) throw const ErrorNana(errorSoloEncargado);
+    _adultos.remove(folio);
+    _parentescos.removeWhere((k, _) => k.$1 == folio);
+    _codigos.removeWhere((_, v) => v.$1.folio == folio);
+    for (final m in <Map<String, Object?>>[
+      _medicamentos,
+      _registros,
+      _alertas,
+      _salud,
+      _reglas,
+      _rutinas,
+      _recetas,
+      _citas,
+      _ultima,
+    ]) {
+      m.remove(folio);
+    }
+    _avisar();
   }
 
   @override
@@ -353,6 +385,8 @@ class RepositorioMemoria implements RepositorioNana {
     idsCuidadores: a.idsCuidadores,
     parentesco: _parentescos[(a.folio, uid)],
     telefono: a.telefono,
+    creadoPor: a.creadoPor,
+    consentimiento: a.consentimiento,
   );
 
   @override
