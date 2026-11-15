@@ -9,6 +9,7 @@ import '../core/codigo.dart';
 import '../models/actividad.dart';
 import '../models/adulto.dart';
 import '../models/alerta.dart';
+import '../models/apariencia.dart';
 import '../models/medicamento.dart';
 import '../models/receta.dart';
 import '../models/registro.dart';
@@ -325,6 +326,72 @@ class RepositorioFirebase implements RepositorioNana {
     return ref.id;
   });
 
+  // Las reglas son las que mandan: si no es el principal, Firestore lo niega.
+  Future<void> _comoPrincipal(Future<void> Function() accion) async {
+    try {
+      await accion();
+    } on FirebaseException catch (e) {
+      if (e.code == 'permission-denied') {
+        throw const ErrorNana(errorSinPermiso);
+      }
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> nombrarSuplente(String folio, String uid, {DateTime? hasta}) =>
+      _intentar(
+        () => _comoPrincipal(
+          () => _adultos.doc(folio).update({
+            'suplente': {
+              'uid': uid,
+              'hasta': hasta == null ? null : Timestamp.fromDate(hasta),
+              'desde': FieldValue.serverTimestamp(),
+            },
+          }),
+        ),
+      );
+
+  @override
+  Future<void> quitarSuplente(String folio) => _intentar(
+    () => _comoPrincipal(
+      () => _adultos.doc(folio).update({'suplente': FieldValue.delete()}),
+    ),
+  );
+
+  @override
+  Future<void> quitarFamiliar(String folio, String uid) => _intentar(
+    () => _comoPrincipal(() async {
+      final d = (await _adultos.doc(folio).get()).data() ?? {};
+      final eraSuplente = _suplente(d['suplente'])?.uid == uid;
+      final batch = _db.batch()
+        ..update(_adultos.doc(folio), {
+          'idsCuidadores': FieldValue.arrayRemove([uid]),
+          if (eraSuplente) 'suplente': FieldValue.delete(),
+        })
+        ..delete(_de(folio, 'cuidadores').doc(uid));
+      await batch.commit();
+    }),
+  );
+
+  @override
+  Stream<Apariencia?> apariencia(String folio) => _adultos
+      .doc(folio)
+      .snapshots()
+      .map(
+        (s) =>
+            Apariencia.deMapa(s.data()?['apariencia'] as Map<String, dynamic>?),
+      );
+
+  @override
+  Future<void> guardarApariencia(String folio, Apariencia a) => _intentar(
+    () => _comoPrincipal(
+      () => _adultos.doc(folio).update({
+        'apariencia': a.copyWith(actualizado: DateTime.now()).aMapa(),
+      }),
+    ),
+  );
+
   // Primero lo de adentro (las reglas todavía necesitan leer al adulto) y al
   // final el adulto. Los códigos viejos no se pueden listar: vencen solos.
   @override
@@ -361,6 +428,13 @@ class RepositorioFirebase implements RepositorioNana {
     bool familiar = false,
   }) => _intentar(() async {
     final adulto = (await _adultos.doc(folio).get()).data() ?? {};
+    // Invitar es del principal; el código del adulto también lo saca el suplente.
+    final suplente = _suplente(adulto['suplente']);
+    final esSuplente =
+        suplente?.uid == uid && (suplente?.vigente(DateTime.now()) ?? false);
+    if (adulto['creadoPor'] != uid && (familiar || !esSuplente)) {
+      throw const ErrorNana(errorSinPermiso);
+    }
     final expira = DateTime.now().add(vigenciaCodigo);
     final invita = familiar ? (await usuarioActual())?.nombre ?? '' : '';
     // Si el número ya existe, las reglas niegan pisarlo; se prueba con otro.
@@ -413,6 +487,15 @@ class RepositorioFirebase implements RepositorioNana {
           ((d['consentimiento'] as Map<String, dynamic>?)?['fecha']
                   as Timestamp?)
               ?.toDate(),
+      suplente: _suplente(d['suplente']),
+    );
+  }
+
+  Suplente? _suplente(Object? m) {
+    if (m is! Map || m['uid'] is! String) return null;
+    return Suplente(
+      uid: m['uid'] as String,
+      hasta: (m['hasta'] as Timestamp?)?.toDate(),
     );
   }
 

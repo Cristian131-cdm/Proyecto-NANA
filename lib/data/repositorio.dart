@@ -1,5 +1,6 @@
 import '../models/adulto.dart';
 import '../models/alerta.dart';
+import '../models/apariencia.dart';
 import '../models/medicamento.dart';
 import '../models/receta.dart';
 import '../models/registro.dart';
@@ -29,6 +30,8 @@ const errorCodigoDelAdulto =
     'desde "Familia y alertas".';
 const errorSoloEncargado =
     'Solo quien dio de alta a esta persona puede borrar sus datos.';
+const errorSinPermiso =
+    'Eso solo lo puede hacer quien dio de alta a esta persona.';
 const errorYaLaCuidas = 'Ya cuidas a esta persona. No necesitas el código.';
 
 // Todo lo que las pantallas leen o escriben. Hay dos versiones:
@@ -65,6 +68,17 @@ abstract class RepositorioNana {
     String? telefono,
   });
   // familiar: true invita a otra persona a cuidar al mismo adulto.
+  // El encargado principal deja a alguien de la familia en su lugar: hasta
+  // una fecha, o sin fecha de fin (hasta que lo quite). Uno a la vez.
+  Future<void> nombrarSuplente(String folio, String uid, {DateTime? hasta});
+  Future<void> quitarSuplente(String folio);
+  // Saca a alguien de la familia de esta persona (nunca al principal).
+  Future<void> quitarFamiliar(String folio, String uid);
+
+  // Cómo se ve NANA en el celular de la persona mayor (lo decide el principal).
+  Stream<Apariencia?> apariencia(String folio);
+  Future<void> guardarApariencia(String folio, Apariencia a);
+
   // Borra al adulto y todo lo suyo (medicinas, registros, alertas, rutinas,
   // recetas, citas y familia). Solo quien lo dio de alta. No se puede deshacer.
   Future<void> borrarAdulto(String folio);

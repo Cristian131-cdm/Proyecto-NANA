@@ -1,3 +1,4 @@
+import '../models/apariencia.dart';
 import 'ajustes.dart';
 
 // Cómo se adapta el celular del adulto a las discapacidades que anotó su
@@ -58,4 +59,18 @@ void aplicarPerfil(List<String> discapacidades) {
   if (p.conSenas) Ajustes.conSenas.value = true;
   if (p.altoContraste) Ajustes.altoContraste.value = true;
   if (p.avisoVibracion) Ajustes.avisoVibracion.value = true;
+}
+
+// Lo que el encargado eligió en "Pantalla de ..." se aplica una vez por cada
+// cambio suyo. Después la persona puede ajustarlo en "Aa" y se respeta.
+void aplicarApariencia(Apariencia? a) {
+  final cuando = a?.actualizado;
+  if (a == null || cuando == null) return;
+  final clave = '${cuando.millisecondsSinceEpoch}';
+  if (clave == Ajustes.aparienciaAplicada.value) return;
+  Ajustes.aparienciaAplicada.value = clave;
+  Ajustes.escalaTexto.value = a.escalaTexto;
+  Ajustes.altoContraste.value = a.altoContraste;
+  Ajustes.queMeHable.value = a.queMeHable;
+  Ajustes.menosMovimiento.value = a.menosMovimiento;
 }

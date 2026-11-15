@@ -194,6 +194,16 @@ void main() {
     ) async {
       await t.binding.setSurfaceSize(const Size(800, 2400));
       addTearDown(() => t.binding.setSurfaceSize(null));
+      // Luis entró con una invitación: es familiar, no encargado.
+      final codigo = await repo.generarCodigo('rosa', familiar: true);
+      await repo.crearCuentaCuidador(
+        nombre: 'Luis',
+        apellidos: '',
+        telefono: '5500000003',
+        correo: 'luis@gmail.com',
+        contrasena: 'secreto1',
+      );
+      await repo.unirmeComoFamiliar(codigo.codigo, 'mamá');
       await t.pumpWidget(
         const MaterialApp(
           home: FamiliaAlertas(adulto: 'Rosa', folio: 'rosa'),
@@ -202,14 +212,12 @@ void main() {
       await t.pumpAndSettle();
       expect(find.text('Borrar todos los datos de Rosa'), findsNothing);
 
+      // Ana la dio de alta: a ella sí le sale.
+      await repo.iniciarSesion('ana@nana.mx', 'secreto1');
       await t.pumpWidget(const SizedBox());
       await t.pumpWidget(
         const MaterialApp(
-          home: FamiliaAlertas(
-            adulto: 'Rosa',
-            folio: 'rosa',
-            puedeBorrar: true,
-          ),
+          home: FamiliaAlertas(adulto: 'Rosa', folio: 'rosa'),
         ),
       );
       await t.pumpAndSettle();

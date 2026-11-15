@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../core/codigo.dart';
 import '../models/adulto.dart';
 import '../models/alerta.dart';
+import '../models/apariencia.dart';
 import '../models/actividad.dart';
 import '../models/medicamento.dart';
 import '../models/receta.dart';
@@ -112,6 +113,7 @@ class RepositorioMemoria implements RepositorioNana {
       <(String, String), String>{}; // (folio, uid) → parentesco
   final _codigos =
       <String, (CodigoVinculacion, bool)>{}; // código → (datos, usado)
+  final _apariencias = <String, Apariencia>{};
   final _invita = <String, String>{}; // código → nombre de quien invitó
   final _medicamentos = <String, List<Medicamento>>{};
   final _registros = <String, List<Registro>>{};
@@ -245,6 +247,7 @@ class RepositorioMemoria implements RepositorioNana {
       telefono: adulto.telefono,
       creadoPor: adulto.creadoPor,
       consentimiento: adulto.consentimiento,
+      suplente: adulto.suplente,
     );
     _codigos[codigo] = (guardado.$1, true);
     _avisar();
@@ -293,6 +296,7 @@ class RepositorioMemoria implements RepositorioNana {
       telefono: adulto.telefono,
       creadoPor: adulto.creadoPor,
       consentimiento: adulto.consentimiento,
+      suplente: adulto.suplente,
     );
     _parentescos[(folio, uid)] = parentesco;
     _codigos[codigo] = (guardado.$1, true);
@@ -328,6 +332,83 @@ class RepositorioMemoria implements RepositorioNana {
     return folio;
   }
 
+  void _soloPrincipal(String folio) {
+    if (_adultos[folio]?.creadoPor != _uid) {
+      throw const ErrorNana(errorSinPermiso);
+    }
+  }
+
+  Adulto _con(Adulto a, {List<String>? ids, Suplente? suplente}) => Adulto(
+    folio: a.folio,
+    nombre: a.nombre,
+    apellidos: a.apellidos,
+    tieneCelular: a.tieneCelular,
+    uidAdulto: a.uidAdulto,
+    idsCuidadores: ids ?? a.idsCuidadores,
+    telefono: a.telefono,
+    creadoPor: a.creadoPor,
+    consentimiento: a.consentimiento,
+    suplente: suplente,
+  );
+
+  @override
+  Future<void> nombrarSuplente(
+    String folio,
+    String uid, {
+    DateTime? hasta,
+  }) async {
+    _soloPrincipal(folio);
+    final a = _adultos[folio]!;
+    if (uid == a.creadoPor || !a.idsCuidadores.contains(uid)) {
+      throw const ErrorNana('Elige a alguien de la familia de esta persona.');
+    }
+    if (hasta != null && !hasta.isAfter(reloj())) {
+      throw const ErrorNana('Elige una fecha que todavía no pase.');
+    }
+    _adultos[folio] = _con(
+      a,
+      suplente: Suplente(uid: uid, hasta: hasta),
+    );
+    _avisar();
+  }
+
+  @override
+  Future<void> quitarSuplente(String folio) async {
+    _soloPrincipal(folio);
+    _adultos[folio] = _con(_adultos[folio]!);
+    _avisar();
+  }
+
+  @override
+  Future<void> quitarFamiliar(String folio, String uid) async {
+    _soloPrincipal(folio);
+    final a = _adultos[folio]!;
+    if (uid == a.creadoPor) {
+      throw const ErrorNana('No puedes quitarte: tú diste de alta.');
+    }
+    _adultos[folio] = _con(
+      a,
+      ids: [
+        for (final id in a.idsCuidadores)
+          if (id != uid) id,
+      ],
+      suplente: a.suplente?.uid == uid ? null : a.suplente,
+    );
+    _parentescos.remove((folio, uid));
+    _avisar();
+  }
+
+  @override
+  Stream<Apariencia?> apariencia(String folio) =>
+      _vigilar(() => _apariencias[folio]);
+
+  @override
+  Future<void> guardarApariencia(String folio, Apariencia a) async {
+    _soloPrincipal(folio);
+    _apariencias[folio] = a.copyWith(actualizado: reloj());
+    _avisar();
+  }
+
   @override
   Future<void> borrarAdulto(String folio) async {
     final adulto = _adultos[folio];
@@ -341,6 +422,7 @@ class RepositorioMemoria implements RepositorioNana {
       _registros,
       _alertas,
       _salud,
+      _apariencias,
       _reglas,
       _rutinas,
       _recetas,
@@ -357,6 +439,13 @@ class RepositorioMemoria implements RepositorioNana {
     String folio, {
     bool familiar = false,
   }) async {
+    // Invitar es del principal; el código del adulto también lo saca el suplente.
+    final a = _adultos[folio];
+    final esSuplente =
+        a?.suplente?.uid == _uid && (a?.suplente?.vigente(reloj()) ?? false);
+    if (a != null && a.creadoPor != _uid && (familiar || !esSuplente)) {
+      throw const ErrorNana(errorSinPermiso);
+    }
     var codigo = codigoAlAzar(_azar);
     while (_codigos.containsKey(codigo)) {
       codigo = codigoAlAzar(_azar);
@@ -387,6 +476,7 @@ class RepositorioMemoria implements RepositorioNana {
     telefono: a.telefono,
     creadoPor: a.creadoPor,
     consentimiento: a.consentimiento,
+    suplente: a.suplente,
   );
 
   @override

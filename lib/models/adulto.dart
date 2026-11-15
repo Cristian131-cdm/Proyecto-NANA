@@ -13,6 +13,8 @@ class Adulto {
   // Cuándo aceptó el encargado que NANA guarde sus datos. null en las altas
   // anteriores a la pantalla de permiso.
   final DateTime? consentimiento;
+  // A quién dejó el encargado principal en su lugar, si a alguien.
+  final Suplente? suplente;
 
   const Adulto({
     required this.folio,
@@ -25,9 +27,19 @@ class Adulto {
     this.telefono,
     this.creadoPor,
     this.consentimiento,
+    this.suplente,
   });
 
   bool get tieneFamilia => idsCuidadores.isNotEmpty;
+}
+
+// Suplente del encargado principal. Sin [hasta] dura hasta que lo quiten.
+class Suplente {
+  final String uid;
+  final DateTime? hasta;
+  const Suplente({required this.uid, this.hasta});
+
+  bool vigente(DateTime ahora) => hasta == null || ahora.isBefore(hasta!);
 }
 
 // Alguien de la familia, como lo ve el adulto en "Mi familia".

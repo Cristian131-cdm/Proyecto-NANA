@@ -22,6 +22,22 @@ service cloud.firestore {
       return getAfter(/databases/$(database)/documents/adultos/$(folio)).data;
     }
 
+    // Quien dio de alta a la persona: administra todo.
+    function esPrincipal(datos) {
+      return request.auth.uid == datos.creadoPor;
+    }
+
+    // A quien el principal dejó en su lugar, mientras no venza.
+    function esSuplente(datos) {
+      return datos.get('suplente', null) != null
+          && datos.suplente.uid == request.auth.uid
+          && (datos.suplente.hasta == null || request.time < datos.suplente.hasta);
+    }
+
+    function administra(datos) {
+      return esPrincipal(datos) || esSuplente(datos);
+    }
+
     function soloCambia(campos) {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(campos);
     }
@@ -40,10 +56,22 @@ service cloud.firestore {
           || (request.resource.data.uidAdulto == request.auth.uid
               && request.resource.data.idsCuidadores == []));
 
-      // La familia lo edita, pero no se puede agregar o quitar cuidadores desde la app.
+      // La familia lo edita sin tocar quién cuida. Salud, reglas de alerta,
+      // suplente, apariencia y quién dio de alta solo los cambia el principal.
       allow update: if conSesion() && esFamilia(resource.data)
           && request.resource.data.idsCuidadores == resource.data.idsCuidadores
-          && request.resource.data.uidAdulto == resource.data.uidAdulto;
+          && request.resource.data.uidAdulto == resource.data.uidAdulto
+          && (esPrincipal(resource.data)
+              || !request.resource.data.diff(resource.data).affectedKeys()
+                  .hasAny(['salud', 'reglasAlerta', 'suplente', 'apariencia',
+                           'creadoPor', 'consentimiento']));
+
+      // El principal saca a alguien de la familia (nunca a sí mismo).
+      allow update: if conSesion() && esPrincipal(resource.data)
+          && soloCambia(['idsCuidadores', 'suplente'])
+          && request.resource.data.idsCuidadores.size() == resource.data.idsCuidadores.size() - 1
+          && resource.data.idsCuidadores.hasAll(request.resource.data.idsCuidadores)
+          && request.auth.uid in request.resource.data.idsCuidadores;
 
       // Canje del código: el celular del adulto se pone como uidAdulto
       // solo si en el mismo batch marca como usado un código vigente de este folio.
@@ -81,11 +109,34 @@ service cloud.firestore {
             && adulto(folio).creadoPor == request.auth.uid;
       }
 
+      // Lo del día: toda la familia y la persona mayor.
       match /{coleccion}/{id} {
         allow read, write: if conSesion()
-            && coleccion in ['medicamentos', 'registros', 'alertas',
-                              'rutinas', 'recetas', 'citas']
+            && coleccion in ['registros', 'alertas']
             && esFamilia(adulto(folio));
+      }
+
+      // Medicinas y rutinas: las ve toda la familia; las cambian el
+      // principal y su suplente.
+      match /{coleccion}/{id} {
+        allow read: if conSesion()
+            && coleccion in ['medicamentos', 'rutinas']
+            && esFamilia(adulto(folio));
+        allow write: if conSesion()
+            && coleccion in ['medicamentos', 'rutinas']
+            && administra(adulto(folio));
+      }
+
+      // Recetas y citas (salud): las ven la persona, el principal y el
+      // suplente; solo el principal las cambia.
+      match /{coleccion}/{id} {
+        allow read: if conSesion()
+            && coleccion in ['recetas', 'citas']
+            && (administra(adulto(folio))
+                || request.auth.uid == adulto(folio).uidAdulto);
+        allow write: if conSesion()
+            && coleccion in ['recetas', 'citas']
+            && esPrincipal(adulto(folio));
       }
     }
 
@@ -97,7 +148,11 @@ service cloud.firestore {
       allow create: if conSesion()
           && request.resource.data.creadoPor == request.auth.uid
           && request.resource.data.usado == false
-          && request.auth.uid in adulto(request.resource.data.folio).idsCuidadores;
+          // Invitar es del principal; el código del celular de la persona
+          // también lo puede sacar el suplente.
+          && (esPrincipal(adulto(request.resource.data.folio))
+              || (esSuplente(adulto(request.resource.data.folio))
+                  && request.resource.data.get('tipo', 'adulto') != 'familiar'));
 
       allow update: if conSesion()
           && resource.data.usado == false

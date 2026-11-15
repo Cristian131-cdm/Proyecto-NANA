@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/avisos.dart';
 import '../core/dia.dart';
+import '../core/permisos.dart';
 import '../core/servicios.dart';
 import '../core/tema.dart';
 import '../data/demo.dart';
@@ -15,6 +16,7 @@ import '../widgets/ajustes_texto.dart';
 import '../widgets/aviso.dart';
 import '../widgets/esqueleto.dart';
 import '../widgets/formulario.dart';
+import '../widgets/tarjeta_dato.dart' show TarjetaDato;
 import 'alta_adulto.dart';
 import 'arranque.dart';
 import 'bienvenida.dart';
@@ -101,6 +103,7 @@ class _PanelCuidadorState extends State<PanelCuidador> {
   }
 
   Future<void> _miCuenta(Adulto adulto) async {
+    final permisos = Permisos.de(adulto, Servicios.repo.uid, Servicios.reloj());
     final opcion = await showModalBottomSheet<String>(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -119,22 +122,24 @@ class _PanelCuidadorState extends State<PanelCuidador> {
               ),
               const SizedBox(height: 8),
               for (final (clave, icono, texto) in [
-                (
-                  'codigo',
-                  Icons.phonelink_ring,
-                  'Código para el celular de ${adulto.nombre}',
-                ),
+                if (permisos.codigoDelAdulto)
+                  (
+                    'codigo',
+                    Icons.phonelink_ring,
+                    'Código para el celular de ${adulto.nombre}',
+                  ),
                 ('alta', Icons.person_add_alt, 'Cuidar a otra persona'),
                 (
                   'unirme',
                   Icons.group_add_outlined,
                   'Me invitaron, tengo un código',
                 ),
-                (
-                  'demo',
-                  Icons.auto_awesome_outlined,
-                  'Cargar datos de demostración',
-                ),
+                if (permisos.borrarDatos)
+                  (
+                    'demo',
+                    Icons.auto_awesome_outlined,
+                    'Cargar datos de demostración',
+                  ),
                 ('salir', Icons.logout, 'Cerrar sesión'),
               ])
                 ListTile(
@@ -273,6 +278,7 @@ class _PanelCuidadorState extends State<PanelCuidador> {
   Widget _panel(Adulto adulto, List<Adulto> lista) {
     final nombre = adulto.nombre;
     final relacion = adulto.parentesco ?? '';
+    final permisos = Permisos.de(adulto, Servicios.repo.uid, Servicios.reloj());
 
     return Scaffold(
       appBar: AppBar(
@@ -293,11 +299,8 @@ class _PanelCuidadorState extends State<PanelCuidador> {
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => FamiliaAlertas(
-                  adulto: nombre,
-                  folio: adulto.folio,
-                  puedeBorrar: adulto.creadoPor == Servicios.repo.uid,
-                ),
+                builder: (_) =>
+                    FamiliaAlertas(adulto: nombre, folio: adulto.folio),
               ),
             ),
           ),
@@ -373,6 +376,17 @@ class _PanelCuidadorState extends State<PanelCuidador> {
                                       : ColoresNana.tintaSuave,
                                 ),
                               ),
+                              if (permisos.rol != RolCuidador.principal)
+                                Text(
+                                  permisos.rol == RolCuidador.suplente
+                                      ? 'Eres suplente '
+                                            '(${vigenciaSuplente(adulto.suplente!)})'
+                                      : 'Eres familiar: ves y acompañas',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: ColoresNana.tintaSuave,
+                                  ),
+                                ),
                             ],
                           ),
                         ),
@@ -395,21 +409,28 @@ class _PanelCuidadorState extends State<PanelCuidador> {
                   PestanaMedicamentos(
                     key: ValueKey(adulto.folio),
                     folio: adulto.folio,
+                    puedeEditar: permisos.editarMedicinasYRutinas,
                   ),
                   PestanaRutinas(
                     key: ValueKey(adulto.folio),
                     folio: adulto.folio,
+                    puedeEditar: permisos.editarMedicinasYRutinas,
                   ),
                   PestanaSemana(
                     key: ValueKey(adulto.folio),
                     adulto: nombre,
                     folio: adulto.folio,
                   ),
-                  PestanaHistorial(
-                    key: ValueKey(adulto.folio),
-                    adulto: nombre,
-                    folio: adulto.folio,
-                  ),
+                  // El expediente (salud) no lo ve el familiar invitado.
+                  if (permisos.verSalud)
+                    PestanaHistorial(
+                      key: ValueKey(adulto.folio),
+                      adulto: nombre,
+                      folio: adulto.folio,
+                      puedeEditar: permisos.editarSalud,
+                    )
+                  else
+                    _SoloEncargado(adulto: nombre),
                 ],
               ),
             ),
@@ -640,4 +661,24 @@ class _AnilloDelDiaState extends State<AnilloDelDia> {
       ),
     );
   }
+}
+
+// Lo que ve el familiar invitado en la pestaña del expediente.
+class _SoloEncargado extends StatelessWidget {
+  final String adulto;
+  const _SoloEncargado({required this.adulto});
+
+  @override
+  Widget build(BuildContext context) => ListView(
+    padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+    children: [
+      TarjetaDato(
+        icono: Icons.lock_outline,
+        titulo: 'El expediente de $adulto es privado',
+        subtitulo:
+            'Sus datos de salud, recetas y citas solo los ven quien la dio '
+            'de alta y su suplente.',
+      ),
+    ],
+  );
 }

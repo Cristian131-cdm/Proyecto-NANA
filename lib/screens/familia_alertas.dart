@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../core/codigo.dart';
+import '../core/permisos.dart';
 import '../core/servicios.dart';
 import '../core/tema.dart';
 import '../data/repositorio.dart';
@@ -11,6 +12,7 @@ import '../models/alerta.dart';
 import '../widgets/aviso.dart';
 import '../widgets/tarjeta_dato.dart';
 import 'arranque.dart';
+import 'pantalla_del_adulto.dart';
 
 // Lo que se manda por WhatsApp con el código de invitación.
 String textoInvitacion(String adulto, String codigo) =>
@@ -24,14 +26,7 @@ String textoInvitacion(String adulto, String codigo) =>
 class FamiliaAlertas extends StatefulWidget {
   final String adulto;
   final String folio;
-  // true para quien dio de alta a la persona: puede borrar todos sus datos.
-  final bool puedeBorrar;
-  const FamiliaAlertas({
-    super.key,
-    required this.adulto,
-    required this.folio,
-    this.puedeBorrar = false,
-  });
+  const FamiliaAlertas({super.key, required this.adulto, required this.folio});
 
   @override
   State<FamiliaAlertas> createState() => _FamiliaAlertasState();
@@ -40,57 +35,206 @@ class FamiliaAlertas extends StatefulWidget {
 class _FamiliaAlertasState extends State<FamiliaAlertas> {
   late final _familia = Servicios.repo.familiaDe(widget.folio);
   late final _reglas = Servicios.repo.reglasAlerta(widget.folio);
+  // Para saber quién es el principal y quién el suplente.
+  late final _adultos = Servicios.repo.adultosACargo();
 
   void _guardar(ReglasAlerta r) =>
       Servicios.repo.guardarReglasAlerta(widget.folio, r);
 
-  void _verFamiliar(Familiar f, bool soyYo) {
+  // Qué papel tiene cada quien con esta persona.
+  String _papel(Familiar f, Adulto? a) {
+    if (a == null) return 'Familiar';
+    if (a.creadoPor == f.uid) return nombreRol(RolCuidador.principal);
+    final s = a.suplente;
+    if (s != null && s.uid == f.uid && s.vigente(Servicios.reloj())) {
+      return 'Suplente ${vigenciaSuplente(s)}';
+    }
+    return nombreRol(RolCuidador.familiar);
+  }
+
+  Future<void> _hacer(Future<void> Function() accion, String listo) async {
+    try {
+      await accion();
+      if (mounted) mostrarAviso(context, listo);
+    } on ErrorNana catch (e) {
+      if (mounted) mostrarAviso(context, e.mensaje);
+    }
+  }
+
+  // "Sin fecha de fin" (hasta que el principal lo quite) o "Hasta una fecha".
+  Future<void> _nombrarSuplente(Familiar f) async {
+    final opcion = await showDialog<String>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        title: Text('¿Hasta cuándo queda ${f.nombre} como suplente?'),
+        children: [
+          for (final (clave, icono, texto, detalle) in const [
+            ('fecha', Icons.event, 'Hasta una fecha', 'Se quita sola ese día'),
+            (
+              'siempre',
+              Icons.all_inclusive,
+              'Sin fecha de fin',
+              'Hasta que tú la quites',
+            ),
+          ])
+            ListTile(
+              leading: Icon(icono, color: ColoresNana.morado, size: 30),
+              title: Text(texto, style: const TextStyle(fontSize: 20)),
+              subtitle: Text(detalle, style: const TextStyle(fontSize: 15)),
+              onTap: () => Navigator.pop(context, clave),
+            ),
+        ],
+      ),
+    );
+    if (opcion == null || !mounted) return;
+    DateTime? hasta;
+    if (opcion == 'fecha') {
+      final hoy = DateUtils.dateOnly(Servicios.reloj());
+      final dia = await showDatePicker(
+        context: context,
+        helpText: 'Último día como suplente',
+        initialDate: hoy.add(const Duration(days: 7)),
+        firstDate: hoy,
+        lastDate: hoy.add(const Duration(days: 365)),
+      );
+      if (dia == null) return;
+      // Vale todo ese día.
+      hasta = dia.add(const Duration(hours: 23, minutes: 59));
+    }
+    await _hacer(
+      () => Servicios.repo.nombrarSuplente(widget.folio, f.uid, hasta: hasta),
+      '${f.nombre} queda como suplente',
+    );
+  }
+
+  Future<void> _quitarFamiliar(Familiar f) async {
+    final si = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        title: Text('¿Quitar a ${f.nombre}?'),
+        content: Text(
+          'Ya no verá a ${widget.adulto} ni recibirá sus alertas. Si después '
+          'quieres que vuelva, la invitas con un código nuevo.',
+          style: const TextStyle(fontSize: 18),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Sí, quitar'),
+          ),
+        ],
+      ),
+    );
+    if (si != true) return;
+    await _hacer(
+      () => Servicios.repo.quitarFamiliar(widget.folio, f.uid),
+      'Quité a ${f.nombre}',
+    );
+  }
+
+  void _verFamiliar(Familiar f, bool soyYo, Adulto? a, Permisos p) {
     final telefono = f.telefono;
+    final esPrincipal = a?.creadoPor == f.uid;
+    final esSuplente = a?.suplente?.uid == f.uid;
     showModalBottomSheet<void>(
       context: context,
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              soyYo ? '${f.nombre} (tú)' : f.nombre,
-              style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Cuida a ${widget.adulto} · recibe todas las alertas',
-              style: const TextStyle(
-                fontSize: 16,
-                color: ColoresNana.tintaSuave,
+      isScrollControlled: true,
+      builder: (hoja) => SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                soyYo ? '${f.nombre} (tú)' : f.nombre,
+                style: const TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            if (telefono != null && telefono.isNotEmpty) ...[
               const SizedBox(height: 4),
-              Text('Teléfono: $telefono', style: const TextStyle(fontSize: 18)),
-            ],
-            if (!soyYo && telefono != null && telefono.isNotEmpty) ...[
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                height: 60,
-                child: FilledButton.icon(
-                  onPressed: () => llamar(context, telefono),
-                  icon: const Icon(Icons.call),
-                  label: Text('Llamar a ${f.nombre}'),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: ColoresNana.azul,
-                    shape: const StadiumBorder(),
-                    textStyle: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+              Text(
+                '${_papel(f, a)} · recibe todas las alertas',
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: ColoresNana.tintaSuave,
+                ),
+              ),
+              if (telefono != null && telefono.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(
+                  'Teléfono: $telefono',
+                  style: const TextStyle(fontSize: 18),
+                ),
+              ],
+              if (!soyYo && telefono != null && telefono.isNotEmpty) ...[
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: () => llamar(context, telefono),
+                    icon: const Icon(Icons.call),
+                    label: Text('Llamar a ${f.nombre}'),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: ColoresNana.azul,
+                      minimumSize: const Size(0, 60),
+                      shape: const StadiumBorder(),
+                      textStyle: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
-              ),
+              ],
+              // Lo que solo decide quien dio de alta a la persona.
+              if (p.nombrarSuplente && !esPrincipal) ...[
+                const SizedBox(height: 12),
+                BotonSecundario(
+                  icono: esSuplente
+                      ? Icons.person_remove_alt_1_outlined
+                      : Icons.swap_horiz,
+                  texto: esSuplente
+                      ? 'Quitar como suplente'
+                      : 'Dejar como suplente',
+                  onPressed: () {
+                    Navigator.pop(hoja);
+                    if (esSuplente) {
+                      _hacer(
+                        () => Servicios.repo.quitarSuplente(widget.folio),
+                        '${f.nombre} ya no es suplente',
+                      );
+                    } else {
+                      _nombrarSuplente(f);
+                    }
+                  },
+                ),
+              ],
+              if (p.quitarPersonas && !esPrincipal) ...[
+                const SizedBox(height: 4),
+                TextButton.icon(
+                  onPressed: () {
+                    Navigator.pop(hoja);
+                    _quitarFamiliar(f);
+                  },
+                  icon: const Icon(Icons.person_off_outlined),
+                  label: const Text('Quitar de la familia'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: ColoresNana.alerta,
+                    minimumSize: const Size(0, 56),
+                    textStyle: const TextStyle(fontSize: 18),
+                  ),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
@@ -209,49 +353,96 @@ class _FamiliaAlertasState extends State<FamiliaAlertas> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Familia y alertas')),
-      body: StreamBuilder<List<Familiar>>(
-        stream: _familia,
-        builder: (context, familia) => StreamBuilder<ReglasAlerta>(
-          stream: _reglas,
-          builder: (context, reglas) => _lista(
-            familia.data ?? const [],
-            reglas.data ?? const ReglasAlerta(),
-          ),
-        ),
+      body: StreamBuilder<List<Adulto>>(
+        stream: _adultos,
+        builder: (context, adultos) {
+          final a = (adultos.data ?? const <Adulto>[])
+              .where((x) => x.folio == widget.folio)
+              .firstOrNull;
+          // Mientras no se sabe quién es quién, no se ofrece nada de admin.
+          final p = a == null
+              ? const Permisos(RolCuidador.familiar)
+              : Permisos.de(a, Servicios.repo.uid, Servicios.reloj());
+          return StreamBuilder<List<Familiar>>(
+            stream: _familia,
+            builder: (context, familia) => StreamBuilder<ReglasAlerta>(
+              stream: _reglas,
+              builder: (context, reglas) => _lista(
+                familia.data ?? const [],
+                reglas.data ?? const ReglasAlerta(),
+                a,
+                p,
+              ),
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget _lista(List<Familiar> familia, ReglasAlerta reglas) {
+  Widget _lista(
+    List<Familiar> familia,
+    ReglasAlerta reglas,
+    Adulto? a,
+    Permisos p,
+  ) {
     final adulto = widget.adulto;
     final yo = Servicios.repo.uid;
+    final suplente = a?.suplente;
+    final suplenteActivo =
+        suplente != null && suplente.vigente(Servicios.reloj());
+    final nombreSuplente = familia
+        .where((f) => f.uid == suplente?.uid)
+        .firstOrNull
+        ?.nombre;
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
       children: [
+        if (suplenteActivo && nombreSuplente != null)
+          TarjetaDato(
+            icono: Icons.swap_horiz,
+            titulo: 'Suplente activo: $nombreSuplente',
+            subtitulo:
+                '${vigenciaSuplente(suplente)[0].toUpperCase()}'
+                '${vigenciaSuplente(suplente).substring(1)}',
+            color: ColoresNana.azul,
+          ),
         TituloSeccion('Quiénes cuidan a $adulto'),
         for (final f in familia)
           TarjetaDato(
             icono: Icons.person,
             titulo: f.uid == yo ? 'Tú (${f.nombre})' : f.nombre,
             subtitulo: (f.telefono ?? '').isEmpty
-                ? 'Recibe todas las alertas'
-                : 'Recibe todas las alertas · ${f.telefono}',
-            onTap: () => _verFamiliar(f, f.uid == yo),
+                ? _papel(f, a)
+                : '${_papel(f, a)} · ${f.telefono}',
+            onTap: () => _verFamiliar(f, f.uid == yo, a, p),
           ),
-        BotonSecundario(
-          icono: Icons.person_add_alt_1,
-          texto: _invitando
-              ? 'Creando el código…'
-              : 'Invitar a alguien con código',
-          onPressed: _invitar,
-        ),
+        if (p.invitar)
+          BotonSecundario(
+            icono: Icons.person_add_alt_1,
+            texto: _invitando
+                ? 'Creando el código…'
+                : 'Invitar a alguien con código',
+            onPressed: _invitar,
+          )
+        else
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 8),
+            child: Text(
+              'Solo quien dio de alta a esta persona invita, nombra suplente '
+              'y cambia las alertas.',
+              style: TextStyle(fontSize: 15, color: ColoresNana.tintaSuave),
+            ),
+          ),
         const TituloSeccion('¿Cuándo te aviso?'),
         _Regla(
           icono: Icons.medication,
           titulo: 'Medicina sin confirmar',
           subtitulo: 'Según la ventana de cada medicina (15, 30 o 60 min)',
           encendida: reglas.medicina,
-          onCambio: (v) => _guardar(reglas.copyWith(medicina: v)),
+          onCambio: p.cambiarAlertas
+              ? (v) => _guardar(reglas.copyWith(medicina: v))
+              : null,
         ),
         _Regla(
           icono: Icons.schedule,
@@ -259,8 +450,10 @@ class _FamiliaAlertasState extends State<FamiliaAlertas> {
           subtitulo:
               'Si pasan ${reglas.horasSinNoticias} horas sin ningún registro',
           encendida: reglas.sinNoticias,
-          onCambio: (v) => _guardar(reglas.copyWith(sinNoticias: v)),
-          extra: reglas.sinNoticias
+          onCambio: p.cambiarAlertas
+              ? (v) => _guardar(reglas.copyWith(sinNoticias: v))
+              : null,
+          extra: reglas.sinNoticias && p.cambiarAlertas
               ? SegmentedButton<int>(
                   segments: const [
                     ButtonSegment(value: 6, label: Text('6 h')),
@@ -279,6 +472,21 @@ class _FamiliaAlertasState extends State<FamiliaAlertas> {
           subtitulo: 'Siempre, al momento. Esta no se puede apagar.',
           encendida: true,
         ),
+        if (p.pantallaDelAdulto) ...[
+          TituloSeccion('El celular de $adulto'),
+          TarjetaDato(
+            icono: Icons.phone_android,
+            titulo: 'Pantalla de $adulto',
+            subtitulo: 'Letra, colores, voz y movimiento',
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) =>
+                    PantallaDelAdulto(adulto: adulto, folio: widget.folio),
+              ),
+            ),
+          ),
+        ],
         const TituloSeccion('Privacidad'),
         TarjetaDato(
           icono: Icons.lock_outline,
@@ -289,7 +497,7 @@ class _FamiliaAlertasState extends State<FamiliaAlertas> {
             MaterialPageRoute(builder: (_) => const PantallaPrivacidad()),
           ),
         ),
-        if (widget.puedeBorrar)
+        if (p.borrarDatos)
           TarjetaDato(
             icono: Icons.delete_forever_outlined,
             titulo: 'Borrar todos los datos de $adulto',

@@ -42,6 +42,7 @@ class _PanelAdultoState extends State<PanelAdulto> {
   bool _cargando = true;
   StreamSubscription? _alarmas;
   StreamSubscription? _salud;
+  StreamSubscription<Object?>? _apariencia;
 
   @override
   void initState() {
@@ -71,6 +72,8 @@ class _PanelAdultoState extends State<PanelAdulto> {
       _salud = Servicios.repo
           .salud(_folio)
           .listen((s) => aplicarPerfil(s.discapacidades));
+      // Y si el encargado ajusta su pantalla, también.
+      _apariencia = Servicios.repo.apariencia(_folio).listen(aplicarApariencia);
     }
   }
 
@@ -78,6 +81,7 @@ class _PanelAdultoState extends State<PanelAdulto> {
   void dispose() {
     _alarmas?.cancel();
     _salud?.cancel();
+    _apariencia?.cancel();
     super.dispose();
   }
 
@@ -324,6 +328,7 @@ class _PanelAdultoState extends State<PanelAdulto> {
     if (si != true || !mounted) return;
     _alarmas?.cancel();
     _salud?.cancel();
+    _apariencia?.cancel();
     // Sin sesión no hay medicinas: se quitan las alarmas de este celular.
     await Servicios.alarmas.programar(_yo?.nombre ?? '', const []);
     await Servicios.repo.cerrarSesion();

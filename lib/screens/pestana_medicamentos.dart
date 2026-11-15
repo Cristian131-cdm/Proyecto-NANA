@@ -44,7 +44,13 @@ class _FormatoDosis extends TextInputFormatter {
 // Las medicinas se guardan en Firestore y le aparecen al adulto en su día.
 class PestanaMedicamentos extends StatefulWidget {
   final String folio;
-  const PestanaMedicamentos({super.key, required this.folio});
+  // false para el familiar invitado: ve las medicinas, no las cambia.
+  final bool puedeEditar;
+  const PestanaMedicamentos({
+    super.key,
+    required this.folio,
+    this.puedeEditar = true,
+  });
 
   @override
   State<PestanaMedicamentos> createState() => _PestanaMedicamentosState();
@@ -75,14 +81,16 @@ class _PestanaMedicamentosState extends State<PestanaMedicamentos> {
   Widget _lista(BuildContext context, List<Medicamento> lista) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      floatingActionButton: FloatingActionButton.extended(
-        heroTag: 'agregar-medicamento',
-        onPressed: () => _abrirFormulario(context),
-        backgroundColor: ColoresNana.morado,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add),
-        label: const Text('Agregar', style: TextStyle(fontSize: 18)),
-      ),
+      floatingActionButton: !widget.puedeEditar
+          ? null
+          : FloatingActionButton.extended(
+              heroTag: 'agregar-medicamento',
+              onPressed: () => _abrirFormulario(context),
+              backgroundColor: ColoresNana.morado,
+              foregroundColor: Colors.white,
+              icon: const Icon(Icons.add),
+              label: const Text('Agregar', style: TextStyle(fontSize: 18)),
+            ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 104),
         children: [
@@ -103,21 +111,26 @@ class _PestanaMedicamentosState extends State<PestanaMedicamentos> {
               titulo: '${m.nombre} · ${m.dosis}',
               subtitulo:
                   '${m.hora.format(context)} · alerta si no confirma en ${m.ventanaMin} min',
-              accion: IconButton(
-                icon: const Icon(Icons.delete_outline),
-                tooltip: 'Borrar ${m.nombre}',
-                color: ColoresNana.tintaSuave,
-                constraints: const BoxConstraints(minWidth: 64, minHeight: 64),
-                onPressed: () {
-                  Servicios.repo.borrarMedicamento(folio, m.id!);
-                  mostrarAviso(
-                    context,
-                    'Borré ${m.nombre}',
-                    onDeshacer: () =>
-                        Servicios.repo.guardarMedicamento(folio, m),
-                  );
-                },
-              ),
+              accion: !widget.puedeEditar
+                  ? null
+                  : IconButton(
+                      icon: const Icon(Icons.delete_outline),
+                      tooltip: 'Borrar ${m.nombre}',
+                      color: ColoresNana.tintaSuave,
+                      constraints: const BoxConstraints(
+                        minWidth: 64,
+                        minHeight: 64,
+                      ),
+                      onPressed: () {
+                        Servicios.repo.borrarMedicamento(folio, m.id!);
+                        mostrarAviso(
+                          context,
+                          'Borré ${m.nombre}',
+                          onDeshacer: () =>
+                              Servicios.repo.guardarMedicamento(folio, m),
+                        );
+                      },
+                    ),
             ),
         ],
       ),

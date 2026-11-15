@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
 import '../core/fotos_locales.dart';
+import '../core/permisos.dart';
 
 import '../core/servicios.dart';
 import '../core/tema.dart';
@@ -15,10 +16,13 @@ import 'formulario_salud.dart';
 class PestanaHistorial extends StatefulWidget {
   final String adulto;
   final String folio;
+  // false para el suplente: ve el expediente, no lo cambia.
+  final bool puedeEditar;
   const PestanaHistorial({
     super.key,
     required this.adulto,
     required this.folio,
+    this.puedeEditar = true,
   });
 
   @override
@@ -88,15 +92,18 @@ class _PestanaHistorialState extends State<PestanaHistorial> {
             if (c.lugar.isNotEmpty)
               Text('En: ${c.lugar}', style: const TextStyle(fontSize: 18)),
             const SizedBox(height: 20),
-            TextButton.icon(
-              onPressed: () {
-                Servicios.repo.borrarCita(widget.folio, c.id!);
-                Navigator.pop(context);
-              },
-              icon: const Icon(Icons.delete_outline),
-              label: const Text('Eliminar cita'),
-              style: TextButton.styleFrom(foregroundColor: ColoresNana.alerta),
-            ),
+            if (widget.puedeEditar)
+              TextButton.icon(
+                onPressed: () {
+                  Servicios.repo.borrarCita(widget.folio, c.id!);
+                  Navigator.pop(context);
+                },
+                icon: const Icon(Icons.delete_outline),
+                label: const Text('Eliminar cita'),
+                style: TextButton.styleFrom(
+                  foregroundColor: ColoresNana.alerta,
+                ),
+              ),
           ],
         ),
       ),
@@ -157,18 +164,19 @@ class _PestanaHistorialState extends State<PestanaHistorial> {
                       ),
               ),
               const SizedBox(height: 20),
-              TextButton.icon(
-                onPressed: () {
-                  Servicios.repo.borrarReceta(widget.folio, r.id!);
-                  Servicios.fotos.borrar(r.id!);
-                  Navigator.pop(context);
-                },
-                icon: const Icon(Icons.delete_outline),
-                label: const Text('Eliminar receta'),
-                style: TextButton.styleFrom(
-                  foregroundColor: ColoresNana.alerta,
+              if (widget.puedeEditar)
+                TextButton.icon(
+                  onPressed: () {
+                    Servicios.repo.borrarReceta(widget.folio, r.id!);
+                    Servicios.fotos.borrar(r.id!);
+                    Navigator.pop(context);
+                  },
+                  icon: const Icon(Icons.delete_outline),
+                  label: const Text('Eliminar receta'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: ColoresNana.alerta,
+                  ),
                 ),
-              ),
             ],
           ),
         ),
@@ -226,11 +234,12 @@ class _PestanaHistorialState extends State<PestanaHistorial> {
             subtitulo: r.indicacion,
             onTap: () => _verDetalle(r),
           ),
-        BotonSecundario(
-          icono: Icons.note_add_outlined,
-          texto: 'Agregar receta',
-          onPressed: _agregar,
-        ),
+        if (widget.puedeEditar)
+          BotonSecundario(
+            icono: Icons.note_add_outlined,
+            texto: 'Agregar receta',
+            onPressed: _agregar,
+          ),
         const TituloSeccion('Próximas citas'),
         if (proximas.isEmpty) const _Vacio('No hay citas próximas.'),
         for (final c in proximas)
@@ -244,14 +253,20 @@ class _PestanaHistorialState extends State<PestanaHistorial> {
             color: ColoresNana.azul,
             onTap: () => _verCita(c),
           ),
-        BotonSecundario(
-          icono: Icons.event_available,
-          texto: 'Agregar cita',
-          onPressed: _agregarCita,
-        ),
+        if (widget.puedeEditar)
+          BotonSecundario(
+            icono: Icons.event_available,
+            texto: 'Agregar cita',
+            onPressed: _agregarCita,
+          ),
         const TituloSeccion('Datos de salud'),
         SuperficieCuidador(
-          child: _DatosSalud(salud: salud, onEditar: () => _editarSalud(salud)),
+          child: _DatosSalud(
+            salud: salud,
+            onEditar: widget.puedeEditar
+                ? () => _editarSalud(salud)
+                : () => mostrarAviso(context, avisoSoloPrincipal),
+          ),
         ),
         const SizedBox(height: 16),
         const Text(

@@ -37,6 +37,10 @@ class Ajustes {
     '',
   );
 
+  // La última apariencia que mandó el encargado y ya se aplicó aquí, para no
+  // pisar lo que la persona cambie después en "Aa".
+  static final ValueNotifier<String> aparienciaAplicada = ValueNotifier('');
+
   // Huella o Face ID: si está activada y si ya se le ofreció una vez.
   static final ValueNotifier<bool> huellaActivada = ValueNotifier(false);
   static final ValueNotifier<bool> huellaOfrecida = ValueNotifier(false);
@@ -67,6 +71,7 @@ class Ajustes {
     velocidadVoz.value = prefs.getDouble('velocidad_voz') ?? 1.0;
     discapacidadesAplicadas.value =
         prefs.getString('discapacidades_aplicadas') ?? '';
+    aparienciaAplicada.value = prefs.getString('apariencia_aplicada') ?? '';
     for (final MapEntry(key: clave, value: n) in _interruptores.entries) {
       n.value = prefs.getBool(clave) ?? false;
     }
@@ -83,6 +88,9 @@ class Ajustes {
         'discapacidades_aplicadas',
         discapacidadesAplicadas.value,
       ),
+    );
+    aparienciaAplicada.addListener(
+      () => _prefs?.setString('apariencia_aplicada', aparienciaAplicada.value),
     );
     for (final MapEntry(key: clave, value: n) in _interruptores.entries) {
       n.addListener(() => _prefs?.setBool(clave, n.value));

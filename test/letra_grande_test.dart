@@ -26,6 +26,7 @@ import 'package:nana_app/screens/mi_familia.dart';
 import 'package:nana_app/screens/nana_escucha.dart';
 import 'package:nana_app/screens/panel_adulto.dart';
 import 'package:nana_app/screens/panel_cuidador.dart';
+import 'package:nana_app/screens/pantalla_del_adulto.dart';
 import 'package:nana_app/screens/pestana_historial.dart';
 import 'package:nana_app/screens/pestana_inicio.dart';
 import 'package:nana_app/screens/pestana_medicamentos.dart';
@@ -191,6 +192,10 @@ final _pantallas = <String, _Pantalla>{
     crear: () => const FamiliaAlertas(adulto: 'Rosa', folio: 'rosa'),
   ),
   'Tus datos': (sesion: 'ana', crear: () => const PantallaPrivacidad()),
+  'Pantalla del adulto': (
+    sesion: 'ana',
+    crear: () => const PantallaDelAdulto(adulto: 'Rosa', folio: 'rosa'),
+  ),
 };
 
 void main() {

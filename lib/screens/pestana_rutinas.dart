@@ -33,7 +33,13 @@ String textoDias(Set<int> dias) {
 
 class PestanaRutinas extends StatefulWidget {
   final String folio;
-  const PestanaRutinas({super.key, required this.folio});
+  // false para el familiar invitado: ve las rutinas, no las cambia.
+  final bool puedeEditar;
+  const PestanaRutinas({
+    super.key,
+    required this.folio,
+    this.puedeEditar = true,
+  });
 
   @override
   State<PestanaRutinas> createState() => _PestanaRutinasState();
@@ -66,14 +72,16 @@ class _PestanaRutinasState extends State<PestanaRutinas> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      floatingActionButton: FloatingActionButton.extended(
-        heroTag: 'agregar-rutina',
-        onPressed: _abrirFormulario,
-        backgroundColor: ColoresNana.morado,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add),
-        label: const Text('Agregar', style: TextStyle(fontSize: 18)),
-      ),
+      floatingActionButton: !widget.puedeEditar
+          ? null
+          : FloatingActionButton.extended(
+              heroTag: 'agregar-rutina',
+              onPressed: _abrirFormulario,
+              backgroundColor: ColoresNana.morado,
+              foregroundColor: Colors.white,
+              icon: const Icon(Icons.add),
+              label: const Text('Agregar', style: TextStyle(fontSize: 18)),
+            ),
       body: StreamBuilder<List<Rutina>>(
         stream: _rutinas,
         builder: (context, snap) {
@@ -118,7 +126,7 @@ class _PestanaRutinasState extends State<PestanaRutinas> {
           color: tipo == TipoActividad.comida
               ? ColoresNana.ok
               : ColoresNana.azul,
-          onTap: () => _abrirFormulario(r),
+          onTap: widget.puedeEditar ? () => _abrirFormulario(r) : null,
         ),
     ];
   }
