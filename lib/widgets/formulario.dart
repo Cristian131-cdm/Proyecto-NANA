@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/medicion.dart';
 import '../core/tema.dart';
 import 'mascota_nana.dart';
 
@@ -109,9 +110,23 @@ class CampoNana extends StatelessWidget {
 }
 
 // Error que se lee en voz alta con TalkBack en cuanto aparece.
-class MensajeError extends StatelessWidget {
+class MensajeError extends StatefulWidget {
   final String texto;
   const MensajeError(this.texto, {super.key});
+
+  @override
+  State<MensajeError> createState() => _MensajeErrorState();
+}
+
+class _MensajeErrorState extends State<MensajeError> {
+  String get texto => widget.texto;
+
+  // El estudio de uso cuenta que salió un error (no qué decía).
+  @override
+  void initState() {
+    super.initState();
+    Medicion.error();
+  }
 
   @override
   Widget build(BuildContext context) {

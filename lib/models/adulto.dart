@@ -15,6 +15,8 @@ class Adulto {
   final DateTime? consentimiento;
   // A quién dejó el encargado principal en su lugar, si a alguien.
   final Suplente? suplente;
+  // El encargado aceptó el estudio de uso (anónimo). Ver core/medicion.dart.
+  final bool estudio;
 
   const Adulto({
     required this.folio,
@@ -28,6 +30,7 @@ class Adulto {
     this.creadoPor,
     this.consentimiento,
     this.suplente,
+    this.estudio = false,
   });
 
   bool get tieneFamilia => idsCuidadores.isNotEmpty;

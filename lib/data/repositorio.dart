@@ -1,3 +1,4 @@
+import '../core/medicion.dart';
 import '../models/adulto.dart';
 import '../models/alerta.dart';
 import '../models/apariencia.dart';
@@ -78,6 +79,13 @@ abstract class RepositorioNana {
   // Cómo se ve NANA en el celular de la persona mayor (lo decide el principal).
   Stream<Apariencia?> apariencia(String folio);
   Future<void> guardarApariencia(String folio, Apariencia a);
+
+  // Estudio de uso, anónimo. El principal lo prende o apaga por persona.
+  Future<void> guardarEstudio(String folio, bool activo);
+  Future<void> guardarUso(List<EventoUso> lote, {required String rol});
+  // Solo para el equipo (lista de administradores del estudio).
+  Future<bool> puedeVerEstudio();
+  Future<List<EventoUso>> usoReciente();
 
   // Borra al adulto y todo lo suyo (medicinas, registros, alertas, rutinas,
   // recetas, citas y familia). Solo quien lo dio de alta. No se puede deshacer.

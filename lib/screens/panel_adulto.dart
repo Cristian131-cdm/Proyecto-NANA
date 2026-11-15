@@ -6,6 +6,7 @@ import '../core/ajustes.dart';
 import '../core/dia.dart';
 import '../core/frases.dart';
 import '../core/lector.dart';
+import '../core/medicion.dart';
 import '../core/perfil_accesibilidad.dart';
 import '../core/servicios.dart';
 import '../core/tema.dart';
@@ -74,6 +75,12 @@ class _PanelAdultoState extends State<PanelAdulto> {
           .listen((s) => aplicarPerfil(s.discapacidades));
       // Y si el encargado ajusta su pantalla, también.
       _apariencia = Servicios.repo.apariencia(_folio).listen(aplicarApariencia);
+      // El estudio de uso solo corre si el encargado lo aceptó.
+      Servicios.repo.adultoPropio().then((a) {
+        Medicion.activa = a?.estudio ?? false;
+        Medicion.enviar = (lote) =>
+            Servicios.repo.guardarUso(lote, rol: 'adulto');
+      }).ignore();
     }
   }
 
@@ -104,6 +111,7 @@ class _PanelAdultoState extends State<PanelAdulto> {
   // Festejo corto y luego el aviso con "Deshacer" por si fue sin querer.
   Future<void> _marcarHecha(Actividad a) async {
     final folio = _folio;
+    Medicion.tarea('registro');
     final id = await Servicios.repo.registrar(
       folio,
       Registro(
@@ -136,6 +144,7 @@ class _PanelAdultoState extends State<PanelAdulto> {
 
   Future<void> _anotarAnimo(int i) async {
     final folio = _folio;
+    Medicion.tarea('registro');
     final id = await Servicios.repo.registrar(
       _folio,
       Registro(
@@ -264,6 +273,7 @@ class _PanelAdultoState extends State<PanelAdulto> {
       ),
     );
     if (si != true || !mounted) return;
+    Medicion.tarea('pidio_ayuda');
     final llego = await Servicios.repo.pedirAyuda(_folio);
     if (!mounted) return;
     mostrarAviso(

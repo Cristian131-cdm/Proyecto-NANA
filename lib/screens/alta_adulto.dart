@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/medicion.dart';
 import '../core/servicios.dart';
 import '../core/tema.dart';
 import '../data/repositorio.dart';
@@ -73,6 +74,7 @@ class _AltaAdultoState extends State<AltaAdulto> {
         telefono: _numero.isEmpty ? null : _numero,
       );
       final codigo = tieneCelular ? await repo.generarCodigo(folio) : null;
+      Medicion.tarea('alta');
       if (!mounted) return;
       final nombre = _quien;
       // Primero su salud (opcional) y después el código o el aviso.

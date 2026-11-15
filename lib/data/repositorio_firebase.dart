@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../core/codigo.dart';
+import '../core/medicion.dart';
 import '../models/actividad.dart';
 import '../models/adulto.dart';
 import '../models/alerta.dart';
@@ -392,6 +393,59 @@ class RepositorioFirebase implements RepositorioNana {
     ),
   );
 
+  @override
+  Future<void> guardarEstudio(String folio, bool activo) => _intentar(
+    () => _comoPrincipal(() => _adultos.doc(folio).update({'estudio': activo})),
+  );
+
+  // Un número al azar por cada vez que se abre la app: junta los eventos de
+  // una misma sesión sin decir de quién son. No se guarda el uid.
+  late final _sesionUso = List.generate(
+    12,
+    (_) => _azar.nextInt(36).toRadixString(36),
+  ).join();
+
+  @override
+  Future<void> guardarUso(List<EventoUso> lote, {required String rol}) =>
+      _db.collection('uso').add({
+        'sesion': _sesionUso,
+        'rol': rol,
+        'creado': FieldValue.serverTimestamp(),
+        'eventos': [for (final e in lote) e.aMapa()],
+      });
+
+  @override
+  Future<bool> puedeVerEstudio() async {
+    final u = uid;
+    if (u == null) return false;
+    try {
+      return (await _db.collection('estudio_admins').doc(u).get()).exists;
+    } on FirebaseException {
+      return false;
+    }
+  }
+
+  @override
+  Future<List<EventoUso>> usoReciente() => _intentar(() async {
+    try {
+      final q = await _db
+          .collection('uso')
+          .orderBy('creado', descending: true)
+          .limit(300)
+          .get();
+      return [
+        for (final d in q.docs)
+          for (final e in (d.data()['eventos'] as List? ?? const []))
+            if (e is Map) ?EventoUso.deMapa(Map<String, dynamic>.from(e)),
+      ];
+    } on FirebaseException catch (e) {
+      if (e.code == 'permission-denied') {
+        throw const ErrorNana(errorSinPermiso);
+      }
+      rethrow;
+    }
+  });
+
   // Primero lo de adentro (las reglas todavía necesitan leer al adulto) y al
   // final el adulto. Los códigos viejos no se pueden listar: vencen solos.
   @override
@@ -488,6 +542,7 @@ class RepositorioFirebase implements RepositorioNana {
                   as Timestamp?)
               ?.toDate(),
       suplente: _suplente(d['suplente']),
+      estudio: d['estudio'] == true,
     );
   }
 

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../core/codigo.dart';
+import '../core/medicion.dart';
 import '../core/permisos.dart';
 import '../core/servicios.dart';
 import '../core/tema.dart';
@@ -300,6 +301,7 @@ class _FamiliaAlertasState extends State<FamiliaAlertas> {
       if (mounted) setState(() => _invitando = false);
     }
     if (!mounted) return;
+    Medicion.tarea('invitacion_creada');
     final texto = textoInvitacion(widget.adulto, codigo);
     showDialog<void>(
       context: context,
@@ -498,6 +500,20 @@ class _FamiliaAlertasState extends State<FamiliaAlertas> {
           ),
         ),
         if (p.borrarDatos)
+          _Regla(
+            icono: Icons.insights_outlined,
+            titulo: 'Ayudar a mejorar NANA',
+            subtitulo:
+                'Anota de forma anónima qué pantallas se abren y dónde se '
+                'regresan, en tu celular y en el de $adulto. Sin nombres, '
+                'sin medicinas y sin lo que se escribe.',
+            encendida: a?.estudio ?? false,
+            onCambio: (v) => _hacer(
+              () => Servicios.repo.guardarEstudio(widget.folio, v),
+              v ? 'Gracias. Lo puedes apagar aquí mismo' : 'Apagado',
+            ),
+          ),
+        if (p.borrarDatos)
           TarjetaDato(
             icono: Icons.delete_forever_outlined,
             titulo: 'Borrar todos los datos de $adulto',
@@ -625,6 +641,14 @@ class PantallaPrivacidad extends StatelessWidget {
       'Lo que NANA no hace',
       'No da consejos médicos ni cambia dosis. No graba, no usa la cámara '
           'a escondidas y no rastrea dónde estás.',
+    ),
+    (
+      Icons.insights_outlined,
+      'Estudio de uso (opcional)',
+      'Si quien dio de alta lo prende, NANA anota de forma anónima qué '
+          'pantallas se abren, cuánto tiempo y dónde la gente se regresa, '
+          'para mejorar la app. No anota nombres, medicinas, datos de salud '
+          'ni lo que se escribe. Se apaga cuando quieras.',
     ),
     (
       Icons.delete_outline,

@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'core/ajustes.dart';
 import 'core/avisos.dart';
+import 'core/medicion.dart';
 import 'core/fotos_sin_disco.dart' if (dart.library.io) 'core/fotos_disco.dart';
 import 'core/senas/ojo_sin_camara.dart'
     if (dart.library.io) 'core/senas/ojo_camara.dart';
@@ -17,6 +18,10 @@ import 'screens/recordatorio_alarma.dart';
 import 'screens/splash.dart';
 import 'widgets/marco_ancho.dart';
 
+// Se guarda para que siga vivo mientras la app está abierta.
+// ignore: unused_element
+AppLifecycleListener? _alMinimizar;
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
@@ -26,6 +31,8 @@ Future<void> main() async {
   Servicios.fotos = crearFotos();
   Servicios.crearOjo = crearOjoCamara;
   await Ajustes.cargar();
+  // Al minimizar la app se manda lo que el estudio de uso tenga pendiente.
+  _alMinimizar = AppLifecycleListener(onPause: Medicion.mandar);
   VigilanteCandado.instancia.iniciar();
   await Servicios.alarmas.iniciar(abrirDesdeAlarma);
   VigilanteCandado.instancia.vieneDeAlarma =
@@ -49,6 +56,7 @@ class NanaApp extends StatelessWidget {
         return MaterialApp(
           title: 'NANA',
           navigatorKey: VigilanteCandado.instancia.navegador,
+          navigatorObservers: [Medicion.observador],
           debugShowCheckedModeBanner: false,
           theme: TemaNana.tema,
           // Fechas, horas ("10:00 a. m."), calendario y botones del sistema

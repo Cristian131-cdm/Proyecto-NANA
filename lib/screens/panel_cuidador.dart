@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/avisos.dart';
 import '../core/dia.dart';
+import '../core/medicion.dart';
 import '../core/permisos.dart';
 import '../core/servicios.dart';
 import '../core/tema.dart';
@@ -21,6 +22,7 @@ import 'alta_adulto.dart';
 import 'arranque.dart';
 import 'bienvenida.dart';
 import 'codigo_vinculacion.dart';
+import 'como_va_la_prueba.dart';
 import 'familia_alertas.dart';
 import 'unirme_con_codigo.dart';
 import 'pestana_historial.dart';
@@ -41,6 +43,17 @@ class _PanelCuidadorState extends State<PanelCuidador> {
   int _adulto = 0;
   final _adultos = Servicios.repo.adultosACargo();
   final _conTelefono = <String>{};
+  // Solo el equipo ve "Cómo va la prueba".
+  bool _veEstudio = false;
+
+  @override
+  void initState() {
+    super.initState();
+    Servicios.repo.puedeVerEstudio().then((si) {
+      if (mounted && si) setState(() => _veEstudio = true);
+    }).ignore();
+  }
+
   // Avisan con una notificación del celular cuando llega una alerta nueva,
   // aunque NANA esté minimizada.
   final _vigilantes = <String, VigilanteAlertas>{};
@@ -140,6 +153,8 @@ class _PanelCuidadorState extends State<PanelCuidador> {
                     Icons.auto_awesome_outlined,
                     'Cargar datos de demostración',
                   ),
+                if (_veEstudio)
+                  ('estudio', Icons.insights_outlined, 'Cómo va la prueba'),
                 ('salir', Icons.logout, 'Cerrar sesión'),
               ])
                 ListTile(
@@ -173,6 +188,11 @@ class _PanelCuidadorState extends State<PanelCuidador> {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const AltaAdulto()),
+        );
+      case 'estudio':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const ComoVaLaPrueba()),
         );
       case 'unirme':
         Navigator.push(
@@ -255,6 +275,10 @@ class _PanelCuidadorState extends State<PanelCuidador> {
             ],
           );
         }
+        // El estudio de uso corre solo si el encargado lo aceptó para alguien.
+        Medicion.activa = lista.any((a) => a.estudio);
+        Medicion.enviar = (lote) =>
+            Servicios.repo.guardarUso(lote, rol: 'cuidador');
         // Que cada adulto tenga el teléfono de este cuidador en "Mi familia".
         for (final a in lista) {
           if (_conTelefono.add(a.folio)) {

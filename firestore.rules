@@ -64,7 +64,7 @@ service cloud.firestore {
           && (esPrincipal(resource.data)
               || !request.resource.data.diff(resource.data).affectedKeys()
                   .hasAny(['salud', 'reglasAlerta', 'suplente', 'apariencia',
-                           'creadoPor', 'consentimiento']));
+                           'creadoPor', 'consentimiento', 'estudio']));
 
       // El principal saca a alguien de la familia (nunca a sí mismo).
       allow update: if conSesion() && esPrincipal(resource.data)
@@ -138,6 +138,23 @@ service cloud.firestore {
             && coleccion in ['recetas', 'citas']
             && esPrincipal(adulto(folio));
       }
+    }
+
+    // Estudio de uso: eventos anónimos (pantalla, segundos, regresos). Quien
+    // tiene sesión los manda; solo el equipo los lee. Para dar acceso se crea
+    // a mano en la consola el documento estudio_admins/{uid}.
+    match /uso/{id} {
+      allow create: if conSesion()
+          && request.resource.data.keys().hasOnly(['sesion', 'rol', 'creado', 'eventos'])
+          && request.resource.data.eventos.size() <= 50;
+      allow read: if conSesion()
+          && exists(/databases/$(database)/documents/estudio_admins/$(request.auth.uid));
+      allow update, delete: if false;
+    }
+
+    match /estudio_admins/{uid} {
+      allow get: if conSesion() && request.auth.uid == uid;
+      allow list, write: if false;
     }
 
     match /codigos/{codigo} {

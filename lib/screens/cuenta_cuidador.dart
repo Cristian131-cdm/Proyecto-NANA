@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/medicion.dart';
 import '../core/servicios.dart';
 import '../data/repositorio.dart';
 import '../models/adulto.dart';
@@ -82,12 +83,14 @@ class _CuentaCuidadorState extends State<CuentaCuidador> {
           contrasena: _contrasena.text,
         );
         _cuentaCreada = true;
+        Medicion.tarea('cuenta_creada');
       } else if (!widget.crear) {
         await repo.iniciarSesion(_correo.text.trim(), _contrasena.text);
       }
       final inv = widget.invitacion;
       if (inv != null) {
         await repo.unirmeComoFamiliar(inv.codigo, _parentesco!);
+        Medicion.tarea('invitacion_usada');
         if (mounted) {
           await entrarRecomendandoHuella(context, const PanelCuidador());
         }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/medicion.dart';
 import '../core/servicios.dart';
 import '../core/tema.dart';
 import '../data/repositorio.dart';
@@ -46,6 +47,7 @@ class _PantallaDelAdultoState extends State<PantallaDelAdulto> {
     setState(() => _ocupado = true);
     try {
       await Servicios.repo.guardarApariencia(widget.folio, _a!);
+      Medicion.tarea('pantalla_ajustada');
       if (!mounted) return;
       mostrarAviso(
         context,

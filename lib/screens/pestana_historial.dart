@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
 import '../core/fotos_locales.dart';
+import '../core/medicion.dart';
 import '../core/permisos.dart';
 
 import '../core/servicios.dart';
@@ -55,6 +56,7 @@ class _PestanaHistorialState extends State<PestanaHistorial> {
           final id = 'r${DateTime.now().microsecondsSinceEpoch}';
           Servicios.repo.guardarReceta(widget.folio, r.conId(id));
           if (foto != null) Servicios.fotos.guardar(id, foto);
+          Medicion.tarea('receta_guardada');
           mostrarAviso(context, 'Receta guardada');
         },
       ),

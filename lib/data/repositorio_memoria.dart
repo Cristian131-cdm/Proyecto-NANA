@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../core/codigo.dart';
+import '../core/medicion.dart';
 import '../models/adulto.dart';
 import '../models/alerta.dart';
 import '../models/apariencia.dart';
@@ -248,6 +249,7 @@ class RepositorioMemoria implements RepositorioNana {
       creadoPor: adulto.creadoPor,
       consentimiento: adulto.consentimiento,
       suplente: adulto.suplente,
+      estudio: adulto.estudio,
     );
     _codigos[codigo] = (guardado.$1, true);
     _avisar();
@@ -297,6 +299,7 @@ class RepositorioMemoria implements RepositorioNana {
       creadoPor: adulto.creadoPor,
       consentimiento: adulto.consentimiento,
       suplente: adulto.suplente,
+      estudio: adulto.estudio,
     );
     _parentescos[(folio, uid)] = parentesco;
     _codigos[codigo] = (guardado.$1, true);
@@ -338,7 +341,12 @@ class RepositorioMemoria implements RepositorioNana {
     }
   }
 
-  Adulto _con(Adulto a, {List<String>? ids, Suplente? suplente}) => Adulto(
+  Adulto _con(
+    Adulto a, {
+    List<String>? ids,
+    Suplente? suplente,
+    bool? estudio,
+  }) => Adulto(
     folio: a.folio,
     nombre: a.nombre,
     apellidos: a.apellidos,
@@ -349,6 +357,7 @@ class RepositorioMemoria implements RepositorioNana {
     creadoPor: a.creadoPor,
     consentimiento: a.consentimiento,
     suplente: suplente,
+    estudio: estudio ?? a.estudio,
   );
 
   @override
@@ -407,6 +416,31 @@ class RepositorioMemoria implements RepositorioNana {
     _soloPrincipal(folio);
     _apariencias[folio] = a.copyWith(actualizado: reloj());
     _avisar();
+  }
+
+  // Quién puede abrir "Cómo va la prueba". Las pruebas lo cambian.
+  bool adminEstudio = false;
+  final uso = <EventoUso>[];
+
+  @override
+  Future<void> guardarEstudio(String folio, bool activo) async {
+    _soloPrincipal(folio);
+    final a = _adultos[folio]!;
+    _adultos[folio] = _con(a, suplente: a.suplente, estudio: activo);
+    _avisar();
+  }
+
+  @override
+  Future<void> guardarUso(List<EventoUso> lote, {required String rol}) async =>
+      uso.addAll(lote);
+
+  @override
+  Future<bool> puedeVerEstudio() async => adminEstudio;
+
+  @override
+  Future<List<EventoUso>> usoReciente() async {
+    if (!adminEstudio) throw const ErrorNana(errorSinPermiso);
+    return List.of(uso);
   }
 
   @override
@@ -477,6 +511,7 @@ class RepositorioMemoria implements RepositorioNana {
     creadoPor: a.creadoPor,
     consentimiento: a.consentimiento,
     suplente: a.suplente,
+    estudio: a.estudio,
   );
 
   @override
