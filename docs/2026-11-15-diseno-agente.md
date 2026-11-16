@@ -192,11 +192,90 @@ Cada respuesta rechazada por el guardián en uso real se agrega al banco.
 | 8 | Elegir modelos con el banco y medir costo real | Pasos 3 a 6 |
 | 9 | Subagente de resumen diario | Paso 8 |
 | 10 | Señas: armar la frase a partir de señas sueltas | Paso 6 y señas grabadas |
+| 11 | Agente del encargado, solo lectura (sección 9) | Paso 4 y aprobación del cambio de alcance |
+| 12 | Agente del encargado: propuestas con confirmación | Paso 11 |
 
-Estimado: 8 a 12 días de trabajo de una persona, más el tiempo de las pruebas.
+La pieza intermedia del modelo y el tiempo límite (sección 10) se hacen desde el paso 2.
 
-## 9. Lo que queda por decidir con el equipo
+Estimado: 8 a 12 días de trabajo de una persona para los pasos 1 a 10, y 3 a 5 días más
+para el agente del encargado, más el tiempo de las pruebas.
 
+## 9. El agente en la vista del encargado
+
+Decisión de Cris (15 de noviembre): el agente va en las dos vistas. En la del encargado
+puede trabajar con más libertad, porque contesta preguntas sobre datos que ya existen.
+
+**Qué le puede preguntar el encargado**
+
+- "¿Cómo le fue a mi mamá esta semana?"
+- "¿Cuántas veces faltó la pastilla de la noche este mes?"
+- "¿Qué pasó el martes?"
+
+Aquí el modelo sí decide qué consultar, pide varios datos, los junta y redacta la
+respuesta. Es la parte del proyecto que más se parece a un agente completo.
+
+| Herramienta | Qué hace | Quién la puede usar |
+|---|---|---|
+| `leer_semana` | Medicinas, ánimo y movimiento de los últimos 7 días | Principal, suplente y familiar |
+| `leer_registros` | Lo anotado entre dos fechas | Principal, suplente y familiar |
+| `leer_alertas` | Alertas mandadas y cuáles se atendieron | Principal, suplente y familiar |
+| `leer_expediente` | Recetas, citas y datos de salud | Solo principal y suplente |
+| `proponer_cita` / `proponer_medicina` | Llena el formulario; el encargado toca Guardar | Según su papel |
+
+**Reglas**
+
+1. **Primero solo lectura.** Las herramientas de "proponer" llegan en una segunda etapa.
+2. **Los mismos permisos por papel** que ya tiene la app (`lib/core/permisos.dart`): la
+   función del servidor revisa el papel antes de entregar cada herramienta. Un familiar
+   invitado no puede preguntarle al agente por el expediente.
+3. **El guardián también aplica.** A "¿le subo la dosis?" contesta que eso lo decide el médico.
+4. **Solo datos, sin interpretar.** Dice "faltó 3 de 7 noches", no "está empeorando".
+
+**Lo que hay que cuidar**
+
+- **El Charter v4 no lo menciona.** Es un cambio de alcance: se acuerda con el equipo y se
+  le avisa al profesor antes de construirlo.
+- **Privacidad.** Para contestar, este agente sí manda registros y medicinas al proveedor
+  (el del adulto no manda datos de salud). El consentimiento lo tiene que decir claro, y
+  se prende con su propio interruptor.
+- **Orden.** Primero el agente del adulto con su guardián; el del encargado reutiliza la
+  misma función, el guardián y la pieza intermedia del modelo.
+
+## 10. Si el modelo no responde
+
+El agente depende de un proveedor externo; la app no. Si el modelo se cae:
+
+| Sigue funcionando | Se pierde |
+|---|---|
+| Alertas críticas, botones, "Ya me la tomé", caritas, Mi día, Mi familia | La plática libre con NANA |
+| Las frases que la app entiende sin IA ("ya me la tomé", "ayuda") | Las preguntas del encargado al agente |
+
+Tres medidas:
+
+1. **Tiempo límite de 5 segundos.** Si no hay respuesta, NANA dice una frase fija:
+   "Ahorita no puedo platicar, pero aquí están tus botones." Nadie se queda esperando.
+2. **Pieza intermedia ("proveedor de modelo").** La función no habla con un proveedor
+   directamente, sino con una interfaz propia. Cambiar de modelo o tener uno de respaldo
+   es cambiar una configuración, no reescribir el agente.
+3. **Segundo proveedor como respaldo**, si las pruebas muestran que alcanza.
+
+### Ollama (modelos abiertos en una máquina propia)
+
+| A favor | En contra |
+|---|---|
+| No se paga por uso | Necesita una máquina prendida siempre; Cloud Functions no puede correrlo |
+| La plática no sale a un proveedor externo | Si esa máquina o su internet fallan, el agente se cae |
+| No depende de otra empresa | Los modelos que caben en una computadora normal siguen peor las instrucciones y el formato fijo |
+| | Sin tarjeta gráfica contesta lento |
+
+Uso propuesto: para desarrollar y probar sin gastar, como respaldo de la demo si falla el
+internet, y como candidato a segundo proveedor. **Se decide con datos:** el banco de 60
+frases se corre igual contra cada modelo y se compara cuántas pasa, sobre todo las de
+pregunta médica.
+
+## 11. Lo que queda por decidir con el equipo
+
+0. ¿Se aprueba el agente del encargado como cambio de alcance y se le avisa al profesor?
 1. ¿Se paga el plan Blaze y quién pone la tarjeta?
 2. ¿Qué opción de modelos se prueba primero y con qué presupuesto mensual tope?
 3. ¿El agente se prende para todos o solo para quien el encargado lo active?
