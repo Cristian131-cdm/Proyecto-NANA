@@ -333,7 +333,7 @@ void main() {
           await t.pump(const Duration(milliseconds: 200));
         }
         expect(find.textContaining('Losartán'), findsWidgets);
-        expect(find.text('Agregar'), findsNothing);
+        expect(find.text('Agregar medicina'), findsNothing);
         expect(find.byTooltip('Borrar Losartán'), findsNothing);
 
         await t.tap(find.text('Más').last);
@@ -360,7 +360,7 @@ void main() {
       for (var i = 0; i < 4; i++) {
         await t.pump(const Duration(milliseconds: 200));
       }
-      expect(find.text('Agregar'), findsWidgets);
+      expect(find.text('Agregar medicina'), findsWidgets);
     });
   });
 }

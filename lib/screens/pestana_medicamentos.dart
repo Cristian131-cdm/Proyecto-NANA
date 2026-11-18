@@ -1,3 +1,8 @@
+import '../models/registro.dart';
+import '../models/actividad.dart';
+import '../core/semana.dart' show horaDe;
+import '../core/dia.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -70,67 +75,215 @@ class _PestanaMedicamentosState extends State<PestanaMedicamentos> {
     );
   }
 
+  late final _hoy = Servicios.repo.registrosDeHoy(widget.folio);
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<Medicamento>>(
       stream: _meds,
-      builder: (context, snap) => _lista(context, snap.data ?? const []),
+      builder: (context, meds) => StreamBuilder<List<Registro>>(
+        stream: _hoy,
+        builder: (context, hoy) =>
+            _lista(context, meds.data ?? const [], hoy.data ?? const []),
+      ),
     );
   }
 
-  Widget _lista(BuildContext context, List<Medicamento> lista) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      floatingActionButton: !widget.puedeEditar
-          ? null
-          : FloatingActionButton.extended(
-              heroTag: 'agregar-medicamento',
-              onPressed: () => _abrirFormulario(context),
-              backgroundColor: ColoresNana.morado,
-              foregroundColor: Colors.white,
-              icon: const Icon(Icons.add),
-              label: const Text('Agregar', style: TextStyle(fontSize: 18)),
-            ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 104),
-        children: [
-          CabeceraCuidador(
-            titulo: 'Medicamentos',
-            detalle: '${lista.length} programados',
-            icono: Icons.medication_outlined,
+  Widget _lista(
+    BuildContext context,
+    List<Medicamento> lista,
+    List<Registro> hoy,
+  ) {
+    final ahora = Servicios.reloj();
+    final faltan = sinConfirmar(meds: lista, hoy: hoy, ahora: ahora);
+    int minutos(Medicamento m) => m.hora.hour * 60 + m.hora.minute;
+    final ordenada = [...lista]
+      ..sort((a, b) => minutos(a).compareTo(minutos(b)));
+    return Column(
+      children: [
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+            children: [
+              const Text(
+                'Medicinas',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: ColoresNana.morado,
+                ),
+              ),
+              const SizedBox(height: 12),
+              if (lista.isEmpty)
+                const TarjetaDato(
+                  icono: Icons.medication_outlined,
+                  titulo: 'Aún no hay medicamentos programados',
+                ),
+              for (final m in ordenada) ...[
+                _TarjetaMedicina(
+                  medicina: m,
+                  estado: _estadoDeHoy(m, hoy, faltan),
+                  onBorrar: !widget.puedeEditar
+                      ? null
+                      : () {
+                          Servicios.repo.borrarMedicamento(folio, m.id!);
+                          mostrarAviso(
+                            context,
+                            'Borré ${m.nombre}',
+                            onDeshacer: () =>
+                                Servicios.repo.guardarMedicamento(folio, m),
+                          );
+                        },
+                ),
+                const SizedBox(height: 10),
+              ],
+            ],
           ),
-          const SizedBox(height: 16),
-          if (lista.isEmpty)
-            const TarjetaDato(
-              icono: Icons.medication_outlined,
-              titulo: 'Aún no hay medicamentos programados',
+        ),
+        if (widget.puedeEditar)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+            child: SizedBox(
+              width: double.infinity,
+              height: 64,
+              child: FilledButton.icon(
+                onPressed: () => _abrirFormulario(context),
+                icon: const Icon(Icons.add, size: 28),
+                label: const Text('Agregar medicina'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: ColoresNana.morado,
+                  shape: const StadiumBorder(),
+                  textStyle: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
             ),
-          for (final m in lista)
-            TarjetaDato(
-              icono: Icons.medication_outlined,
-              titulo: '${m.nombre} · ${m.dosis}',
-              subtitulo:
-                  '${m.hora.format(context)} · alerta si no confirma en ${m.ventanaMin} min',
-              accion: !widget.puedeEditar
-                  ? null
-                  : IconButton(
-                      icon: const Icon(Icons.delete_outline),
-                      tooltip: 'Borrar ${m.nombre}',
-                      color: ColoresNana.tintaSuave,
-                      constraints: const BoxConstraints(
-                        minWidth: 64,
-                        minHeight: 64,
-                      ),
-                      onPressed: () {
-                        Servicios.repo.borrarMedicamento(folio, m.id!);
-                        mostrarAviso(
-                          context,
-                          'Borré ${m.nombre}',
-                          onDeshacer: () =>
-                              Servicios.repo.guardarMedicamento(folio, m),
-                        );
-                      },
+          ),
+      ],
+    );
+  }
+
+  // Cómo va hoy cada medicina: ya la tomó (y a qué hora), falta (se pasó su
+  // ventana) o le toca más tarde.
+  (String, Color) _estadoDeHoy(
+    Medicamento m,
+    List<Registro> hoy,
+    List<Medicamento> faltan,
+  ) {
+    final tomada = hoy
+        .where(
+          (r) => r.tipo == TipoActividad.medicina && r.idMedicamento == m.id,
+        )
+        .firstOrNull;
+    if (tomada != null) return ('✓ ${horaDe(tomada.fecha)}', ColoresNana.ok);
+    if (faltan.contains(m)) return ('Falta', ColoresNana.alerta);
+    return ('Más tarde', ColoresNana.tintaSuave);
+  }
+}
+
+class _TarjetaMedicina extends StatelessWidget {
+  final Medicamento medicina;
+  final (String, Color) estado;
+  final VoidCallback? onBorrar;
+
+  const _TarjetaMedicina({
+    required this.medicina,
+    required this.estado,
+    required this.onBorrar,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final m = medicina;
+    final (texto, color) = estado;
+    final h = m.hora.hour;
+    final parte = h < 12
+        ? 'mañana'
+        : h < 19
+        ? 'tarde'
+        : 'noche';
+    return SuperficieCuidador(
+      padding: const EdgeInsets.fromLTRB(14, 12, 4, 12),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 84,
+            child: Column(
+              children: [
+                FittedBox(
+                  child: Text(
+                    horaCorta(m.hora),
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: ColoresNana.morado,
                     ),
+                  ),
+                ),
+                Text(
+                  parte,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: ColoresNana.tintaSuave,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  m.nombre,
+                  style: const TextStyle(
+                    fontSize: 21,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  m.dosis,
+                  style: const TextStyle(
+                    fontSize: 17,
+                    color: ColoresNana.tintaSuave,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: color == ColoresNana.ok
+                        ? ColoresNana.okClaro
+                        : color == ColoresNana.alerta
+                        ? ColoresNana.alertaClaro
+                        : ColoresNana.moradoClaro,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    texto,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (onBorrar != null)
+            IconButton(
+              icon: const Icon(Icons.delete_outline),
+              tooltip: 'Borrar ${m.nombre}',
+              color: ColoresNana.tintaSuave,
+              constraints: const BoxConstraints(minWidth: 64, minHeight: 64),
+              onPressed: onBorrar,
             ),
         ],
       ),

@@ -67,19 +67,38 @@ class VistaSemana extends StatelessWidget {
     final posibles = t.posibles;
     final faltas = t.faltas;
     final mal = t.mal;
-    final movimiento = t.movimiento;
-    final movimientoPosible = t.movimientoPosible;
-    final maxPorDia = dias.fold(1, (a, d) => d.posibles > a ? d.posibles : a);
     final sinDatos =
         total == 0 && dias.every((d) => d.animo == null && d.movimiento == 0);
+    final todoBien = posibles > 0 && faltas.isEmpty && mal.isEmpty;
+
+    String lista(List<String> xs) => xs.length <= 1
+        ? xs.join()
+        : '${xs.sublist(0, xs.length - 1).join(', el ')} y el ${xs.last}';
+
+    final importante = [
+      if (posibles == 0) 'Sin medicinas registradas',
+      if (posibles > 0 && faltas.isEmpty) 'Todas las medicinas a tiempo',
+      if (faltas.isNotEmpty) 'Faltó alguna medicina el ${lista(faltas)}',
+      if (mal.isNotEmpty)
+        'Dijo sentirse mal el ${lista([for (final d in mal) d.nombre])}',
+      if (t.movimientoPosible > 0)
+        'Se movió ${t.movimiento} de ${t.movimientoPosible} veces',
+    ];
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
       children: [
-        CabeceraCuidador(
-          titulo: 'La semana de $adulto',
-          detalle: rangoSemana(dias),
-          icono: Icons.bar_chart_rounded,
+        Text(
+          'La semana de $adulto',
+          style: const TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+            color: ColoresNana.morado,
+          ),
+        ),
+        Text(
+          rangoSemana(dias),
+          style: const TextStyle(fontSize: 16, color: ColoresNana.tintaSuave),
         ),
         if (sinDatos) ...[
           const SizedBox(height: 12),
@@ -92,59 +111,32 @@ class VistaSemana extends StatelessWidget {
           ),
         ],
         const TituloSeccion('Medicinas a tiempo'),
-        // Sin altura fija: la caja crece con la letra. Con una altura fija,
-        // la letra grande del celular desbordaba las columnas.
         Container(
-          padding: const EdgeInsets.fromLTRB(12, 16, 12, 10),
+          padding: const EdgeInsets.fromLTRB(12, 14, 12, 10),
           decoration: _caja,
-          child: _FilaSemana(
-            crossAxisAlignment: CrossAxisAlignment.end,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              for (final d in dias)
-                Expanded(
-                  child: _DiaTocable(
-                    dia: d,
-                    etiqueta:
-                        '${d.nombre}: ${d.tomas} de ${d.posibles} medicinas',
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
+              if (posibles > 0)
+                Padding(
+                  padding: const EdgeInsets.only(left: 4, bottom: 10),
+                  child: Text.rich(
+                    TextSpan(
                       children: [
-                        Text(
-                          '${d.tomas}/${d.posibles}',
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: ColoresNana.tintaSuave,
+                        TextSpan(
+                          text: '$total',
+                          style: TextStyle(
+                            fontSize: 40,
+                            fontWeight: FontWeight.bold,
+                            color: faltas.isEmpty
+                                ? ColoresNana.ok
+                                : ColoresNana.alerta,
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        // La barra sube al abrir la pestaña.
-                        TweenAnimationBuilder<double>(
-                          tween: Tween(begin: 0, end: d.tomas / maxPorDia),
-                          duration: Duration(
-                            milliseconds:
-                                MediaQuery.disableAnimationsOf(context)
-                                ? 0
-                                : 600,
-                          ),
-                          curve: Curves.easeOutCubic,
-                          builder: (context, v, _) => Container(
-                            width: 26,
-                            height: 4 + 86.0 * v,
-                            decoration: BoxDecoration(
-                              color: d.completo
-                                  ? ColoresNana.lila
-                                  : ColoresNana.alerta,
-                              borderRadius: const BorderRadius.vertical(
-                                top: Radius.circular(8),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          d.letra,
+                        TextSpan(
+                          text: ' de $posibles a tiempo',
                           style: const TextStyle(
-                            fontSize: 16,
+                            fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -152,6 +144,32 @@ class VistaSemana extends StatelessWidget {
                     ),
                   ),
                 ),
+              _FilaSemana(
+                children: [
+                  for (final d in dias)
+                    Expanded(
+                      child: _DiaTocable(
+                        dia: d,
+                        etiqueta:
+                            '${d.nombre}: ${d.tomas} de ${d.posibles} medicinas',
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              d.letra,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            _CirculoDia(dia: d),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ],
           ),
         ),
@@ -197,36 +215,37 @@ class VistaSemana extends StatelessWidget {
           ),
         ),
         const TituloSeccion('Lo importante'),
-        if (posibles == 0)
-          const TarjetaDato(
-            icono: Icons.medication,
-            titulo: 'Sin medicinas registradas',
-            subtitulo: 'Agrégalas en la pestaña Medicinas',
-          )
-        else
-          TarjetaDato(
-            icono: Icons.medication,
-            titulo: '$total de $posibles tomas',
-            subtitulo: faltas.isEmpty
-                ? 'Todas a tiempo 💜'
-                : 'Faltaron el ${faltas.join(', el ')}',
-            color: faltas.isEmpty ? ColoresNana.ok : ColoresNana.alerta,
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: todoBien ? ColoresNana.okClaro : ColoresNana.alertaClaro,
+            borderRadius: BorderRadius.circular(22),
           ),
-        for (final d in mal)
-          TarjetaDato(
-            icono: Icons.sentiment_dissatisfied,
-            titulo: 'El ${d.nombre} dijo que se sentía mal',
-            subtitulo: 'A las ${horaDe(d.horaMal!)}',
-            color: ColoresNana.alerta,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (final linea in importante)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 3),
+                  child: Text(
+                    linea,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: todoBien ? ColoresNana.ok : ColoresNana.tinta,
+                    ),
+                  ),
+                ),
+            ],
           ),
-        if (movimientoPosible > 0)
-          TarjetaDato(
-            icono: Icons.directions_walk,
-            titulo: 'Se movió $movimiento de $movimientoPosible veces',
-            subtitulo: 'Según sus rutinas de actividad',
-            color: ColoresNana.azul,
-          ),
-        const SizedBox(height: 12),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'Toca un día para ver qué se anotó',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 16, color: ColoresNana.tintaSuave),
+        ),
+        const SizedBox(height: 16),
         _BotonReporte(adulto: adulto, dias: dias),
       ],
     );
@@ -289,19 +308,50 @@ class _BotonReporteState extends State<_BotonReporte> {
   @override
   Widget build(BuildContext context) => BotonSecundario(
     icono: _ocupado ? Icons.hourglass_top : Icons.picture_as_pdf,
-    texto: _ocupado ? 'Armando el reporte…' : 'Mandar reporte en PDF',
+    texto: _ocupado ? 'Armando el resumen…' : 'Mandar el resumen',
     onPressed: _mandar,
   );
+}
+
+class _CirculoDia extends StatelessWidget {
+  final DiaSemana dia;
+  const _CirculoDia({required this.dia});
+
+  @override
+  Widget build(BuildContext context) {
+    final d = dia;
+    final sinMedicinas = d.posibles == 0;
+    final color = sinMedicinas
+        ? ColoresNana.gris
+        : d.completo
+        ? ColoresNana.ok
+        : ColoresNana.alerta;
+    return Container(
+      width: 38,
+      height: 38,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: d.completo ? ColoresNana.ok : Colors.white,
+        border: Border.all(color: color, width: 3),
+      ),
+      child: Icon(
+        sinMedicinas
+            ? Icons.remove
+            : d.completo
+            ? Icons.check
+            : Icons.priority_high,
+        size: 22,
+        color: d.completo ? Colors.white : color,
+      ),
+    );
+  }
 }
 
 // Cada día conserva un ancho táctil legible, incluso con letra grande.
 class _FilaSemana extends StatelessWidget {
   final List<Widget> children;
-  final CrossAxisAlignment crossAxisAlignment;
-  const _FilaSemana({
-    required this.children,
-    this.crossAxisAlignment = CrossAxisAlignment.center,
-  });
+  const _FilaSemana({required this.children});
   @override
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, limites) {
@@ -311,10 +361,7 @@ class _FilaSemana extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         child: SizedBox(
           width: minimo > limites.maxWidth ? minimo : limites.maxWidth,
-          child: Row(
-            crossAxisAlignment: crossAxisAlignment,
-            children: children,
-          ),
+          child: Row(children: children),
         ),
       );
     },
