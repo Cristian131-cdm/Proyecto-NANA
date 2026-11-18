@@ -54,6 +54,13 @@ dependencies:
   camera: ^0.12.2
   hand_landmarker: ^3.1.0
   pdf: ^3.13.1
+  # «Oye NANA» sin bip y sin internet (Android). La versión publicada en
+  # pub.dev es vieja; esta es la rama principal del repositorio oficial,
+  # fijada a un commit.
+  vosk_flutter:
+    git:
+      url: https://github.com/alphacep/vosk-flutter.git
+      ref: e655a96f0ce0dadb5ea8900aa1ba23260c3ec904
   path_provider: ^2.1.6
 
 dev_dependencies:
@@ -68,6 +75,12 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.4
   flutter_native_splash: ^2.4.8
+
+# vosk_flutter pide archive 3, pero pdf (por image) ya pide archive 4. Vosk
+# solo lo usa para abrir el zip del modelo (ZipDecoder y
+# extractArchiveToDisk), que en la 4 siguen igual.
+dependency_overrides:
+  archive: ^4.0.9
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -87,6 +100,8 @@ flutter:
     - assets/logo/
     # Ejemplos de señas que vienen con la app (puntos de la mano, sin imagen).
     - assets/senas/
+    # Modelo de voz en español de Vosk (~38 MB) para «Oye NANA» sin bip.
+    - assets/models/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

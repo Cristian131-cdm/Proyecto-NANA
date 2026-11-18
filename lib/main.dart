@@ -5,6 +5,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'core/ajustes.dart';
 import 'core/avisos.dart';
 import 'core/despertador.dart';
+import 'core/despertador_sin_vosk.dart'
+    if (dart.library.io) 'core/despertador_vosk.dart';
 import 'core/medicion.dart';
 import 'core/fotos_sin_disco.dart' if (dart.library.io) 'core/fotos_disco.dart';
 import 'core/senas/ojo_sin_camara.dart'
@@ -29,7 +31,7 @@ Future<void> main() async {
   Servicios.repo = RepositorioFirebase();
   Servicios.avisos = AvisosLocales();
   Servicios.voz = VozCelular();
-  Servicios.despertador = DespertadorConVoz();
+  Servicios.despertador = crearDespertador();
   Servicios.fotos = crearFotos();
   Servicios.crearOjo = crearOjoCamara;
   await Ajustes.cargar();
