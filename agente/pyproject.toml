@@ -1,0 +1,10 @@
+[project]
+name = "nana-agente"
+version = "0.1.0"
+description = "Agente de NANA: cadena fija con orquestador, subagentes y guardian"
+requires-python = ">=3.12"
+dependencies = []
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
