@@ -3,6 +3,7 @@ import '../data/repositorio_memoria.dart';
 import 'alarmas.dart';
 import 'avisos.dart';
 import 'biometria.dart';
+import 'despertador.dart';
 import 'fotos_locales.dart';
 import 'lector_expediente.dart';
 import 'senas/catalogo.dart';
@@ -18,6 +19,8 @@ class Servicios {
   static Avisos avisos = const AvisosNulos();
   static LectorExpediente lector = const LectorSimulado();
   static Voz voz = VozNula();
+  // «Oye NANA». main() pone el de verdad; en pruebas no escucha nada.
+  static Despertador despertador = DespertadorNulo();
   // Fotos de recetas: solo en este celular, nunca en la nube.
   static FotosLocales fotos = const SinFotos();
 

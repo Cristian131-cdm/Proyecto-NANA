@@ -56,7 +56,7 @@ class RecomendarHuella extends StatelessWidget {
         BotonSecundario(texto: 'Ahora no', onPressed: () => _ahoraNo(context)),
         const SizedBox(height: 12),
         const Text(
-          'Puedes cambiarlo cuando quieras en Aa · Lectura y accesibilidad.',
+          'Puedes cambiarlo cuando quieras en Aa · Más opciones.',
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 16),
         ),

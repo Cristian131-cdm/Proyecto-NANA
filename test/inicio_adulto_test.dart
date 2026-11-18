@@ -123,9 +123,15 @@ void main() {
 
     await t.tap(find.text('Aa'));
     await t.pumpAndSettle();
-    await t.ensureVisible(find.text('Cerrar sesión'));
+    // Salir está guardado en «Más opciones», para no hacerlo sin querer.
+    expect(find.text('Salir de NANA en este celular'), findsNothing);
+    await t.ensureVisible(find.text('Más opciones'));
     await t.pumpAndSettle();
-    await t.tap(find.text('Cerrar sesión'));
+    await t.tap(find.text('Más opciones'));
+    await t.pumpAndSettle();
+    await t.ensureVisible(find.text('Salir de NANA en este celular'));
+    await t.pumpAndSettle();
+    await t.tap(find.text('Salir de NANA en este celular'));
     await t.pumpAndSettle();
 
     // "No, quedarme" no hace nada.
@@ -135,9 +141,15 @@ void main() {
 
     await t.tap(find.text('Aa'));
     await t.pumpAndSettle();
-    await t.ensureVisible(find.text('Cerrar sesión'));
+    // Salir está guardado en «Más opciones», para no hacerlo sin querer.
+    expect(find.text('Salir de NANA en este celular'), findsNothing);
+    await t.ensureVisible(find.text('Más opciones'));
     await t.pumpAndSettle();
-    await t.tap(find.text('Cerrar sesión'));
+    await t.tap(find.text('Más opciones'));
+    await t.pumpAndSettle();
+    await t.ensureVisible(find.text('Salir de NANA en este celular'));
+    await t.pumpAndSettle();
+    await t.tap(find.text('Salir de NANA en este celular'));
     await t.pumpAndSettle();
     await t.tap(find.text('Sí, salir'));
     await t.pumpAndSettle();

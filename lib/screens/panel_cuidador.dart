@@ -4,6 +4,9 @@ import '../core/avisos.dart';
 import '../core/dia.dart';
 import '../core/medicion.dart';
 import '../core/permisos.dart';
+import '../core/platica.dart';
+import '../widgets/espera_oye_nana.dart';
+import 'platica_nana.dart';
 import '../core/servicios.dart';
 import '../core/tema.dart';
 import '../data/demo.dart';
@@ -304,14 +307,63 @@ class _PanelCuidadorState extends State<PanelCuidador> {
     final relacion = adulto.parentesco ?? '';
     final permisos = Permisos.de(adulto, Servicios.repo.uid, Servicios.reloj());
 
+    return EsperaOyeNana(
+      alOir: () => _preguntale(adulto),
+      child: _pantallaPanel(adulto, lista, nombre, relacion, permisos),
+    );
+  }
+
+  // «Pregúntale a NANA»: el encargado pregunta por el día o la semana y NANA
+  // contesta con los mismos datos de las pestañas (sin IA, solo datos).
+  void _preguntale(Adulto adulto) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PlaticaNana(
+          titulo: 'Pregúntale a NANA',
+          saludo: '¿Qué quieres saber de ${adulto.nombre}?',
+          responder: (oido) async => respuestaEncargado(
+            oido,
+            await cargarDatosEncargado(adulto.folio, adulto.nombre),
+          ),
+          sugerencias: const [
+            '¿Cómo va hoy?',
+            '¿Ya se tomó la pastilla?',
+            '¿Cómo le fue esta semana?',
+            '¿Hay alertas?',
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _pantallaPanel(
+    Adulto adulto,
+    List<Adulto> lista,
+    String nombre,
+    String relacion,
+    Permisos permisos,
+  ) {
     return Scaffold(
       appBar: AppBar(
         titleSpacing: 12,
-        title: const Text(
-          'NANA',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        title: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'NANA',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(width: 8),
+            Flexible(child: AvisoOyeNana()),
+          ],
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.record_voice_over_outlined, size: 28),
+            tooltip: 'Pregúntale a NANA',
+            onPressed: () => _preguntale(adulto),
+          ),
           IconButton(
             icon: const Icon(Icons.text_fields, size: 28),
             tooltip: 'Tamaño de letra',

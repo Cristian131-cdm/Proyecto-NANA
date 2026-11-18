@@ -5,6 +5,7 @@ import '../core/servicios.dart';
 import '../core/tema.dart';
 import '../data/repositorio.dart';
 import '../models/apariencia.dart';
+import '../widgets/ajustes_texto.dart' show velocidadesVoz;
 import '../widgets/aviso.dart';
 import '../widgets/formulario.dart';
 import '../widgets/tarjeta_dato.dart';
@@ -153,6 +154,46 @@ class _PantallaDelAdultoState extends State<PantallaDelAdulto> {
                   'Sin animaciones',
                   a.menosMovimiento,
                   (v) => setState(() => _a = _a!.copyWith(menosMovimiento: v)),
+                ),
+                _interruptor(
+                  Icons.touch_app,
+                  'Contestar tocando',
+                  'Para quien no habla: en vez de usar la voz, toca lo que '
+                      'quiere decir',
+                  a.contestarTocando,
+                  (v) => setState(() => _a = _a!.copyWith(contestarTocando: v)),
+                ),
+                _interruptor(
+                  Icons.hearing,
+                  'Llamar a NANA con la voz',
+                  'Con NANA abierta, dice «Oye NANA» y ella le escucha. '
+                      'Se reconoce dentro de su celular, no se graba.',
+                  a.oyeNana,
+                  (v) => setState(() => _a = _a!.copyWith(oyeNana: v)),
+                ),
+                const TituloSeccion('Qué tan rápido le habla NANA'),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
+                    for (final (valor, nombre) in velocidadesVoz)
+                      ChoiceChip(
+                        label: Text(
+                          nombre,
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                        selected: (a.velocidadVoz - valor).abs() < 0.01,
+                        showCheckmark: true,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        selectedColor: ColoresNana.moradoClaro,
+                        onSelected: (_) => setState(
+                          () => _a = _a!.copyWith(velocidadVoz: valor),
+                        ),
+                      ),
+                  ],
                 ),
                 const SizedBox(height: 16),
                 BotonPrincipal(

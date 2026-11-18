@@ -141,7 +141,7 @@ class _EncuestaAparienciaState extends State<EncuestaApariencia> {
           '¿Cómo prefieres usar NANA?',
           'Marca las que quieras. Puedes no marcar ninguna.',
         ),
-        for (final m in modosDeUso)
+        for (final m in modosAdulto)
           ValueListenableBuilder<bool>(
             valueListenable: m.$4,
             builder: (context, marcada, _) => TarjetaModo(

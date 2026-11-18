@@ -210,6 +210,7 @@ String describirNana(EstadoNana e) => switch (e) {
   EstadoNana.contenta => 'NANA está contenta: hiciste todo lo de hoy',
   EstadoNana.atenta => 'NANA está atenta: algo ya te toca',
   EstadoNana.dormida => 'NANA está dormida',
+  EstadoNana.pensando => 'NANA está pensando',
   EstadoNana.normal => 'NANA',
 };
 

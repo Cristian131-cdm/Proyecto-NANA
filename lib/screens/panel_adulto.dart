@@ -25,6 +25,9 @@ import 'bienvenida.dart';
 import 'mi_dia.dart';
 import 'mi_familia.dart';
 import 'nana_escucha.dart';
+import 'platica_nana.dart';
+import '../core/platica.dart';
+import '../widgets/espera_oye_nana.dart';
 import 'recordatorio_alarma.dart';
 import 'tablero_frases.dart';
 import '../widgets/icono_nana.dart';
@@ -218,6 +221,43 @@ class _PanelAdultoState extends State<PanelAdulto> {
 
   void _ir(Widget pantalla) =>
       Navigator.push(context, MaterialPageRoute(builder: (_) => pantalla));
+
+  // «Oye NANA»: la plática con NANA animada. Contesta sin IA con lo que ya
+  // sabe la app (core/platica.dart).
+  void _abrirPlatica() {
+    final nombre = _yo?.nombre ?? '';
+    _ir(
+      PlaticaNana(
+        saludo: nombre.isEmpty
+            ? 'Dime, te escucho.'
+            : 'Dime, $nombre. Te escucho.',
+        responder: (oido) async => respuestaAdulto(
+          oido,
+          nombre: nombre,
+          queSigue: () => _textoInicio,
+          ahora: Servicios.reloj(),
+        ),
+        sugerencias: const [
+          '¿Qué sigue hoy?',
+          'Ya comí',
+          'Llama a mi familia',
+          '¿Qué hora es?',
+        ],
+        alAccion: (r) {
+          if (!mounted) return;
+          switch (r.accion) {
+            case AccionPlatica.ayuda:
+              _confirmarAviso();
+            case AccionPlatica.familia:
+              _ir(MiFamilia(folio: _folio));
+            case AccionPlatica.frase when r.frase != null:
+              _decir(r.frase!);
+            default:
+          }
+        },
+      ),
+    );
+  }
 
   Future<void> _confirmarAviso() async {
     if (_yo?.tieneFamilia != true) {
@@ -545,8 +585,14 @@ class _PanelAdultoState extends State<PanelAdulto> {
   @override
   Widget build(BuildContext context) {
     if (!_cargando && _yo == null) return _sinCuenta();
+    return EsperaOyeNana(alOir: _abrirPlatica, child: _pantalla(context));
+  }
+
+  Widget _pantalla(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        titleSpacing: 16,
+        title: const AvisoOyeNana(),
         actions: [
           BotonLeeme(texto: () => _textoInicio, color: ColoresNana.morado),
           Padding(

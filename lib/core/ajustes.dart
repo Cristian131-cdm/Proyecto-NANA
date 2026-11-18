@@ -27,6 +27,11 @@ class Ajustes {
   // Sin animaciones (además de lo que diga el sistema del celular).
   static final ValueNotifier<bool> menosMovimiento = ValueNotifier(false);
 
+  // «Oye NANA»: con NANA abierta, decir la frase abre la plática. Apagado
+  // por defecto: el micrófono solo se usa si la persona (o el encargado) lo
+  // prende.
+  static final ValueNotifier<bool> oyeNana = ValueNotifier(false);
+
   // Para quien no habla: contesta tocando, nada espera su voz.
   static final ValueNotifier<bool> sinVoz = ValueNotifier(false);
   // Para quien no ve: en el recordatorio, tocar cualquier parte es "sí".
@@ -53,6 +58,7 @@ class Ajustes {
     'aviso_vibracion': avisoVibracion,
     'menos_movimiento': menosMovimiento,
     'sin_voz': sinVoz,
+    'oye_nana': oyeNana,
     'pantalla_es_boton': pantallaEsBoton,
     'huella_activada': huellaActivada,
     'huella_ofrecida': huellaOfrecida,

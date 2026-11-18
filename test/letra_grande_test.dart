@@ -24,6 +24,9 @@ import 'package:nana_app/screens/formulario_salud.dart';
 import 'package:nana_app/screens/mi_dia.dart';
 import 'package:nana_app/screens/mi_familia.dart';
 import 'package:nana_app/screens/nana_escucha.dart';
+import 'package:nana_app/core/platica.dart';
+import 'package:nana_app/screens/platica_nana.dart';
+import 'package:nana_app/widgets/ajustes_texto.dart';
 import 'package:nana_app/screens/panel_adulto.dart';
 import 'package:nana_app/screens/panel_cuidador.dart';
 import 'package:nana_app/screens/pantalla_del_adulto.dart';
@@ -150,6 +153,23 @@ final _pantallas = <String, _Pantalla>{
   'Hablar con NANA': (
     sesion: 'rosa-cel',
     crear: () => NanaEscucha(nombre: 'Rosa', onFrase: (_) {}),
+  ),
+  'Platicando con NANA': (
+    sesion: 'rosa-cel',
+    crear: () => PlaticaNana(
+      saludo: 'Dime, Rosa. Te escucho.',
+      responder: (_) async => const RespuestaPlatica('Aquí estoy.'),
+      sugerencias: const [
+        '¿Qué sigue hoy?',
+        'Ya comí',
+        'Llama a mi familia',
+        '¿Qué hora es?',
+      ],
+    ),
+  ),
+  'Ajustar NANA (Aa)': (
+    sesion: 'rosa-cel',
+    crear: () => Scaffold(body: HojaAjustesAdulto(onCerrarSesion: () {})),
   ),
   'Decir (tablero)': (
     sesion: 'rosa-cel',

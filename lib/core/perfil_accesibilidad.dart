@@ -73,4 +73,7 @@ void aplicarApariencia(Apariencia? a) {
   Ajustes.altoContraste.value = a.altoContraste;
   Ajustes.queMeHable.value = a.queMeHable;
   Ajustes.menosMovimiento.value = a.menosMovimiento;
+  Ajustes.oyeNana.value = a.oyeNana;
+  Ajustes.sinVoz.value = a.contestarTocando;
+  Ajustes.velocidadVoz.value = a.velocidadVoz;
 }

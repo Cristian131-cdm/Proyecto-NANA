@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'core/ajustes.dart';
 import 'core/avisos.dart';
+import 'core/despertador.dart';
 import 'core/senas/ojo_sin_camara.dart'
     if (dart.library.io) 'core/senas/ojo_camara.dart';
 import 'core/servicios.dart';
@@ -24,6 +25,7 @@ Future<void> main() async {
   Servicios.repo = repo;
   Servicios.avisos = AvisosLocales();
   Servicios.voz = VozCelular();
+  Servicios.despertador = DespertadorConVoz();
   Servicios.crearOjo = crearOjoCamara;
   await Ajustes.cargar();
   VigilanteCandado.instancia.iniciar();

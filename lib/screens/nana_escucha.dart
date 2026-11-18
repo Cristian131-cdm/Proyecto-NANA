@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/ajustes.dart';
 import '../core/lector.dart';
+import '../core/platica.dart';
 import '../core/servicios.dart';
 import '../core/tema.dart';
 import '../core/voz.dart';
@@ -39,53 +40,8 @@ class NanaEscucha extends StatefulWidget {
     '¿Qué sigue hoy?',
   };
 
-  static const comandos = <(String, List<String>)>[
-    ('Necesito ayuda', ['ayuda', 'auxilio', 'emergencia', 'me cai']),
-    (
-      'Me siento mal',
-      [
-        'me siento mal',
-        'me duele',
-        'me siento enferma',
-        'me siento enfermo',
-        'estoy mareada',
-        'estoy mareado',
-      ],
-    ),
-    (
-      'familia',
-      [
-        'llama',
-        'llamar',
-        'marca',
-        'marcale',
-        'hablale',
-        'hablar con',
-        'mi familia',
-        'mi hija',
-        'mi hijo',
-        'mi nieta',
-        'mi nieto',
-        'mi esposo',
-        'mi esposa',
-      ],
-    ),
-    (
-      '¿Qué sigue hoy?',
-      ['que sigue', 'que me toca', 'que tengo hoy', 'que hay hoy'],
-    ),
-    (
-      'Ya tomé mi medicina',
-      [
-        'ya me la tome',
-        'ya tome mi medicina',
-        'ya me tome',
-        'ya tome la pastilla',
-        'ya tome',
-      ],
-    ),
-    ('Ya comí', ['ya comi', 'ya desayune', 'ya cene']),
-  ];
+  // La lista vive en core/platica.dart: la comparte «Platicando con NANA».
+  static const comandos = comandosAdulto;
 
   static const frases = [
     'Ya tomé mi medicina',

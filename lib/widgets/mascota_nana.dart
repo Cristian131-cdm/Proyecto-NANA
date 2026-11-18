@@ -6,8 +6,10 @@ import '../core/servicios.dart';
 import '../core/tema.dart';
 
 // Cómo se ve NANA: normal, contenta (completó su día), atenta (algo ya toca)
-// o dormida (de noche). Lo decide estadoNana() en core/dia.dart.
-enum EstadoNana { normal, contenta, atenta, dormida }
+// o dormida (de noche). Lo decide estadoNana() en core/dia.dart. «Pensando»
+// (ojos hacia arriba, boca recta) solo lo usa la plática mientras arma la
+// respuesta.
+enum EstadoNana { normal, contenta, atenta, dormida, pensando }
 
 /// NANA dibujada con código, con el volumen y la luz del diseño B, y viva:
 /// parpadea, le late el corazón, flota un poquito, mueve la boca cuando
@@ -367,6 +369,18 @@ class _NanaPainter extends CustomPainter {
             height: 2 * radio,
           );
           canvas.drawArc(arco, 0.5, 2.1, false, linea);
+        case EstadoNana.pensando:
+          // Ojos chicos mirando hacia arriba, a un lado.
+          final ojo = Rect.fromCenter(
+            center: c.translate(radio * 0.7, -radio * 0.8),
+            width: 1.5 * radio,
+            height: (1.5 * radio * (1 - ojosCerrados)).clamp(
+              radio * 0.3,
+              3 * radio,
+            ),
+          );
+          canvas.drawOval(ojo.inflate(radio * 0.3), brillo);
+          canvas.drawOval(ojo, blanco);
         case EstadoNana.atenta || EstadoNana.normal:
           final grande = estado == EstadoNana.atenta ? 1.15 : 1.0;
           // Al parpadear el ojo se aplana hasta quedar como una línea.
@@ -415,6 +429,9 @@ class _NanaPainter extends CustomPainter {
       case EstadoNana.atenta:
         // Boquita en "o": está pendiente.
         canvas.drawCircle(en(0.5, 0.74), w * 0.04, linea);
+      case EstadoNana.pensando:
+        // Boca recta, un poco de lado.
+        canvas.drawLine(en(0.44, 0.72), en(0.6, 0.7), linea);
       case EstadoNana.dormida:
         canvas.drawArc(
           Rect.fromCenter(

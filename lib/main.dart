@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'core/ajustes.dart';
 import 'core/avisos.dart';
+import 'core/despertador.dart';
 import 'core/medicion.dart';
 import 'core/fotos_sin_disco.dart' if (dart.library.io) 'core/fotos_disco.dart';
 import 'core/senas/ojo_sin_camara.dart'
@@ -28,6 +29,7 @@ Future<void> main() async {
   Servicios.repo = RepositorioFirebase();
   Servicios.avisos = AvisosLocales();
   Servicios.voz = VozCelular();
+  Servicios.despertador = DespertadorConVoz();
   Servicios.fotos = crearFotos();
   Servicios.crearOjo = crearOjoCamara;
   await Ajustes.cargar();
@@ -56,7 +58,7 @@ class NanaApp extends StatelessWidget {
         return MaterialApp(
           title: 'NANA',
           navigatorKey: VigilanteCandado.instancia.navegador,
-          navigatorObservers: [Medicion.observador],
+          navigatorObservers: [Medicion.observador, rutasNana],
           debugShowCheckedModeBanner: false,
           theme: TemaNana.tema,
           // Fechas, horas ("10:00 a. m."), calendario y botones del sistema
