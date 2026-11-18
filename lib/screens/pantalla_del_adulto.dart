@@ -62,29 +62,67 @@ class _PantallaDelAdultoState extends State<PantallaDelAdulto> {
     }
   }
 
-  Widget _interruptor(
+  Widget _fila(Widget a, Widget b) => IntrinsicHeight(
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(child: a),
+        const SizedBox(width: 10),
+        Expanded(child: b),
+      ],
+    ),
+  );
+
+  // Un botón grande que se prende y se apaga: dice «✓ Prendido» o «Apagado»
+  // en palabras, no solo con color.
+  Widget _mosaico(
     IconData icono,
     String titulo,
-    String detalle,
-    bool valor,
-    ValueChanged<bool> onCambio,
-  ) => Padding(
-    padding: const EdgeInsets.only(bottom: 10),
-    child: SuperficieCuidador(
-      // Material propio: sin él, la tarjeta tapa el efecto al tocar.
-      child: Material(
-        type: MaterialType.transparency,
-        child: SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          secondary: Icon(icono, color: ColoresNana.morado, size: 28),
-          title: Text(
-            titulo,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+    bool prendido,
+    VoidCallback cambiar,
+  ) => Semantics(
+    button: true,
+    toggled: prendido,
+    label: titulo,
+    excludeSemantics: true,
+    child: Material(
+      color: prendido ? ColoresNana.moradoClaro : Colors.white,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(22),
+        side: BorderSide(
+          color: prendido ? ColoresNana.morado : const Color(0xFFDDD6F3),
+          width: prendido ? 3 : 2,
+        ),
+      ),
+      child: InkWell(
+        onTap: () => setState(cambiar),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 110),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icono, color: ColoresNana.morado, size: 32),
+              const SizedBox(height: 4),
+              Text(
+                titulo,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                prendido ? '✓ Prendido' : 'Apagado',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: prendido ? ColoresNana.ok : ColoresNana.tintaSuave,
+                ),
+              ),
+            ],
           ),
-          subtitle: Text(detalle, style: const TextStyle(fontSize: 15)),
-          value: valor,
-          activeThumbColor: ColoresNana.morado,
-          onChanged: onCambio,
         ),
       ),
     ),
@@ -101,15 +139,11 @@ class _PantallaDelAdultoState extends State<PantallaDelAdulto> {
           : ListView(
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
               children: [
-                Text(
-                  'Así se verá NANA en el celular de $adulto. Después '
-                  '$adulto puede cambiarlo desde su botón "Aa".',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: ColoresNana.tintaSuave,
-                  ),
+                const Text(
+                  'Así se verá NANA en su celular',
+                  style: TextStyle(fontSize: 17, color: ColoresNana.tintaSuave),
                 ),
-                const TituloSeccion('Tamaño de letra'),
+                const TituloSeccion('Letra'),
                 Wrap(
                   spacing: 10,
                   runSpacing: 10,
@@ -133,45 +167,51 @@ class _PantallaDelAdultoState extends State<PantallaDelAdulto> {
                       ),
                   ],
                 ),
-                const TituloSeccion('Cómo la ayuda NANA'),
-                _interruptor(
-                  Icons.contrast,
-                  'Colores más fuertes',
-                  'Más contraste y letra en negritas',
-                  a.altoContraste,
-                  (v) => setState(() => _a = _a!.copyWith(altoContraste: v)),
+                const SizedBox(height: 16),
+                // Botones grandes como los del «Aa» de la persona mayor.
+                _fila(
+                  _mosaico(
+                    Icons.record_voice_over_outlined,
+                    'Que le hable',
+                    a.queMeHable,
+                    () => _a = _a!.copyWith(queMeHable: !a.queMeHable),
+                  ),
+                  _mosaico(
+                    Icons.contrast,
+                    'Colores fuertes',
+                    a.altoContraste,
+                    () => _a = _a!.copyWith(altoContraste: !a.altoContraste),
+                  ),
                 ),
-                _interruptor(
-                  Icons.record_voice_over_outlined,
-                  'Que NANA le hable',
-                  'Lee en voz alta cada pantalla al abrirla',
-                  a.queMeHable,
-                  (v) => setState(() => _a = _a!.copyWith(queMeHable: v)),
+                const SizedBox(height: 10),
+                _fila(
+                  _mosaico(
+                    Icons.motion_photos_off_outlined,
+                    'Menos movimiento',
+                    a.menosMovimiento,
+                    () =>
+                        _a = _a!.copyWith(menosMovimiento: !a.menosMovimiento),
+                  ),
+                  _mosaico(
+                    Icons.touch_app,
+                    'Contestar tocando',
+                    a.contestarTocando,
+                    () => _a = _a!.copyWith(
+                      contestarTocando: !a.contestarTocando,
+                    ),
+                  ),
                 ),
-                _interruptor(
-                  Icons.motion_photos_off_outlined,
-                  'Menos movimiento',
-                  'Sin animaciones',
-                  a.menosMovimiento,
-                  (v) => setState(() => _a = _a!.copyWith(menosMovimiento: v)),
+                const SizedBox(height: 10),
+                _fila(
+                  _mosaico(
+                    Icons.hearing,
+                    'Oye NANA',
+                    a.oyeNana,
+                    () => _a = _a!.copyWith(oyeNana: !a.oyeNana),
+                  ),
+                  const SizedBox.shrink(),
                 ),
-                _interruptor(
-                  Icons.touch_app,
-                  'Contestar tocando',
-                  'Para quien no habla: en vez de usar la voz, toca lo que '
-                      'quiere decir',
-                  a.contestarTocando,
-                  (v) => setState(() => _a = _a!.copyWith(contestarTocando: v)),
-                ),
-                _interruptor(
-                  Icons.hearing,
-                  'Llamar a NANA con la voz',
-                  'Con NANA abierta, dice «Oye NANA» y ella le escucha. '
-                      'Se reconoce dentro de su celular, no se graba.',
-                  a.oyeNana,
-                  (v) => setState(() => _a = _a!.copyWith(oyeNana: v)),
-                ),
-                const TituloSeccion('Qué tan rápido le habla NANA'),
+                const TituloSeccion('Qué tan rápido le habla'),
                 Wrap(
                   spacing: 10,
                   runSpacing: 10,
@@ -195,7 +235,16 @@ class _PantallaDelAdultoState extends State<PantallaDelAdulto> {
                       ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
+                Text(
+                  '$adulto puede cambiarlo después en su botón «Aa»',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    color: ColoresNana.tintaSuave,
+                  ),
+                ),
+                const SizedBox(height: 12),
                 BotonPrincipal(
                   texto: 'Guardar',
                   ocupado: _ocupado,

@@ -243,7 +243,7 @@ void main() {
       );
       await t.pumpAndSettle();
       await t.tap(find.text('Muy grande'));
-      await t.tap(find.text('Que NANA le hable'));
+      await t.tap(find.text('Que le hable'));
       await t.pumpAndSettle();
       await t.tap(find.text('Guardar'));
       await t.pumpAndSettle();
