@@ -11,6 +11,15 @@ import 'package:nana_app/screens/panel_cuidador.dart';
 // Las pruebas no tienen internet; usa la fuente del sistema.
 Widget _envolver(Widget pantalla) => MaterialApp(home: pantalla);
 
+// Los circulitos del día del inicio (su etiqueta para el lector).
+Finder _miDia([String cuenta = '', bool skipOffstage = true]) =>
+    find.byWidgetPredicate(
+      (w) =>
+          w is Semantics &&
+          (w.properties.label ?? '').startsWith('Mi día: llevas $cuenta'),
+      skipOffstage: skipOffstage,
+    );
+
 void main() {
   setUpAll(() => GoogleFonts.config.allowRuntimeFetching = false);
   // Sin sesión, para que después del splash salga la bienvenida.
@@ -43,21 +52,21 @@ void main() {
     await tester.pumpWidget(_envolver(const PanelAdulto()));
     await tester.pumpAndSettle();
 
-    expect(find.text('Hoy llevas 0 de 4'), findsOneWidget);
+    expect(_miDia('0 de 4'), findsOneWidget);
     await tester.ensureVisible(find.text('Ya me la tomé'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Ya me la tomé'));
     await tester.pump();
     // El contador quedó arriba, fuera de la vista tras desplazar.
     await tester.pump();
-    expect(find.text('Hoy llevas 1 de 4', skipOffstage: false), findsOneWidget);
+    expect(_miDia('1 de 4', false), findsOneWidget);
     // Festejo con la palomita y luego "Deshacer", que quita lo anotado.
     expect(find.text('¡Muy bien!\nAnoté tu medicina'), findsOneWidget);
     await tester.pump(const Duration(seconds: 2));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Deshacer'));
     await tester.pumpAndSettle();
-    expect(find.text('Hoy llevas 0 de 4', skipOffstage: false), findsOneWidget);
+    expect(_miDia('0 de 4', false), findsOneWidget);
     await tester.pump(const Duration(seconds: 6));
   });
 

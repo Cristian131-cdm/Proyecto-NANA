@@ -20,6 +20,15 @@ void _celular(WidgetTester tester) {
   addTearDown(tester.view.reset);
 }
 
+// Los circulitos del día del inicio (su etiqueta para el lector).
+Finder _miDia([String cuenta = '', bool skipOffstage = true]) =>
+    find.byWidgetPredicate(
+      (w) =>
+          w is Semantics &&
+          (w.properties.label ?? '').startsWith('Mi día: llevas $cuenta'),
+      skipOffstage: skipOffstage,
+    );
+
 void main() {
   setUpAll(() => GoogleFonts.config.allowRuntimeFetching = false);
   setUp(() => Servicios.repo = RepositorioMemoria(sesion: 'rosa-cel'));
@@ -111,14 +120,14 @@ void main() {
     );
     await tester.pumpWidget(const MaterialApp(home: PanelAdulto()));
     await tester.pumpAndSettle();
-    expect(find.text('Hoy llevas 1 de 4'), findsOneWidget);
+    expect(_miDia('1 de 4'), findsOneWidget);
 
     // La lista completa está en "Ver todo mi día" (la tarjeta depende de la hora).
-    await tester.tap(find.text('Ver todo mi día'));
+    await tester.tap(_miDia());
     await tester.pumpAndSettle();
 
     // El recordatorio tiene una animación que no para: se avanza a mano.
-    await tester.tap(find.text('Toca ahora · Tu medicina'));
+    await tester.tap(find.text('Losartán 50 mg'));
     await tester.pump(); // el primer cuadro de una ruta nueva va oculto
     await tester.pump(const Duration(seconds: 1));
     expect(find.text('Ya me la tomé'), findsOneWidget);
@@ -126,7 +135,7 @@ void main() {
     await tester.tap(find.text('Ya me la tomé'));
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
-    expect(find.text('Hoy llevas 2 de 4', skipOffstage: false), findsOneWidget);
+    expect(_miDia('2 de 4', false), findsOneWidget);
     // El festejo se cierra solo y luego sale el aviso con "Deshacer".
     await tester.pump(const Duration(seconds: 2));
     await tester.pump(const Duration(seconds: 1));

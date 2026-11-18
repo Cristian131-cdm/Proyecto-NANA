@@ -45,7 +45,7 @@ void main() {
     'Lo que toca: "Ya" anota y tocar la tarjeta abre el recordatorio',
     (t) async {
       final llamadas = await pintar(t, QueToca.actividad, actividad: _losartan);
-      expect(find.text('Toca ahora'), findsOneWidget);
+      expect(find.text('Ahora'), findsOneWidget);
       expect(find.text('Losartán 50 mg'), findsOneWidget);
       expect(find.bySemanticsLabel('Ya me la tomé'), findsOneWidget);
 
@@ -59,7 +59,7 @@ void main() {
     t,
   ) async {
     final llamadas = await pintar(t, QueToca.siguiente, actividad: _losartan);
-    expect(find.text('Lo que sigue'), findsOneWidget);
+    expect(find.text('Después'), findsOneWidget);
     await t.tap(find.text('Losartán 50 mg'));
     await t.tap(find.text('Ya me la tomé'));
     expect(llamadas, ['hecha']);

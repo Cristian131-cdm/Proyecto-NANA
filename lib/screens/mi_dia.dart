@@ -8,7 +8,6 @@ import '../models/actividad.dart';
 import '../models/medicamento.dart';
 import '../models/registro.dart';
 import '../models/rutina.dart';
-import '../widgets/icono_nana.dart';
 
 // Escucha medicinas, rutinas y registros de hoy y arma el día con ellos.
 class ConDia extends StatefulWidget {
@@ -81,7 +80,7 @@ class _MiDiaState extends State<MiDia> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Todo mi día'),
+        title: const Text('Mi día'),
         actions: [
           BotonLeeme(texto: () => _texto, color: ColoresNana.morado),
           const SizedBox(width: 8),
@@ -97,12 +96,18 @@ class _MiDiaState extends State<MiDia> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
               children: [
-                for (final a in dia)
-                  _FilaDia(
-                    actividad: a,
-                    onHecha: () => widget.onHecha(a),
-                    onAbrir: () => widget.onAbrir(a),
-                  ),
+                // Por partes del día, con su dibujo: mañana, tarde, noche.
+                for (final (parte, icono, color) in _partes) ...[
+                  if (dia.any((a) => _parteDe(a) == parte)) ...[
+                    _Encabezado(parte: parte, icono: icono, color: color),
+                    for (final a in dia.where((a) => _parteDe(a) == parte))
+                      _FilaDia(
+                        actividad: a,
+                        onHecha: () => widget.onHecha(a),
+                        onAbrir: () => widget.onAbrir(a),
+                      ),
+                  ],
+                ],
               ],
             ),
           );
@@ -110,6 +115,52 @@ class _MiDiaState extends State<MiDia> {
       ),
     );
   }
+}
+
+const _partes = [
+  ('Mañana', Icons.wb_sunny_outlined, Color(0xFFB36B00)),
+  ('Tarde', Icons.wb_twilight, Color(0xFFB36B00)),
+  ('Noche', Icons.nightlight_outlined, ColoresNana.morado),
+];
+
+String _parteDe(Actividad a) {
+  final h = a.horaExacta?.hour ?? 12;
+  if (h < 12) return 'Mañana';
+  if (h < 19) return 'Tarde';
+  return 'Noche';
+}
+
+class _Encabezado extends StatelessWidget {
+  final String parte;
+  final IconData icono;
+  final Color color;
+  const _Encabezado({
+    required this.parte,
+    required this.icono,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(4, 12, 4, 8),
+    child: Semantics(
+      header: true,
+      child: Row(
+        children: [
+          Icon(icono, color: color, size: 28),
+          const SizedBox(width: 8),
+          Text(
+            parte,
+            style: TextStyle(
+              fontSize: 21,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 class _FilaDia extends StatelessWidget {
@@ -140,7 +191,7 @@ class _FilaDia extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       constraints: const BoxConstraints(minHeight: 80),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: ahora ? ColoresNana.moradoClaro : Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: ahora
@@ -153,50 +204,42 @@ class _FilaDia extends StatelessWidget {
       ),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 26,
-            backgroundColor: hecha
-                ? ColoresNana.okClaro
-                : ahora
-                ? ColoresNana.moradoClaro
-                : const Color(0xFFF2F0F7),
-            child: hecha
-                ? Icon(Icons.check, size: 28, color: estado.color)
-                : IconoActividad(
-                    actividad.tipo,
-                    tamano: 28,
-                    color: estado.color,
-                  ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${actividad.titulo} · ${actividad.hora}',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: apagada
-                        ? const Color(0xFF6B6485)
-                        : ColoresNana.tinta,
-                  ),
-                ),
-                Text(
-                  hecha
-                      ? 'Listo'
-                      : ahora
-                      ? 'Toca ahora · ${actividad.detalle}'
-                      : actividad.detalle,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: ahora ? ColoresNana.morado : const Color(0xFF6B6485),
-                  ),
-                ),
-              ],
+          SizedBox(
+            width: 92,
+            child: Text(
+              actividad.hora,
+              style: TextStyle(
+                fontSize: 21,
+                fontWeight: FontWeight.bold,
+                color: ahora ? ColoresNana.morado : ColoresNana.tinta,
+              ),
             ),
           ),
+          Expanded(
+            child: Text(
+              actividad.titulo,
+              style: TextStyle(
+                fontSize: 21,
+                fontWeight: ahora ? FontWeight.bold : FontWeight.normal,
+                color: apagada ? const Color(0xFF6B6485) : ColoresNana.tinta,
+              ),
+            ),
+          ),
+          if (hecha)
+            const CircleAvatar(
+              radius: 20,
+              backgroundColor: ColoresNana.ok,
+              child: Icon(Icons.check, size: 24, color: Colors.white),
+            )
+          else if (!ahora)
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xFFDDD6F3), width: 3),
+              ),
+            ),
           if (ahora) ...[
             const SizedBox(width: 8),
             SizedBox(
@@ -208,7 +251,7 @@ class _FilaDia extends StatelessWidget {
                 child: FilledButton(
                   onPressed: onHecha,
                   style: FilledButton.styleFrom(
-                    backgroundColor: ColoresNana.morado,
+                    backgroundColor: ColoresNana.ok,
                     shape: const StadiumBorder(),
                     padding: const EdgeInsets.symmetric(horizontal: 22),
                     textStyle: const TextStyle(

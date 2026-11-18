@@ -415,67 +415,67 @@ class _PanelAdultoState extends State<PanelAdulto> {
     EstadoNana estado,
     Duration suave,
   ) {
+    final hechas = _hechas(dia);
+    void abrirMiDia() => _ir(
+      MiDia(folio: _folio, onHecha: _marcarHecha, onAbrir: _abrirRecordatorio),
+    );
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
       children: [
-        Row(
-          children: [
-            // La cara de NANA cambia con el día (contenta, atenta, dormida).
-            Semantics(
-              label: describirNana(estado),
-              child: AnimatedSwitcher(
-                duration: suave,
-                transitionBuilder: (child, a) => ScaleTransition(
-                  scale: Tween(begin: 0.85, end: 1.0).animate(a),
-                  child: FadeTransition(opacity: a, child: child),
+        // La cara de NANA cambia con el día (contenta, atenta, dormida).
+        Center(
+          child: Semantics(
+            label: describirNana(estado),
+            child: AnimatedSwitcher(
+              duration: suave,
+              transitionBuilder: (child, a) => ScaleTransition(
+                scale: Tween(begin: 0.85, end: 1.0).animate(a),
+                child: FadeTransition(opacity: a, child: child),
+              ),
+              child: MascotaNana(
+                key: ValueKey(estado),
+                tamano: (MediaQuery.sizeOf(context).height * 0.13).clamp(
+                  64.0,
+                  110.0,
                 ),
-                child: MascotaNana(
-                  key: ValueKey(estado),
-                  tamano: 64,
-                  estado: estado,
-                ),
+                estado: estado,
               ),
             ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${_saludo()}, ${_yo?.nombre ?? ''}',
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: ColoresNana.morado,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Hoy llevas ${_hechas(dia)} de ${dia.length}',
-                    style: const TextStyle(fontSize: 18),
-                  ),
-                  const SizedBox(height: 6),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: TweenAnimationBuilder<double>(
-                      tween: Tween(
-                        end: dia.isEmpty ? 0 : _hechas(dia) / dia.length,
-                      ),
-                      duration: const Duration(milliseconds: 400),
-                      builder: (context, v, _) => LinearProgressIndicator(
-                        value: v,
-                        minHeight: 12,
-                        backgroundColor: ColoresNana.moradoClaro,
-                        color: ColoresNana.ok,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+          ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 6),
+        Text(
+          '${_saludo()}, ${_yo?.nombre ?? ''}',
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+            color: ColoresNana.morado,
+          ),
+        ),
+        const SizedBox(height: 12),
+        // El día en circulitos con dibujo: ✓ lo que ya hizo, borde morado lo
+        // que toca. Tocarlos abre Mi día.
+        if (dia.isNotEmpty)
+          Semantics(
+            button: true,
+            label: 'Mi día: llevas $hechas de ${dia.length}. Toca para verlo',
+            excludeSemantics: true,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(20),
+              onTap: abrirMiDia,
+              child: Padding(
+                padding: const EdgeInsets.all(6),
+                child: Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [for (final a in dia) _CirculoDia(actividad: a)],
+                ),
+              ),
+            ),
+          ),
+        const SizedBox(height: 16),
         // Cuando cambia lo que toca, la tarjeta se desliza en vez de brincar.
         AnimatedSwitcher(
           duration: suave,
@@ -499,27 +499,6 @@ class _PanelAdultoState extends State<PanelAdulto> {
             onHecha: () => _marcarHecha(actividad!),
             onAbrir: () => _abrirRecordatorio(actividad!),
             onAnimo: _anotarAnimo,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Align(
-          child: TextButton.icon(
-            onPressed: () => _ir(
-              MiDia(
-                folio: _folio,
-                onHecha: _marcarHecha,
-                onAbrir: _abrirRecordatorio,
-              ),
-            ),
-            icon: const Icon(Icons.list_alt, size: 26),
-            label: const Text('Ver todo mi día'),
-            style: TextButton.styleFrom(
-              minimumSize: const Size(0, 56),
-              textStyle: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
           ),
         ),
       ],
@@ -638,54 +617,62 @@ class _PanelAdultoState extends State<PanelAdulto> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        // Quien no habla "dice" tocando cuadros con ícono.
-                        child: ValueListenableBuilder<bool>(
-                          valueListenable: Ajustes.sinVoz,
-                          builder: (context, sinVoz, _) => _BotonGrande(
-                            icono: Icons.touch_app,
-                            iconoB: sinVoz ? null : IconoB.hablar,
-                            texto: sinVoz ? 'Decir' : 'Hablar',
-                            fondo: ColoresNana.azul,
-                            frente: Colors.white,
-                            onTap: () => _ir(
-                              sinVoz
-                                  ? TableroFrases(
-                                      onFrase: _decir,
-                                      onHablar: () => _ir(_nanaEscucha()),
-                                    )
-                                  : _nanaEscucha(),
+                  IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(
+                          // Quien no habla "dice" tocando cuadros con ícono.
+                          child: ValueListenableBuilder<bool>(
+                            valueListenable: Ajustes.sinVoz,
+                            builder: (context, sinVoz, _) => _BotonGrande(
+                              icono: Icons.touch_app,
+                              iconoB: sinVoz ? null : IconoB.hablar,
+                              texto: sinVoz ? 'Decir' : 'Hablar',
+                              fondo: ColoresNana.azul,
+                              frente: Colors.white,
+                              onTap: () => _ir(
+                                sinVoz
+                                    ? TableroFrases(
+                                        onFrase: _decir,
+                                        onHablar: () => _ir(_nanaEscucha()),
+                                      )
+                                    : _nanaEscucha(),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _BotonGrande(
-                          icono: Icons.family_restroom,
-                          iconoB: IconoB.familia,
-                          texto: 'Familia',
-                          fondo: ColoresNana.moradoClaro,
-                          frente: ColoresNana.morado,
-                          onTap: () => _ir(MiFamilia(folio: _folio)),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _BotonGrande(
+                            icono: Icons.family_restroom,
+                            iconoB: IconoB.familia,
+                            texto: 'Familia',
+                            fondo: ColoresNana.moradoClaro,
+                            frente: ColoresNana.morado,
+                            onTap: () => _ir(MiFamilia(folio: _folio)),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: _BotonGrande(
-                      icono: Icons.notifications_active,
-                      iconoB: IconoB.ayuda,
-                      texto: 'Necesito ayuda',
-                      fondo: ColoresNana.alertaClaro,
-                      frente: ColoresNana.alerta,
-                      borde: ColoresNana.alerta,
-                      enFila: true,
-                      onTap: _confirmarAviso,
+                        const SizedBox(width: 10),
+                        // «Ayuda» abre la confirmación de «¿Le aviso a tu
+                        // familia?»; para el lector dice la frase completa.
+                        Expanded(
+                          child: Semantics(
+                            label: 'Necesito ayuda',
+                            excludeSemantics: true,
+                            button: true,
+                            child: _BotonGrande(
+                              icono: Icons.notifications_active,
+                              iconoB: IconoB.ayuda,
+                              texto: 'Ayuda',
+                              fondo: ColoresNana.alertaClaro,
+                              frente: ColoresNana.alerta,
+                              borde: ColoresNana.alerta,
+                              onTap: _confirmarAviso,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -704,7 +691,6 @@ class _BotonGrande extends StatelessWidget {
   final Color fondo;
   final Color frente;
   final Color? borde;
-  final bool enFila; // ícono a un lado del texto, para el botón ancho
   final VoidCallback onTap;
   // Ícono propio de NANA; si no hay, se usa [icono] de Material.
   final IconoB? iconoB;
@@ -717,7 +703,6 @@ class _BotonGrande extends StatelessWidget {
     required this.frente,
     required this.onTap,
     this.borde,
-    this.enFila = false,
   });
 
   @override
@@ -727,7 +712,7 @@ class _BotonGrande extends StatelessWidget {
         IconoNana(b, tamano: 34, color: frente)
       else
         Icon(icono, size: 34, color: frente),
-      SizedBox(width: enFila ? 12 : 0, height: enFila ? 0 : 4),
+      const SizedBox(height: 4),
       Flexible(
         child: Text(
           texto,
@@ -752,23 +737,54 @@ class _BotonGrande extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Container(
-          constraints: BoxConstraints(minHeight: enFila ? 80 : 88),
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-          // Sin "alignment": con él, el Container se estira a toda la
-          // altura disponible y la barra de abajo tapa la pantalla.
-          child: enFila
-              ? Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: partes,
-                )
-              : Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: partes,
-                ),
+          constraints: const BoxConstraints(minHeight: 100),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
+          // La fila de abajo tiene altura acotada (IntrinsicHeight), así
+          // que la columna puede centrarse sin estirar la barra.
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: partes,
+          ),
         ),
       ),
+    );
+  }
+}
+
+// Un circulito del día en el inicio: el dibujo de la actividad, con
+// palomita verde si ya está hecha y borde morado si es lo que toca.
+class _CirculoDia extends StatelessWidget {
+  final Actividad actividad;
+  const _CirculoDia({required this.actividad});
+
+  @override
+  Widget build(BuildContext context) {
+    final estado = actividad.estado;
+    final hecha = estado == EstadoActividad.hecha;
+    final ahora = estado == EstadoActividad.ahora;
+    return Container(
+      width: 52,
+      height: 52,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: hecha ? ColoresNana.okClaro : Colors.white,
+        border: Border.all(
+          color: hecha
+              ? ColoresNana.ok
+              : ahora
+              ? ColoresNana.morado
+              : const Color(0xFFDDD6F3),
+          width: ahora ? 4 : 3,
+        ),
+      ),
+      child: hecha
+          ? const Icon(Icons.check, color: ColoresNana.ok, size: 28)
+          : IconoActividad(
+              actividad.tipo,
+              tamano: 26,
+              color: ahora ? ColoresNana.morado : ColoresNana.tintaSuave,
+            ),
     );
   }
 }

@@ -10,7 +10,7 @@ import 'package:nana_app/screens/panel_cuidador.dart';
 Future<void> _pedirAyuda(WidgetTester t) async {
   await t.pumpWidget(const MaterialApp(home: PanelAdulto()));
   await t.pumpAndSettle();
-  await t.tap(find.text('Necesito ayuda'));
+  await t.tap(find.text('Ayuda'));
   await t.pumpAndSettle();
   await t.tap(find.text('Sí, avisar'));
   await t.pumpAndSettle();
@@ -50,7 +50,7 @@ void main() {
     Servicios.repo = repo;
     await t.pumpWidget(const MaterialApp(home: PanelAdulto()));
     await t.pumpAndSettle();
-    await t.tap(find.text('Necesito ayuda'));
+    await t.tap(find.text('Ayuda'));
     await t.pumpAndSettle();
 
     expect(find.text('Todavía no tienes familia conectada'), findsOneWidget);

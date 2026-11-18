@@ -9,7 +9,7 @@ import '../core/voz.dart';
 import '../models/actividad.dart';
 import '../models/registro.dart';
 import '../widgets/aviso.dart';
-import '../widgets/mascota_nana.dart';
+import '../widgets/icono_nana.dart';
 import 'candado.dart';
 
 // Se llama al tocar la alarma de una medicina: abre su recordatorio sin
@@ -181,7 +181,7 @@ class _RecordatorioAlarmaState extends State<RecordatorioAlarma>
     final pantallaEsBoton = Ajustes.pantallaEsBoton.value;
 
     return Scaffold(
-      backgroundColor: ColoresNana.morado,
+      backgroundColor: ColoresNana.moradoClaro,
       body: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: pantallaEsBoton ? _confirmar : null,
@@ -203,8 +203,12 @@ class _RecordatorioAlarmaState extends State<RecordatorioAlarma>
                             onPressed: () => Navigator.pop(context, false),
                             icon: const Icon(
                               Icons.close,
-                              color: Colors.white,
-                              size: 32,
+                              color: ColoresNana.morado,
+                              size: 30,
+                            ),
+                            style: IconButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              fixedSize: const Size(56, 56),
                             ),
                             tooltip: 'Cerrar recordatorio',
                           ),
@@ -217,84 +221,102 @@ class _RecordatorioAlarmaState extends State<RecordatorioAlarma>
                               curve: Curves.easeInOut,
                             ),
                           ),
-                          child: const MascotaNana(tamano: 120),
+                          // El dibujo de lo que toca (la pastilla, la comida…).
+                          child: Container(
+                            width: 150,
+                            height: 150,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: ColoresNana.lila,
+                                width: 6,
+                              ),
+                            ),
+                            alignment: Alignment.center,
+                            child: IconoActividad(
+                              a.tipo,
+                              tamano: 84,
+                              color: ColoresNana.morado,
+                            ),
+                          ),
                         ),
                         const SizedBox(height: 24),
+                        // Hora y nombre en grande; lo demás NANA lo dice en
+                        // voz alta.
                         Semantics(
                           header: true,
-                          child: Text(
-                            'Son las ${a.hora}',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontSize: 44,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          esMedicina
-                              ? 'Te toca tu ${a.titulo}'
-                              : 'Te toca: ${a.titulo}',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 30,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        Text(
-                          a.detalle,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 22,
-                            color: Colors.white.withValues(alpha: 0.9),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 18,
-                            vertical: 10,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.16),
-                            borderRadius: BorderRadius.circular(99),
-                          ),
-                          child: ValueListenableBuilder<bool>(
-                            valueListenable: Servicios.voz.escuchando,
-                            builder: (context, escuchando, _) => Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  sinVoz
-                                      ? Icons.touch_app
-                                      : escuchando
-                                      ? Icons.mic
-                                      : Icons.graphic_eq,
-                                  color: Colors.white,
-                                  size: 26,
+                          label: esMedicina
+                              ? 'Son las ${a.hora}. Te toca tu ${a.titulo}'
+                              : 'Son las ${a.hora}. Te toca: ${a.titulo}',
+                          excludeSemantics: true,
+                          child: Column(
+                            children: [
+                              Text(
+                                a.hora,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 54,
+                                  height: 1.05,
+                                  fontWeight: FontWeight.bold,
+                                  color: ColoresNana.morado,
                                 ),
-                                const SizedBox(width: 8),
-                                Flexible(
-                                  child: Text(
-                                    pantallaEsBoton
-                                        ? 'Toca la pantalla para decir que sí'
-                                        : sinVoz
-                                        ? 'Toca un botón para contestar'
-                                        : escuchando
-                                        ? 'Te escucho: di "ya me la tomé" o "al rato"'
-                                        : 'NANA te está preguntando…',
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      color: Colors.white,
-                                    ),
+                              ),
+                              Text(
+                                a.titulo,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 36,
+                                  fontWeight: FontWeight.bold,
+                                  color: ColoresNana.tinta,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        // Un aviso corto, solo cuando sirve: si la pantalla
+                        // entera es el botón, o mientras NANA escucha.
+                        ValueListenableBuilder<bool>(
+                          valueListenable: Servicios.voz.escuchando,
+                          builder: (context, escuchando, _) =>
+                              !pantallaEsBoton && (sinVoz || !escuchando)
+                              ? const SizedBox(height: 44)
+                              : Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 18,
+                                    vertical: 10,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(99),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        pantallaEsBoton
+                                            ? Icons.touch_app
+                                            : Icons.mic,
+                                        color: ColoresNana.morado,
+                                        size: 26,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Flexible(
+                                        child: Text(
+                                          pantallaEsBoton
+                                              ? 'Toca la pantalla para decir que sí'
+                                              : 'Te escucho',
+                                          style: const TextStyle(
+                                            fontSize: 19,
+                                            fontWeight: FontWeight.bold,
+                                            color: ColoresNana.morado,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              ],
-                            ),
-                          ),
                         ),
                         const Spacer(),
                         SizedBox(
@@ -302,13 +324,13 @@ class _RecordatorioAlarmaState extends State<RecordatorioAlarma>
                           height: 84,
                           child: FilledButton.icon(
                             onPressed: _confirmar,
-                            icon: const Icon(Icons.check_circle, size: 34),
+                            icon: const Icon(Icons.check, size: 36),
                             label: Text(
                               esMedicina ? 'Ya me la tomé' : 'Ya lo hice',
                             ),
                             style: FilledButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: ColoresNana.morado,
+                              backgroundColor: ColoresNana.ok,
+                              foregroundColor: Colors.white,
                               shape: const StadiumBorder(),
                               textStyle: const TextStyle(
                                 fontSize: 26,
@@ -326,10 +348,11 @@ class _RecordatorioAlarmaState extends State<RecordatorioAlarma>
                             icon: const Icon(Icons.schedule, size: 30),
                             label: const Text('Al rato'),
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: Colors.white,
+                              foregroundColor: ColoresNana.morado,
+                              backgroundColor: Colors.white,
                               side: const BorderSide(
-                                color: Colors.white,
-                                width: 2,
+                                color: ColoresNana.morado,
+                                width: 3,
                               ),
                               shape: const StadiumBorder(),
                               textStyle: const TextStyle(

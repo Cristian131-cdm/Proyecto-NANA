@@ -39,6 +39,15 @@ void _celular(WidgetTester t) {
   addTearDown(t.view.reset);
 }
 
+// Los circulitos del día del inicio (su etiqueta para el lector).
+Finder _miDia([String cuenta = '', bool skipOffstage = true]) =>
+    find.byWidgetPredicate(
+      (w) =>
+          w is Semantics &&
+          (w.properties.label ?? '').startsWith('Mi día: llevas $cuenta'),
+      skipOffstage: skipOffstage,
+    );
+
 void main() {
   setUpAll(() => GoogleFonts.config.allowRuntimeFetching = false);
   setUp(() => Servicios.repo = RepositorioMemoria(sesion: 'rosa-cel'));
@@ -51,10 +60,10 @@ void main() {
     await t.pumpAndSettle();
 
     expect(find.textContaining('Rosa'), findsOneWidget);
-    for (final boton in ['Hablar', 'Familia', 'Necesito ayuda']) {
+    for (final boton in ['Hablar', 'Familia', 'Ayuda']) {
       expect(find.text(boton).hitTestable(), findsOneWidget, reason: boton);
     }
-    expect(find.text('Ver todo mi día').hitTestable(), findsOneWidget);
+    expect(_miDia().hitTestable(), findsOneWidget);
     // Ya no están en el inicio: se movieron a "Hablar".
     expect(find.text('Frases rápidas'), findsNothing);
     expect(find.text('Hablar con señas'), findsNothing);
@@ -78,7 +87,7 @@ void main() {
     await t.pumpAndSettle();
     // Un desbordamiento lanza una excepción y haría fallar la prueba.
     expect(t.takeException(), isNull);
-    expect(find.text('Necesito ayuda'), findsOneWidget);
+    expect(find.text('Ayuda'), findsOneWidget);
   });
 
   testWidgets('Una frase en "Hablar" regresa al inicio y se anota', (t) async {
@@ -169,7 +178,7 @@ void main() {
     await t.pumpWidget(const MaterialApp(home: MiFamilia(folio: 'rosa')));
     await t.pumpAndSettle();
     expect(find.text('Ana'), findsOneWidget);
-    expect(find.text('Llamar a Ana'), findsOneWidget);
+    expect(find.text('Llamar'), findsOneWidget);
   });
 
   testWidgets('Sin familia conectada lo dice en vez de inventar contactos', (

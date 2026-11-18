@@ -132,7 +132,8 @@ class _Actividad extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final medicina = actividad.tipo == TipoActividad.medicina;
-    final cuando = yaToca ? 'Toca ahora' : 'Lo que sigue';
+    // Una sola palabra: si ya toca o si es lo siguiente.
+    final cuando = yaToca ? 'Ahora' : 'Después';
     return Semantics(
       container: true,
       label: '${actividad.titulo}, ${actividad.hora}, ${cuando.toLowerCase()}',
@@ -148,28 +149,7 @@ class _Actividad extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  children: [
-                    Icon(
-                      yaToca ? Icons.notifications_active : Icons.schedule,
-                      color: ColoresNana.morado,
-                      size: 26,
-                    ),
-                    const SizedBox(width: 8),
-                    // Con letra grande baja a otro renglón en vez de salirse.
-                    Flexible(
-                      child: Text(
-                        cuando,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: ColoresNana.morado,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CircleAvatar(
                       radius: 34,
@@ -185,16 +165,49 @@ class _Actividad extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          Wrap(
+                            spacing: 10,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              Text(
+                                actividad.hora,
+                                style: const TextStyle(
+                                  fontSize: 34,
+                                  height: 1.1,
+                                  fontWeight: FontWeight.bold,
+                                  color: ColoresNana.morado,
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: yaToca
+                                      ? ColoresNana.morado
+                                      : ColoresNana.moradoClaro,
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                                child: Text(
+                                  cuando,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: yaToca
+                                        ? Colors.white
+                                        : ColoresNana.morado,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                           Text(
                             actividad.titulo,
                             style: const TextStyle(
-                              fontSize: 30,
+                              fontSize: 28,
                               fontWeight: FontWeight.bold,
                             ),
-                          ),
-                          Text(
-                            actividad.hora,
-                            style: const TextStyle(fontSize: 22),
                           ),
                         ],
                       ),
@@ -211,7 +224,7 @@ class _Actividad extends StatelessWidget {
                     label: Text(medicina ? 'Ya me la tomé' : 'Ya lo hice'),
                     style: FilledButton.styleFrom(
                       backgroundColor: yaToca
-                          ? ColoresNana.morado
+                          ? ColoresNana.ok
                           : ColoresNana.moradoClaro,
                       foregroundColor: yaToca
                           ? Colors.white

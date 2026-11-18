@@ -76,6 +76,7 @@ class _Tarjeta extends StatelessWidget {
     final f = familiar;
     final telefono = f.telefono;
     final inicial = f.nombre.isEmpty ? '?' : f.nombre[0].toUpperCase();
+    final sinNumero = telefono == null || telefono.isEmpty;
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(20),
@@ -102,41 +103,55 @@ class _Tarjeta extends StatelessWidget {
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: Text(
-                  f.nombre,
-                  style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      f.nombre,
+                      style: const TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (sinNumero)
+                      const Text(
+                        'Sin número',
+                        style: TextStyle(
+                          fontSize: 19,
+                          color: Color(0xFF6B6485),
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            height: 64,
-            child: telefono == null || telefono.isEmpty
-                ? const Center(
-                    child: Text(
-                      'Sin número',
-                      style: TextStyle(fontSize: 20, color: Color(0xFF6B6485)),
-                    ),
-                  )
-                : FilledButton.icon(
-                    onPressed: () => llamar(context, telefono),
-                    icon: const Icon(Icons.call, size: 30),
-                    label: Text('Llamar a ${f.nombre}'),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: ColoresNana.azul,
-                      shape: const StadiumBorder(),
-                      textStyle: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                      ),
+          if (!sinNumero) ...[
+            const SizedBox(height: 16),
+            // Dice solo «Llamar»; el lector dice a quién.
+            Semantics(
+              button: true,
+              label: 'Llamar a ${f.nombre}',
+              excludeSemantics: true,
+              child: SizedBox(
+                width: double.infinity,
+                height: 72,
+                child: FilledButton.icon(
+                  onPressed: () => llamar(context, telefono),
+                  icon: const Icon(Icons.call, size: 30),
+                  label: const Text('Llamar'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: ColoresNana.ok,
+                    shape: const StadiumBorder(),
+                    textStyle: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-          ),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
