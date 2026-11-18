@@ -9,29 +9,22 @@ import '../widgets/espera_oye_nana.dart';
 import 'platica_nana.dart';
 import '../core/servicios.dart';
 import '../core/tema.dart';
-import '../data/demo.dart';
 import '../models/actividad.dart';
 import '../models/adulto.dart';
 import '../models/alerta.dart';
 import '../models/medicamento.dart';
 import '../models/registro.dart';
 import '../models/rutina.dart';
-import '../widgets/ajustes_texto.dart';
 import '../widgets/aviso.dart';
 import '../widgets/esqueleto.dart';
 import '../widgets/formulario.dart';
-import '../widgets/tarjeta_dato.dart' show TarjetaDato;
 import 'alta_adulto.dart';
 import 'arranque.dart';
-import 'bienvenida.dart';
-import 'codigo_vinculacion.dart';
-import 'como_va_la_prueba.dart';
-import 'familia_alertas.dart';
 import 'unirme_con_codigo.dart';
-import 'pestana_historial.dart';
+import 'pestana_mas.dart';
 import 'pestana_inicio.dart';
 import 'pestana_medicamentos.dart';
-import 'pestana_rutinas.dart';
+
 import 'pestana_semana.dart';
 
 class PanelCuidador extends StatefulWidget {
@@ -46,23 +39,13 @@ class _PanelCuidadorState extends State<PanelCuidador> {
   int _adulto = 0;
   final _adultos = Servicios.repo.adultosACargo();
   final _conTelefono = <String>{};
-  // Solo el equipo ve "Cómo va la prueba".
-  bool _veEstudio = false;
-
-  @override
-  void initState() {
-    super.initState();
-    Servicios.repo.puedeVerEstudio().then((si) {
-      if (mounted && si) setState(() => _veEstudio = true);
-    }).ignore();
-  }
-
   // Avisan con una notificación del celular cuando llega una alerta nueva,
   // aunque NANA esté minimizada.
   final _vigilantes = <String, VigilanteAlertas>{};
 
   @override
   void dispose() {
+    _paginas.dispose();
     for (final v in _vigilantes.values) {
       v.cancelar();
     }
@@ -116,133 +99,6 @@ class _PanelCuidadorState extends State<PanelCuidador> {
       ),
     );
     if (elegido != null) setState(() => _adulto = elegido);
-  }
-
-  Future<void> _miCuenta(Adulto adulto) async {
-    final permisos = Permisos.de(adulto, Servicios.repo.uid, Servicios.reloj());
-    final opcion = await showModalBottomSheet<String>(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-      ),
-      builder: (context) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Mi cuenta',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              for (final (clave, icono, texto) in [
-                if (permisos.codigoDelAdulto)
-                  (
-                    'codigo',
-                    Icons.phonelink_ring,
-                    'Código para el celular de ${adulto.nombre}',
-                  ),
-                ('alta', Icons.person_add_alt, 'Cuidar a otra persona'),
-                (
-                  'unirme',
-                  Icons.group_add_outlined,
-                  'Me invitaron, tengo un código',
-                ),
-                if (permisos.borrarDatos)
-                  (
-                    'demo',
-                    Icons.auto_awesome_outlined,
-                    'Cargar datos de demostración',
-                  ),
-                if (_veEstudio)
-                  ('estudio', Icons.insights_outlined, 'Cómo va la prueba'),
-                ('salir', Icons.logout, 'Cerrar sesión'),
-              ])
-                ListTile(
-                  contentPadding: const EdgeInsets.symmetric(vertical: 4),
-                  leading: Icon(icono, color: ColoresNana.morado, size: 30),
-                  title: Text(texto, style: const TextStyle(fontSize: 20)),
-                  onTap: () => Navigator.pop(context, clave),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-    if (!mounted || opcion == null) return;
-    switch (opcion) {
-      case 'codigo':
-        try {
-          final codigo = await Servicios.repo.generarCodigo(adulto.folio);
-          if (!mounted) return;
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) =>
-                  PantallaCodigo(codigo: codigo, nombreAdulto: adulto.nombre),
-            ),
-          );
-        } catch (e) {
-          if (mounted) mostrarAviso(context, '$e');
-        }
-      case 'alta':
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const AltaAdulto()),
-        );
-      case 'estudio':
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const ComoVaLaPrueba()),
-        );
-      case 'unirme':
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const UnirmeConCodigo()),
-        );
-      case 'demo':
-        final si = await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('¿Cargar datos de demostración?'),
-            content: Text(
-              'Se agregan rutinas, una receta, dos citas y una semana de '
-              'ejemplo para ${adulto.nombre}. No se borra nada de lo que ya '
-              'tiene y el día de hoy no se toca.',
-              style: const TextStyle(fontSize: 18),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancelar'),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: const Text('Sí, cargar'),
-              ),
-            ],
-          ),
-        );
-        if (si != true) return;
-        final n = await cargarDemo(
-          Servicios.repo,
-          adulto.folio,
-          Servicios.reloj(),
-        );
-        if (mounted) {
-          mostrarAviso(
-            context,
-            n == 0
-                ? 'Ya tenía los datos de demostración'
-                : 'Listo, datos cargados',
-          );
-        }
-      case 'salir':
-        await Servicios.repo.cerrarSesion();
-        if (mounted) entrarA(context, const Bienvenida());
-    }
   }
 
   @override
@@ -337,6 +193,24 @@ class _PanelCuidadorState extends State<PanelCuidador> {
     );
   }
 
+  // Las 4 pestañas van en un PageView: se cambian tocando la barra de abajo
+  // o deslizando con el dedo, y la barra sigue al dedo.
+  final _paginas = PageController();
+
+  void _irAPestana(int i) {
+    setState(() => _pestana = i);
+    if (!_paginas.hasClients) return;
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _paginas.jumpToPage(i);
+    } else {
+      _paginas.animateToPage(
+        i,
+        duration: const Duration(milliseconds: 280),
+        curve: Curves.easeOutCubic,
+      );
+    }
+  }
+
   Widget _pantallaPanel(
     Adulto adulto,
     List<Adulto> lista,
@@ -344,53 +218,9 @@ class _PanelCuidadorState extends State<PanelCuidador> {
     String relacion,
     Permisos permisos,
   ) {
+    final telefono = adulto.telefono;
     return Scaffold(
-      appBar: AppBar(
-        titleSpacing: 12,
-        title: const Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'NANA',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(width: 8),
-            Flexible(child: AvisoOyeNana()),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.record_voice_over_outlined, size: 28),
-            tooltip: 'Pregúntale a NANA',
-            onPressed: () => _preguntale(adulto),
-          ),
-          IconButton(
-            icon: const Icon(Icons.text_fields, size: 28),
-            tooltip: 'Tamaño de letra',
-            onPressed: () => mostrarAjustesTexto(context, paraCuidador: true),
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings_outlined, size: 28),
-            tooltip: 'Familia y alertas',
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) =>
-                    FamiliaAlertas(adulto: nombre, folio: adulto.folio),
-              ),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.account_circle_outlined, size: 28),
-            tooltip: 'Mi cuenta',
-            onPressed: () => _miCuenta(adulto),
-          ),
-          const SizedBox(width: 4),
-        ],
-      ),
-      // IndexedStack para no perder lo que se hizo al cambiar de pestaña
       body: SafeArea(
-        top: false,
         bottom: false,
         child: Column(
           children: [
@@ -401,112 +231,137 @@ class _PanelCuidadorState extends State<PanelCuidador> {
                 maxHeight:
                     (MediaQuery.sizeOf(context).height -
                         MediaQuery.paddingOf(context).vertical -
-                        kToolbarHeight -
                         80) *
-                    0.5,
+                    0.45,
               ),
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(16),
-                  onTap: () => _cambiarAdulto(lista),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 4,
-                      horizontal: 4,
-                    ),
-                    child: Row(
+                padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                       children: [
-                        AnilloDelDia(
-                          key: ValueKey('anillo-${adulto.folio}'),
-                          folio: adulto.folio,
-                          nombre: nombre,
-                        ),
-                        const SizedBox(width: 10),
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                relacion.isEmpty
-                                    ? nombre
-                                    : '$nombre · $relacion',
-
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: ColoresNana.morado,
+                          child: Semantics(
+                            button: true,
+                            label: 'Cambiar de persona. Ahora: $nombre',
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(16),
+                              onTap: () => _cambiarAdulto(lista),
+                              child: Padding(
+                                padding: const EdgeInsets.all(4),
+                                child: Row(
+                                  children: [
+                                    AnilloDelDia(
+                                      key: ValueKey('anillo-${adulto.folio}'),
+                                      folio: adulto.folio,
+                                      nombre: nombre,
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Flexible(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            nombre,
+                                            style: const TextStyle(
+                                              fontSize: 26,
+                                              fontWeight: FontWeight.bold,
+                                              color: ColoresNana.morado,
+                                            ),
+                                          ),
+                                          if (relacion.isNotEmpty)
+                                            Text(
+                                              relacion,
+                                              style: const TextStyle(
+                                                fontSize: 15,
+                                                color: ColoresNana.tintaSuave,
+                                              ),
+                                            ),
+                                          if (permisos.rol !=
+                                              RolCuidador.principal)
+                                            Text(
+                                              permisos.rol ==
+                                                      RolCuidador.suplente
+                                                  ? 'Eres suplente '
+                                                        '(${vigenciaSuplente(adulto.suplente!)})'
+                                                  : 'Eres familiar: ves y acompañas',
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                color: ColoresNana.tintaSuave,
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                    const Icon(
+                                      Icons.expand_more,
+                                      color: ColoresNana.morado,
+                                    ),
+                                  ],
                                 ),
                               ),
-                              Text(
-                                adulto.uidAdulto != null
-                                    ? '● Usa NANA en su celular'
-                                    : adulto.tieneCelular
-                                    ? '○ Falta conectar su celular'
-                                    : '○ Sin celular',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: adulto.uidAdulto != null
-                                      ? ColoresNana.ok
-                                      : ColoresNana.tintaSuave,
-                                ),
-                              ),
-                              if (permisos.rol != RolCuidador.principal)
-                                Text(
-                                  permisos.rol == RolCuidador.suplente
-                                      ? 'Eres suplente '
-                                            '(${vigenciaSuplente(adulto.suplente!)})'
-                                      : 'Eres familiar: ves y acompañas',
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    color: ColoresNana.tintaSuave,
-                                  ),
-                                ),
-                            ],
+                            ),
                           ),
                         ),
-                        const Icon(
-                          Icons.expand_more,
-                          color: ColoresNana.morado,
+                        if (telefono != null) ...[
+                          _BotonRedondo(
+                            icono: Icons.call,
+                            etiqueta: 'Llamar a $nombre',
+                            fondo: ColoresNana.azul,
+                            frente: Colors.white,
+                            onTap: () => llamar(context, telefono),
+                          ),
+                          const SizedBox(width: 8),
+                        ],
+                        _BotonRedondo(
+                          icono: Icons.record_voice_over_outlined,
+                          etiqueta: 'Pregúntale a NANA',
+                          fondo: ColoresNana.moradoClaro,
+                          frente: ColoresNana.morado,
+                          onTap: () => _preguntale(adulto),
                         ),
                       ],
                     ),
-                  ),
+                    const AvisoOyeNana(),
+                  ],
                 ),
               ),
             ),
             const Divider(height: 1, color: ColoresNana.moradoClaro),
             Expanded(
-              child: IndexedStack(
-                index: _pestana,
+              child: PageView(
+                controller: _paginas,
+                onPageChanged: (i) => setState(() => _pestana = i),
                 children: [
-                  PestanaInicio(key: ValueKey(adulto.folio), adulto: adulto),
-                  PestanaMedicamentos(
-                    key: ValueKey(adulto.folio),
-                    folio: adulto.folio,
-                    puedeEditar: permisos.editarMedicinasYRutinas,
+                  _Viva(
+                    child: PestanaInicio(
+                      key: ValueKey(adulto.folio),
+                      adulto: adulto,
+                    ),
                   ),
-                  PestanaRutinas(
-                    key: ValueKey(adulto.folio),
-                    folio: adulto.folio,
-                    puedeEditar: permisos.editarMedicinasYRutinas,
+                  _Viva(
+                    child: PestanaMedicamentos(
+                      key: ValueKey(adulto.folio),
+                      folio: adulto.folio,
+                      puedeEditar: permisos.editarMedicinasYRutinas,
+                    ),
                   ),
-                  PestanaSemana(
-                    key: ValueKey(adulto.folio),
-                    adulto: nombre,
-                    folio: adulto.folio,
-                  ),
-                  // El expediente (salud) no lo ve el familiar invitado.
-                  if (permisos.verSalud)
-                    PestanaHistorial(
+                  _Viva(
+                    child: PestanaSemana(
                       key: ValueKey(adulto.folio),
                       adulto: nombre,
                       folio: adulto.folio,
-                      puedeEditar: permisos.editarSalud,
-                    )
-                  else
-                    _SoloEncargado(adulto: nombre),
+                    ),
+                  ),
+                  _Viva(
+                    child: PestanaMas(
+                      key: ValueKey('mas-${adulto.folio}'),
+                      adulto: adulto,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -519,7 +374,7 @@ class _PanelCuidadorState extends State<PanelCuidador> {
           indicatorColor: ColoresNana.moradoClaro,
           labelTextStyle: WidgetStateProperty.resolveWith(
             (s) => TextStyle(
-              fontSize: 13,
+              fontSize: 14,
               fontWeight: s.contains(WidgetState.selected)
                   ? FontWeight.bold
                   : FontWeight.normal,
@@ -532,7 +387,7 @@ class _PanelCuidadorState extends State<PanelCuidador> {
         child: NavigationBar(
           height: 80,
           selectedIndex: _pestana,
-          onDestinationSelected: (i) => setState(() => _pestana = i),
+          onDestinationSelected: _irAPestana,
           destinations: [
             NavigationDestination(
               icon: ContadorAlertas(
@@ -545,7 +400,7 @@ class _PanelCuidadorState extends State<PanelCuidador> {
                 folio: adulto.folio,
                 child: const Icon(Icons.home, color: ColoresNana.morado),
               ),
-              label: 'Inicio',
+              label: 'Hoy',
             ),
             const NavigationDestination(
               icon: Icon(Icons.medication_outlined),
@@ -553,24 +408,69 @@ class _PanelCuidadorState extends State<PanelCuidador> {
               label: 'Medicinas',
             ),
             const NavigationDestination(
-              icon: Icon(Icons.event_note_outlined),
-              selectedIcon: Icon(Icons.event_note, color: ColoresNana.morado),
-              label: 'Rutinas',
-            ),
-            const NavigationDestination(
               icon: Icon(Icons.bar_chart_outlined),
               selectedIcon: Icon(Icons.bar_chart, color: ColoresNana.morado),
               label: 'Semana',
             ),
             const NavigationDestination(
-              icon: Icon(Icons.folder_outlined),
-              selectedIcon: Icon(Icons.folder, color: ColoresNana.morado),
-              label: 'Historial',
+              icon: Icon(Icons.more_horiz),
+              selectedIcon: Icon(Icons.more_horiz, color: ColoresNana.morado),
+              label: 'Más',
             ),
           ],
         ),
       ),
     );
+  }
+}
+
+// Botón redondo del encabezado (llamar, preguntarle a NANA).
+class _BotonRedondo extends StatelessWidget {
+  final IconData icono;
+  final String etiqueta;
+  final Color fondo;
+  final Color frente;
+  final VoidCallback onTap;
+
+  const _BotonRedondo({
+    required this.icono,
+    required this.etiqueta,
+    required this.fondo,
+    required this.frente,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) => IconButton.filled(
+    onPressed: onTap,
+    tooltip: etiqueta,
+    icon: Icon(icono, size: 28),
+    style: IconButton.styleFrom(
+      backgroundColor: fondo,
+      foregroundColor: frente,
+      fixedSize: const Size(56, 56),
+    ),
+  );
+}
+
+// Mantiene viva una pestaña aunque no se vea, para no perder lo que se hizo
+// en ella (como antes con IndexedStack).
+class _Viva extends StatefulWidget {
+  final Widget child;
+  const _Viva({required this.child});
+
+  @override
+  State<_Viva> createState() => _VivaState();
+}
+
+class _VivaState extends State<_Viva> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return widget.child;
   }
 }
 
@@ -737,24 +637,4 @@ class _AnilloDelDiaState extends State<AnilloDelDia> {
       ),
     );
   }
-}
-
-// Lo que ve el familiar invitado en la pestaña del expediente.
-class _SoloEncargado extends StatelessWidget {
-  final String adulto;
-  const _SoloEncargado({required this.adulto});
-
-  @override
-  Widget build(BuildContext context) => ListView(
-    padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
-    children: [
-      TarjetaDato(
-        icono: Icons.lock_outline,
-        titulo: 'El expediente de $adulto es privado',
-        subtitulo:
-            'Sus datos de salud, recetas y citas solo los ven quien la dio '
-            'de alta y su suplente.',
-      ),
-    ],
-  );
 }

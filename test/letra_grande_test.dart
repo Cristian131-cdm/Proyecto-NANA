@@ -35,6 +35,8 @@ import 'package:nana_app/screens/pestana_inicio.dart';
 import 'package:nana_app/screens/pestana_medicamentos.dart';
 import 'package:nana_app/screens/pestana_rutinas.dart';
 import 'package:nana_app/screens/pestana_semana.dart';
+import 'package:nana_app/screens/pestana_mas.dart';
+import 'package:nana_app/screens/mis_ajustes.dart';
 import 'package:nana_app/screens/recomendar_huella.dart';
 import 'package:nana_app/screens/recordatorio_alarma.dart';
 import 'package:nana_app/screens/senas.dart';
@@ -207,6 +209,11 @@ final _pantallas = <String, _Pantalla>{
     sesion: 'ana',
     crear: () => _enHoja(const PestanaSemana(adulto: 'Rosa', folio: 'rosa')),
   ),
+  'Pestaña Más': (
+    sesion: 'ana',
+    crear: () => _enHoja(const PestanaMas(adulto: _rosa)),
+  ),
+  'Mis ajustes': (sesion: 'ana', crear: () => const MisAjustes(adulto: _rosa)),
   'Familia y alertas': (
     sesion: 'ana',
     crear: () => const FamiliaAlertas(adulto: 'Rosa', folio: 'rosa'),

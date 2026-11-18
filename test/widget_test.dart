@@ -79,7 +79,10 @@ void main() {
     expect(find.text('Rosa va bien hoy'), findsOneWidget);
     expect(find.text('Tomó Losartán 50 mg'), findsOneWidget);
 
-    await tester.tap(find.text('Historial'));
+    // El expediente ahora está en «Más».
+    await tester.tap(find.text('Más'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Su expediente'));
     await tester.pumpAndSettle();
     expect(find.text('Recetas'), findsOneWidget);
   });

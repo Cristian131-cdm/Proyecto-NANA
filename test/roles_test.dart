@@ -336,7 +336,13 @@ void main() {
         expect(find.text('Agregar'), findsNothing);
         expect(find.byTooltip('Borrar Losartán'), findsNothing);
 
-        await t.tap(find.text('Historial').last);
+        await t.tap(find.text('Más').last);
+        for (var i = 0; i < 4; i++) {
+          await t.pump(const Duration(milliseconds: 200));
+        }
+        // El familiar no ve «Pantalla de Rosa» (solo el principal la cambia).
+        expect(find.text('Pantalla de Rosa'), findsNothing);
+        await t.tap(find.text('Su expediente'));
         for (var i = 0; i < 4; i++) {
           await t.pump(const Duration(milliseconds: 200));
         }

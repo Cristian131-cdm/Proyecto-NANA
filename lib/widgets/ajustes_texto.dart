@@ -484,115 +484,133 @@ class _Velocidad extends StatelessWidget {
   }
 }
 
-// «Aa» de quien cuida: letra y las opciones que le sirven a cualquiera.
+// «Aa» de quien cuida, como hoja (se sigue usando en pruebas y donde haga
+// falta); el contenido es el mismo de «Mis ajustes».
 class _HojaCuidador extends StatelessWidget {
   const _HojaCuidador();
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
+    return const SafeArea(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Lectura y accesibilidad',
               style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 16),
-            const Text(
-              'Tamaño de letra',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            ValueListenableBuilder<double>(
-              valueListenable: Ajustes.escalaTexto,
-              builder: (context, actual, _) => Row(
-                children: [
-                  for (final (i, (valor, nombre)) in tamanosLetra.indexed)
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: Semantics(
-                          button: true,
-                          selected: actual == valor,
-                          label: 'Letra $nombre',
-                          child: InkWell(
+            SizedBox(height: 16),
+            AjustesLecturaCuidador(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Letra y las opciones que le sirven a cualquiera (colores, movimiento,
+// «Oye NANA», huella). Lo usan la hoja de arriba y «Mis ajustes».
+class AjustesLecturaCuidador extends StatelessWidget {
+  const AjustesLecturaCuidador({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Mi letra',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 10),
+        ValueListenableBuilder<double>(
+          valueListenable: Ajustes.escalaTexto,
+          builder: (context, actual, _) => Row(
+            children: [
+              for (final (i, (valor, nombre)) in tamanosLetra.indexed)
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Semantics(
+                      button: true,
+                      selected: actual == valor,
+                      label: 'Letra $nombre',
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(20),
+                        onTap: () => Ajustes.escalaTexto.value = valor,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          decoration: BoxDecoration(
+                            color: actual == valor
+                                ? ColoresNana.moradoClaro
+                                : Colors.white,
                             borderRadius: BorderRadius.circular(20),
-                            onTap: () => Ajustes.escalaTexto.value = valor,
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              decoration: BoxDecoration(
-                                color: actual == valor
-                                    ? ColoresNana.moradoClaro
-                                    : Colors.white,
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: actual == valor
-                                      ? ColoresNana.morado
-                                      : const Color(0xFFD9D2EA),
-                                  width: actual == valor ? 3 : 1,
+                            border: Border.all(
+                              color: actual == valor
+                                  ? ColoresNana.morado
+                                  : const Color(0xFFD9D2EA),
+                              width: actual == valor ? 3 : 1,
+                            ),
+                          ),
+                          child: ExcludeSemantics(
+                            child: Column(
+                              children: [
+                                Text(
+                                  'Aa',
+                                  style: TextStyle(
+                                    fontSize: 22.0 + 6 * i,
+                                    fontWeight: FontWeight.bold,
+                                    color: ColoresNana.morado,
+                                  ),
                                 ),
-                              ),
-                              child: ExcludeSemantics(
-                                child: Column(
-                                  children: [
-                                    Text(
-                                      'Aa',
-                                      style: TextStyle(
-                                        fontSize: 22.0 + 6 * i,
-                                        fontWeight: FontWeight.bold,
-                                        color: ColoresNana.morado,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      nombre,
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: actual == valor
-                                            ? FontWeight.bold
-                                            : FontWeight.normal,
-                                      ),
-                                    ),
-                                  ],
+                                const SizedBox(height: 4),
+                                Text(
+                                  nombre,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: actual == valor
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                  ),
                                 ),
-                              ),
+                              ],
                             ),
                           ),
                         ),
                       ),
                     ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            for (final m in modosDeUso)
-              ValueListenableBuilder<bool>(
-                valueListenable: m.$4,
-                builder: (context, encendido, _) => SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  secondary: Icon(m.$1, color: ColoresNana.morado, size: 30),
-                  title: Text(
-                    m.$2,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
                   ),
-                  subtitle: Text(m.$3, style: const TextStyle(fontSize: 15)),
-                  value: encendido,
-                  onChanged: (v) => m.$4.value = v,
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+        for (final m in modosDeUso)
+          ValueListenableBuilder<bool>(
+            valueListenable: m.$4,
+            builder: (context, encendido, _) => SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              secondary: Icon(m.$1, color: ColoresNana.morado, size: 30),
+              title: Text(
+                m.$2,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-            const InterruptorHuella(),
-          ],
-        ),
-      ),
+              subtitle: Text(m.$3, style: const TextStyle(fontSize: 15)),
+              value: encendido,
+              onChanged: (v) => m.$4.value = v,
+            ),
+          ),
+        const InterruptorHuella(),
+      ],
     );
   }
 }

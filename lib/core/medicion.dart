@@ -72,6 +72,10 @@ const pantallasConocidas = {
   'FamiliaAlertas': 'Familia y alertas',
   'PantallaPrivacidad': 'Tus datos',
   'PantallaDelAdulto': 'Pantalla del adulto',
+  'MisAjustes': 'Mis ajustes',
+  'PestanaRutinas': 'Rutinas',
+  'PestanaHistorial': 'Su expediente',
+  'ExpedientePrivado': 'Su expediente',
   'ComoVaLaPrueba': 'Cómo va la prueba',
 };
 
