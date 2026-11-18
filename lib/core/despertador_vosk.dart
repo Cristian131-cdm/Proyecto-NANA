@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:vosk_flutter/vosk_flutter.dart';
 
 import 'despertador.dart';
+import 'servicios.dart';
 
 // En Android, «Oye NANA» usa Vosk: escucha sin parar, sin el «bip» del
 // sistema y sin internet. En iPhone (Vosk no lo soporta) se usa el de antes.
@@ -26,6 +27,10 @@ const _gramatica = [
   'oye nena',
   '[unk]',
 ];
+final _frases = {
+  for (final f in _gramatica)
+    if (f != '[unk]') f,
+};
 
 class DespertadorVosk implements Despertador {
   final _activo = ValueNotifier(false);
@@ -53,8 +58,8 @@ class DespertadorVosk implements Despertador {
         grammar: _gramatica,
       );
       final s = await vosk.initSpeechService(reconocedor);
-      // Los parciales avisan en cuanto se oye; el resultado, al terminar.
-      s.onPartial().listen((j) => _revisar(j, 'partial'));
+      // Solo la frase completa: los pedazos sueltos (parciales) hacían que
+      // se activara con cualquier sonido, hasta con la voz de NANA.
       s.onResult().listen((j) => _revisar(j, 'text'));
       return s;
     } catch (e) {
@@ -71,7 +76,11 @@ class DespertadorVosk implements Despertador {
     } catch (_) {
       return;
     }
-    if (!esDespertar(texto)) return;
+    // Con una lista cerrada, Vosk acomoda cualquier sonido a la frase más
+    // parecida. Por eso: nunca mientras NANA habla (se oiría a sí misma) y
+    // solo si oyó la frase sola, sin ruido alrededor ([unk]).
+    if (Servicios.voz.hablando.value) return;
+    if (!_frases.contains(texto.trim())) return;
     debugPrint('NANA «Oye NANA» (Vosk): "$texto"');
     final f = _alOir;
     _alOir = null;
@@ -99,6 +108,13 @@ class DespertadorVosk implements Despertador {
       return;
     }
     _servicio = s;
+    // Si NANA está hablando (por ejemplo, despidiéndose al cerrar la
+    // plática), espera a que termine y un momento más antes de escuchar.
+    for (var i = 0; i < 40 && Servicios.voz.hablando.value; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 250));
+    }
+    await Future<void>.delayed(const Duration(milliseconds: 700));
+    if (!_quiere) return;
     try {
       await s.reset();
       await s.start();
