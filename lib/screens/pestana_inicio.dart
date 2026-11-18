@@ -166,19 +166,23 @@ class _Contenido extends StatelessWidget {
     final animos = hoy.where((r) => r.tipo == TipoActividad.animo);
     final animo = animos.isEmpty ? null : animos.last.valor;
 
+    final pendientes = dia
+        .where((a) => a.estado != EstadoActividad.hecha)
+        .take(2)
+        .toList();
+
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
       children: [
         for (final a in alertas) ...[
           _Alerta(
+            icono: a.esFrase
+                ? Icons.chat_bubble_outline
+                : Icons.notifications_active_outlined,
             titulo: a.esFrase
                 ? '$nombre dijo: "${a.texto ?? ''}"'
                 : '$nombre pidió ayuda',
-            detalle: a.esFrase
-                ? 'Te lo mandó desde NANA a las '
-                      '${horaCorta(TimeOfDay.fromDateTime(a.fecha))}.'
-                : 'Tocó "Necesito ayuda" a las '
-                      '${horaCorta(TimeOfDay.fromDateTime(a.fecha))}.',
+            detalle: 'A las ${horaCorta(TimeOfDay.fromDateTime(a.fecha))}',
             onLlamar: llamarle,
             textoResuelta: a.esFrase ? 'Ya lo vi' : 'Ya lo atendí',
             onResuelta: () => Servicios.repo.atenderAlerta(adulto.folio, a.id),
@@ -187,10 +191,9 @@ class _Contenido extends StatelessWidget {
         ],
         for (final m in vencidas) ...[
           _Alerta(
-            titulo: '${m.nombre} de las ${horaCorta(m.hora)} sin confirmar',
-            detalle:
-                'Ya pasaron los ${m.ventanaMin} minutos y $nombre no ha '
-                'dicho que la tomó.',
+            icono: Icons.medication_outlined,
+            titulo: '${m.nombre} · ${horaCorta(m.hora)}',
+            detalle: 'Sin confirmar',
             onLlamar: llamarle,
             textoResuelta: 'Ya la tomó',
             onResuelta: () => _yaLaTomo(context, m),
@@ -199,113 +202,259 @@ class _Contenido extends StatelessWidget {
         ],
         if (callado) ...[
           _Alerta(
-            titulo:
-                '$nombre lleva ${reglas.horasSinNoticias} horas sin noticias',
-            detalle:
-                'No se ha anotado nada desde las '
-                '${horaCorta(TimeOfDay.fromDateTime(ultima!))}. '
-                'Puedes llamarle para saber cómo está.',
+            icono: Icons.hourglass_bottom,
+            titulo: 'Sin noticias de $nombre',
+            detalle: 'Desde las ${horaCorta(TimeOfDay.fromDateTime(ultima!))}',
             onLlamar: llamarle,
           ),
           const SizedBox(height: 12),
         ],
         if (alertas.isEmpty && vencidas.isEmpty && !callado)
           _EstadoBien(adulto: nombre),
-        TituloSeccion('Hoy lleva $listas de ${dia.length}'),
-        ColumnasCuidador(
-          maxColumnas: 4,
+        TituloSeccion('Hoy · $listas de ${dia.length}'),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _Recuadro(
-              icono: Icons.medication,
-              titulo: 'Medicinas',
-              valor: '$tomadas / ${meds.length}',
-              color: vencidas.isNotEmpty
-                  ? ColoresNana.alerta
-                  : meds.isNotEmpty && tomadas == meds.length
-                  ? ColoresNana.ok
-                  : ColoresNana.tinta,
+            Expanded(
+              child: _Circulo(
+                etiqueta: 'Medicinas',
+                valor: '$tomadas/${meds.length}',
+                color: vencidas.isNotEmpty
+                    ? ColoresNana.alerta
+                    : meds.isNotEmpty && tomadas == meds.length
+                    ? ColoresNana.ok
+                    : null,
+              ),
             ),
-            _Recuadro(
-              icono: Icons.restaurant,
-              titulo: 'Comidas',
-              valor:
-                  '${hechas(TipoActividad.comida)} / ${total(TipoActividad.comida)}',
-              color: ColoresNana.tinta,
+            Expanded(
+              child: _Circulo(
+                etiqueta: 'Comidas',
+                valor:
+                    '${hechas(TipoActividad.comida)}/${total(TipoActividad.comida)}',
+              ),
             ),
-            _Recuadro(
-              icono: Icons.mood,
-              titulo: 'Ánimo',
-              valor: animo == null ? 'Sin dato' : CaritasAnimo.etiquetas[animo],
-              color: _colorAnimo(animo),
+            Expanded(
+              child: _Circulo(
+                etiqueta: animo == null
+                    ? 'Ánimo'
+                    : CaritasAnimo.etiquetas[animo],
+                icono: _caraDe(animo),
+                color: _colorAnimo(animo),
+                lectura: animo == null
+                    ? 'Ánimo: todavía no dice'
+                    : 'Ánimo: ${CaritasAnimo.etiquetas[animo]}',
+              ),
             ),
-            _Recuadro(
-              icono: Icons.directions_walk,
-              titulo: 'Actividad',
-              valor:
-                  '${hechas(TipoActividad.ejercicio)} / ${total(TipoActividad.ejercicio)}',
-              color: ColoresNana.tinta,
+            Expanded(
+              child: _Circulo(
+                etiqueta: 'Moverse',
+                valor:
+                    '${hechas(TipoActividad.ejercicio)}/${total(TipoActividad.ejercicio)}',
+              ),
             ),
           ],
         ),
-        const TituloSeccion('Su día'),
-        if (linea.isEmpty)
-          const Text(
-            'Todavía no hay nada anotado hoy.',
-            style: TextStyle(fontSize: 18),
-          ),
-        for (var i = 0; i < linea.length; i++)
-          _Evento(
-            actividad: linea[i],
-            ultimo: i == linea.length - 1,
-            onTap:
-                linea[i].tipo == TipoActividad.medicina &&
-                    linea[i].estado != EstadoActividad.hecha
-                ? () => _yaLaTomo(
-                    context,
-                    meds.firstWhere((m) => m.id == linea[i].idMedicamento),
-                  )
-                : null,
-          ),
-        if (!adulto.tieneCelular) ...[
-          const SizedBox(height: 8),
+        const TituloSeccion('Lo que sigue'),
+        if (pendientes.isEmpty)
           Text(
-            '$nombre no tiene celular: toca una medicina para anotar '
-            'que ya la tomó.',
-            style: const TextStyle(fontSize: 16),
+            '$nombre ya hizo todo lo de hoy.',
+            style: const TextStyle(fontSize: 18),
           ),
+        for (final a in pendientes) ...[
+          SuperficieCuidador(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 84,
+                  child: Text(
+                    a.hora,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: ColoresNana.morado,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Text(a.titulo, style: const TextStyle(fontSize: 19)),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
         ],
-        const SizedBox(height: 24),
-        if (llamarle != null)
-          ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 64),
-            child: FilledButton.icon(
-              onPressed: llamarle,
-              icon: const Icon(Icons.call),
-              label: Text('Llamar a $nombre'),
-              style: FilledButton.styleFrom(
-                backgroundColor: ColoresNana.azul,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                textStyle: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+        _DiaCompleto(
+          linea: linea,
+          sinCelular: !adulto.tieneCelular,
+          nombre: nombre,
+          onTomar: (a) => _yaLaTomo(
+            context,
+            meds.firstWhere((m) => m.id == a.idMedicamento),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Carita para el ánimo (0 muy bien … 4 muy mal), para no depender del texto.
+  IconData _caraDe(int? valor) => switch (valor) {
+    null => Icons.help_outline,
+    0 => Icons.sentiment_very_satisfied,
+    1 => Icons.sentiment_satisfied,
+    2 => Icons.sentiment_neutral,
+    3 => Icons.sentiment_dissatisfied,
+    _ => Icons.sentiment_very_dissatisfied,
+  };
+}
+
+// «Ver todo el día»: la línea de tiempo completa, guardada para que la
+// pestaña quede corta.
+class _DiaCompleto extends StatefulWidget {
+  final List<Actividad> linea;
+  final bool sinCelular;
+  final String nombre;
+  final ValueChanged<Actividad> onTomar;
+
+  const _DiaCompleto({
+    required this.linea,
+    required this.sinCelular,
+    required this.nombre,
+    required this.onTomar,
+  });
+
+  @override
+  State<_DiaCompleto> createState() => _DiaCompletoState();
+}
+
+class _DiaCompletoState extends State<_DiaCompleto> {
+  bool _abierto = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final linea = widget.linea;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            onPressed: () => setState(() => _abierto = !_abierto),
+            icon: Icon(
+              _abierto ? Icons.expand_less : Icons.expand_more,
+              size: 28,
+            ),
+            label: Text(_abierto ? 'Ocultar el día' : 'Ver todo el día'),
+            style: TextButton.styleFrom(
+              minimumSize: const Size(0, 52),
+              textStyle: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),
-        const SizedBox(height: 16),
-        const Text(
-          'NANA solo registra, recuerda y alerta. No da recomendaciones médicas.',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 13, color: ColoresNana.tintaSuave),
         ),
+        if (_abierto) ...[
+          if (linea.isEmpty)
+            const Text(
+              'Todavía no hay nada anotado hoy.',
+              style: TextStyle(fontSize: 18),
+            ),
+          for (var i = 0; i < linea.length; i++)
+            _Evento(
+              actividad: linea[i],
+              ultimo: i == linea.length - 1,
+              onTap:
+                  linea[i].tipo == TipoActividad.medicina &&
+                      linea[i].estado != EstadoActividad.hecha
+                  ? () => widget.onTomar(linea[i])
+                  : null,
+            ),
+          if (widget.sinCelular) ...[
+            const SizedBox(height: 8),
+            Text(
+              '${widget.nombre} no tiene celular: toca una medicina para '
+              'anotar que ya la tomó.',
+              style: const TextStyle(fontSize: 16),
+            ),
+          ],
+        ],
       ],
     );
   }
 }
 
+// Un círculo de «Hoy»: número (o carita) y una palabra abajo.
+class _Circulo extends StatelessWidget {
+  final String etiqueta;
+  final String? valor;
+  final IconData? icono;
+  final Color? color;
+  final String? lectura;
+
+  const _Circulo({
+    required this.etiqueta,
+    this.valor,
+    this.icono,
+    this.color,
+    this.lectura,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = color ?? ColoresNana.tinta;
+    return Semantics(
+      label: lectura ?? '$etiqueta: ${valor ?? ''}',
+      excludeSemantics: true,
+      child: Column(
+        children: [
+          Container(
+            width: 66,
+            height: 66,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: color == ColoresNana.ok
+                  ? ColoresNana.okClaro
+                  : color == ColoresNana.alerta
+                  ? ColoresNana.alertaClaro
+                  : Colors.white,
+              border: Border.all(
+                color: color ?? const Color(0xFFDDD6F3),
+                width: 4,
+              ),
+            ),
+            child: icono != null
+                ? Icon(icono, color: c, size: 34)
+                : FittedBox(
+                    child: Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: Text(
+                        valor ?? '',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: c,
+                        ),
+                      ),
+                    ),
+                  ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            etiqueta,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 15),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Algo que necesita atención: ícono, una línea corta y qué hacer.
 class _Alerta extends StatelessWidget {
+  final IconData icono;
   final String titulo;
   final String detalle;
   final VoidCallback? onLlamar; // null si no hay teléfono guardado
@@ -313,6 +462,7 @@ class _Alerta extends StatelessWidget {
   final VoidCallback? onResuelta;
 
   const _Alerta({
+    required this.icono,
     required this.titulo,
     required this.detalle,
     required this.onLlamar,
@@ -323,7 +473,7 @@ class _Alerta extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: ColoresNana.alertaClaro,
         borderRadius: BorderRadius.circular(24),
@@ -334,27 +484,31 @@ class _Alerta extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(
-                Icons.notifications_active_outlined,
-                color: ColoresNana.alerta,
-                size: 30,
+              CircleAvatar(
+                radius: 24,
+                backgroundColor: ColoresNana.alerta,
+                child: Icon(icono, color: Colors.white, size: 26),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 12),
               Expanded(
-                child: Text(
-                  titulo,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: ColoresNana.alerta,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      titulo,
+                      style: const TextStyle(
+                        fontSize: 21,
+                        fontWeight: FontWeight.bold,
+                        color: ColoresNana.alerta,
+                      ),
+                    ),
+                    Text(detalle, style: const TextStyle(fontSize: 17)),
+                  ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 4),
-          Text(detalle, style: const TextStyle(fontSize: 16)),
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
           ColumnasCuidador(
             children: [
               if (onLlamar != null)
@@ -363,14 +517,14 @@ class _Alerta extends StatelessWidget {
                   icon: const Icon(Icons.call),
                   label: const Text('Llamar'),
                   style: FilledButton.styleFrom(
-                    minimumSize: const Size(0, 64),
-                    padding: const EdgeInsets.all(16),
+                    minimumSize: const Size(0, 60),
+                    padding: const EdgeInsets.all(14),
                     backgroundColor: ColoresNana.alerta,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(18),
                     ),
                     textStyle: const TextStyle(
-                      fontSize: 17,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -379,16 +533,16 @@ class _Alerta extends StatelessWidget {
                 OutlinedButton(
                   onPressed: onResuelta,
                   style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(0, 64),
-                    padding: const EdgeInsets.all(16),
+                    minimumSize: const Size(0, 60),
+                    padding: const EdgeInsets.all(14),
                     foregroundColor: ColoresNana.alerta,
                     backgroundColor: Colors.white,
-                    side: const BorderSide(color: ColoresNana.alerta),
+                    side: const BorderSide(color: ColoresNana.alerta, width: 2),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(18),
                     ),
                     textStyle: const TextStyle(
-                      fontSize: 17,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -423,75 +577,6 @@ class _EstadoBien extends StatelessWidget {
               '$adulto va bien hoy',
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Recuadro extends StatelessWidget {
-  final IconData icono;
-  final String titulo;
-  final String valor;
-  final Color color;
-
-  const _Recuadro({
-    required this.icono,
-    required this.titulo,
-    required this.valor,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SuperficieCuidador(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icono, size: 20, color: ColoresNana.tintaSuave),
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text(
-                  titulo,
-
-                  style: const TextStyle(
-                    fontSize: 15,
-                    color: ColoresNana.tintaSuave,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          // El ícono repite lo que dice el color, para quien no distingue
-          // el verde del naranja.
-          Row(
-            children: [
-              if (color == ColoresNana.ok)
-                const Icon(Icons.check_circle, color: ColoresNana.ok, size: 22)
-              else if (color == ColoresNana.alerta)
-                const Icon(
-                  Icons.warning_amber_rounded,
-                  color: ColoresNana.alerta,
-                  size: 22,
-                ),
-              if (color == ColoresNana.ok || color == ColoresNana.alerta)
-                const SizedBox(width: 6),
-              Flexible(
-                child: Text(
-                  valor,
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: color,
-                  ),
-                ),
-              ),
-            ],
           ),
         ],
       ),

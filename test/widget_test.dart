@@ -68,15 +68,23 @@ void main() {
     Servicios.reloj = () => DateTime(hoy.year, hoy.month, hoy.day, 9);
     addTearDown(() => Servicios.reloj = DateTime.now);
     Servicios.repo = RepositorioMemoria();
+    // Alto, para que toda la pestaña Hoy quepa sin desplazarse.
+    await tester.binding.setSurfaceSize(const Size(800, 2000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
     await tester.pumpWidget(_envolver(const PanelCuidador()));
     await tester.pumpAndSettle();
 
-    expect(find.text('Losartán de las 8:00 sin confirmar'), findsOneWidget);
+    expect(find.text('Losartán · 8:00'), findsOneWidget);
+    expect(find.text('Sin confirmar'), findsOneWidget);
     await tester.tap(find.text('Ya la tomó'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Sí, ya se la tomó'));
     await tester.pumpAndSettle();
     expect(find.text('Rosa va bien hoy'), findsOneWidget);
+    // La línea completa del día está detrás de «Ver todo el día».
+    expect(find.text('Tomó Losartán 50 mg'), findsNothing);
+    await tester.tap(find.text('Ver todo el día'));
+    await tester.pumpAndSettle();
     expect(find.text('Tomó Losartán 50 mg'), findsOneWidget);
 
     // El expediente ahora está en «Más».
