@@ -9,7 +9,7 @@ import '../widgets/tarjeta_dato.dart' show TarjetaDato;
 import 'familia_alertas.dart';
 import 'mis_ajustes.dart';
 import 'pantalla_del_adulto.dart';
-import 'pestana_historial.dart';
+import 'resumen_expediente.dart';
 import 'pestana_rutinas.dart';
 
 // Pestaña «Más» de quien cuida: lo que no se usa a diario. Arriba lo de la
@@ -75,7 +75,7 @@ class PestanaMas extends StatelessWidget {
                 ConBarra(
                   titulo: 'Su expediente',
                   child: permisos.verSalud
-                      ? PestanaHistorial(
+                      ? ResumenExpediente(
                           adulto: a.nombre,
                           folio: a.folio,
                           puedeEditar: permisos.editarSalud,

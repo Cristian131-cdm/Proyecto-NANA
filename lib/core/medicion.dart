@@ -76,6 +76,7 @@ const pantallasConocidas = {
   'PestanaRutinas': 'Rutinas',
   'PestanaHistorial': 'Su expediente',
   'ExpedientePrivado': 'Su expediente',
+  'ResumenExpediente': 'Su expediente',
   'ComoVaLaPrueba': 'Cómo va la prueba',
 };
 

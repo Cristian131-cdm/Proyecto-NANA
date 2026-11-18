@@ -6,7 +6,6 @@ import '../core/tema.dart';
 import '../models/actividad.dart';
 import '../models/rutina.dart';
 import '../widgets/aviso.dart';
-import '../widgets/tarjeta_dato.dart';
 
 const _nombresDias = [
   'Lunes',
@@ -70,63 +69,156 @@ class _PestanaRutinasState extends State<PestanaRutinas> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      floatingActionButton: !widget.puedeEditar
-          ? null
-          : FloatingActionButton.extended(
-              heroTag: 'agregar-rutina',
-              onPressed: _abrirFormulario,
-              backgroundColor: ColoresNana.morado,
-              foregroundColor: Colors.white,
-              icon: const Icon(Icons.add),
-              label: const Text('Agregar', style: TextStyle(fontSize: 18)),
-            ),
-      body: StreamBuilder<List<Rutina>>(
-        stream: _rutinas,
-        builder: (context, snap) {
-          final rutinas = snap.data ?? const <Rutina>[];
-          return ListView(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 104),
-            children: [
-              const CabeceraCuidador(
-                titulo: 'Rutinas del día',
-                detalle: 'NANA le recuerda estas cosas a lo largo del día.',
-                icono: Icons.event_note_outlined,
+    return StreamBuilder<List<Rutina>>(
+      stream: _rutinas,
+      builder: (context, snap) {
+        final rutinas = snap.data ?? const <Rutina>[];
+        return Column(
+          children: [
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                children: [
+                  _encabezado(Icons.restaurant, 'Comidas'),
+                  ..._de(rutinas, TipoActividad.comida),
+                  const SizedBox(height: 8),
+                  _encabezado(Icons.directions_walk, 'Moverse'),
+                  ..._de(rutinas, TipoActividad.ejercicio),
+                  if (widget.puedeEditar && rutinas.isNotEmpty)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 8),
+                      child: Text(
+                        'Toca una rutina para cambiarla',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: ColoresNana.tintaSuave,
+                        ),
+                      ),
+                    ),
+                ],
               ),
-              const TituloSeccion('Comidas'),
-              ..._de(rutinas, TipoActividad.comida),
-              const TituloSeccion('Moverse'),
-              ..._de(rutinas, TipoActividad.ejercicio),
-            ],
-          );
-        },
-      ),
+            ),
+            if (widget.puedeEditar)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 64,
+                  child: FilledButton.icon(
+                    onPressed: _abrirFormulario,
+                    icon: const Icon(Icons.add, size: 28),
+                    label: const Text('Agregar rutina'),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: ColoresNana.morado,
+                      shape: const StadiumBorder(),
+                      textStyle: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 
+  Widget _encabezado(IconData icono, String texto) => Padding(
+    padding: const EdgeInsets.fromLTRB(4, 12, 4, 8),
+    child: Semantics(
+      header: true,
+      child: Row(
+        children: [
+          Icon(icono, color: ColoresNana.morado, size: 26),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              texto,
+              style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+
   List<Widget> _de(List<Rutina> rutinas, TipoActividad tipo) {
-    final deTipo = rutinas.where((r) => r.tipo == tipo).toList();
+    final deTipo = rutinas.where((r) => r.tipo == tipo).toList()
+      ..sort(
+        (a, b) => (a.hora.hour * 60 + a.hora.minute).compareTo(
+          b.hora.hour * 60 + b.hora.minute,
+        ),
+      );
     if (deTipo.isEmpty) {
       return [
-        TarjetaDato(
-          icono: tipo.icono,
-          titulo: tipo == TipoActividad.comida
-              ? 'Sin comidas todavía. Toca "Agregar".'
-              : 'Sin actividades todavía. Toca "Agregar".',
+        Text(
+          tipo == TipoActividad.comida
+              ? 'Sin comidas todavía.'
+              : 'Sin actividades todavía.',
+          style: const TextStyle(fontSize: 18, color: ColoresNana.tintaSuave),
         ),
       ];
     }
     return [
       for (final r in deTipo)
-        TarjetaDato(
-          icono: tipo.icono,
-          titulo: '${r.titulo} · ${horaCorta(r.hora)}',
-          subtitulo: textoDias(r.dias),
-          color: tipo == TipoActividad.comida
-              ? ColoresNana.ok
-              : ColoresNana.azul,
-          onTap: widget.puedeEditar ? () => _abrirFormulario(r) : null,
+        Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: Material(
+            color: Colors.white,
+            clipBehavior: Clip.antiAlias,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+              side: const BorderSide(color: Color(0xFFDDD6F3), width: 2),
+            ),
+            child: InkWell(
+              onTap: widget.puedeEditar ? () => _abrirFormulario(r) : null,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 92,
+                      child: Text(
+                        horaCorta(r.hora),
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: ColoresNana.morado,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            r.titulo,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            textoDias(r.dias),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: ColoresNana.tintaSuave,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ),
     ];
   }

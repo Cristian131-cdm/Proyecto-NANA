@@ -72,7 +72,7 @@ void main() {
 
   testWidgets('Agregar una rutina la muestra en la lista', (tester) async {
     await tester.pumpWidget(_envolver(const PestanaRutinas(folio: 'rosa')));
-    await tester.tap(find.text('Agregar'));
+    await tester.tap(find.text('Agregar rutina'));
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField), 'Tomar agua');

@@ -409,7 +409,7 @@ class _FamiliaAlertasState extends State<FamiliaAlertas> {
                 '${vigenciaSuplente(suplente).substring(1)}',
             color: ColoresNana.azul,
           ),
-        TituloSeccion('Quiénes cuidan a $adulto'),
+        TituloSeccion('Quién acompaña a $adulto'),
         for (final f in familia)
           TarjetaDato(
             icono: Icons.person,
@@ -431,16 +431,15 @@ class _FamiliaAlertasState extends State<FamiliaAlertas> {
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 8),
             child: Text(
-              'Solo quien dio de alta a esta persona invita, nombra suplente '
-              'y cambia las alertas.',
+              'Solo la persona encargada invita y cambia las alertas.',
               style: TextStyle(fontSize: 15, color: ColoresNana.tintaSuave),
             ),
           ),
-        const TituloSeccion('¿Cuándo te aviso?'),
+        const TituloSeccion('Avísame si…'),
         _Regla(
           icono: Icons.medication,
           titulo: 'Medicina sin confirmar',
-          subtitulo: 'Según la ventana de cada medicina (15, 30 o 60 min)',
+          subtitulo: 'Cuando pasa su ventana',
           encendida: reglas.medicina,
           onCambio: p.cambiarAlertas
               ? (v) => _guardar(reglas.copyWith(medicina: v))
@@ -449,8 +448,7 @@ class _FamiliaAlertasState extends State<FamiliaAlertas> {
         _Regla(
           icono: Icons.schedule,
           titulo: 'Sin noticias',
-          subtitulo:
-              'Si pasan ${reglas.horasSinNoticias} horas sin ningún registro',
+          subtitulo: '${reglas.horasSinNoticias} horas sin registros',
           encendida: reglas.sinNoticias,
           onCambio: p.cambiarAlertas
               ? (v) => _guardar(reglas.copyWith(sinNoticias: v))
@@ -471,7 +469,7 @@ class _FamiliaAlertasState extends State<FamiliaAlertas> {
         const _Regla(
           icono: Icons.notifications_active,
           titulo: 'Cuando pide ayuda',
-          subtitulo: 'Siempre, al momento. Esta no se puede apagar.',
+          subtitulo: 'Siempre. No se apaga.',
           encendida: true,
         ),
         if (p.pantallaDelAdulto) ...[
@@ -479,7 +477,7 @@ class _FamiliaAlertasState extends State<FamiliaAlertas> {
           TarjetaDato(
             icono: Icons.phone_android,
             titulo: 'Pantalla de $adulto',
-            subtitulo: 'Letra, colores, voz y movimiento',
+            subtitulo: 'Cómo ve NANA en su celular',
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(
@@ -504,9 +502,8 @@ class _FamiliaAlertasState extends State<FamiliaAlertas> {
             icono: Icons.insights_outlined,
             titulo: 'Ayudar a mejorar NANA',
             subtitulo:
-                'Anota de forma anónima qué pantallas se abren y dónde se '
-                'regresan, en tu celular y en el de $adulto. Sin nombres, '
-                'sin medicinas y sin lo que se escribe.',
+                'Anónimo: qué pantallas se usan. Sin nombres, medicinas ni '
+                'lo que se escribe.',
             encendida: a?.estudio ?? false,
             onCambio: (v) => _hacer(
               () => Servicios.repo.guardarEstudio(widget.folio, v),

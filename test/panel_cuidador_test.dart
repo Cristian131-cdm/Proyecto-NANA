@@ -10,7 +10,7 @@ import 'package:nana_app/screens/familia_alertas.dart';
 import 'package:nana_app/screens/mis_ajustes.dart';
 import 'package:nana_app/screens/panel_cuidador.dart';
 import 'package:nana_app/screens/pantalla_del_adulto.dart';
-import 'package:nana_app/screens/pestana_historial.dart';
+import 'package:nana_app/screens/resumen_expediente.dart';
 import 'package:nana_app/screens/pestana_mas.dart';
 import 'package:nana_app/screens/pestana_rutinas.dart';
 
@@ -104,7 +104,7 @@ void main() {
       await t.pageBack();
       await t.pumpAndSettle();
       await tocar(t, 'Su expediente');
-      expect(find.byType(PestanaHistorial), findsOneWidget);
+      expect(find.byType(ResumenExpediente), findsOneWidget);
     });
 
     testWidgets('abre Familia y alertas y la Pantalla de Rosa', (t) async {
