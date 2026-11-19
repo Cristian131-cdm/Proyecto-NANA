@@ -4,7 +4,7 @@ import 'dart:ui' show lerpDouble;
 import 'package:flutter/material.dart';
 
 import '../core/tema.dart';
-import '../widgets/mascota_nana.dart';
+import '../widgets/logo_nana.dart';
 import 'arranque.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -20,16 +20,16 @@ class _SplashScreenState extends State<SplashScreen>
 
   // Línea de tiempo de 6 s (más la pausa inicial de 0.4 s):
   //   0.0 – 0.8  la mascota rebota y sube; se abre el halo
-  //   0.9 – 1.4  parpadea y el corazón late una vez
+  //   0.9 – 1.4  el logo late una vez
   //   1.4 – 2.6  N · A · N · A, letra por letra
   //   2.6 – 3.4  el lema
   //   3.4 – 4.6  Cuido, Acompaño, Protejo
-  //   4.6 – 6.0  pausa: todo quieto, solo late el corazón
+  //   4.6 – 6.0  pausa: todo quieto, solo late el logo
   late final AnimationController _c = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 6000),
   );
-  // Se repite todo el tiempo: la mascota flota y el corazón late.
+  // Se repite todo el tiempo: el logo flota y late.
   late final AnimationController _latido = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 1400),
@@ -38,7 +38,6 @@ class _SplashScreenState extends State<SplashScreen>
   late final Animation<double> _rebote = _tramo(0.0, 0.1, Curves.linear);
   late final Animation<double> _subir = _tramo(0.05, 0.13, Curves.easeOutCubic);
   late final Animation<double> _halo = _tramo(0.03, 0.15, Curves.easeOut);
-  late final Animation<double> _parpadeo = _tramo(0.15, 0.2, Curves.linear);
   late final Animation<double> _corazon = _tramo(0.18, 0.24, Curves.linear);
   late final List<Animation<double>> _letras = [
     for (var i = 0; i < 4; i++)
@@ -142,11 +141,13 @@ class _SplashScreenState extends State<SplashScreen>
                   final centroFinal = alto * 0.3;
                   final centroY = lerpDouble(alto / 2, centroFinal, v(_subir))!;
                   final flotar = quieto ? 0.0 : onda * 5 * v(_subir);
-                  final escalaMascota = 1 + 0.1 * pico(_rebote);
-                  final escalaCorazon =
+                  // El logo es una imagen: en vez del corazón, late completo
+                  // (suave) una vez al inicio y luego en la pausa.
+                  final escalaMascota =
                       1 +
-                      0.35 * pico(_corazon) +
-                      (quieto ? 0 : 0.25 * golpe * v(_pausa));
+                      0.1 * pico(_rebote) +
+                      0.05 * pico(_corazon) +
+                      (quieto ? 0 : 0.035 * golpe * v(_pausa));
                   final tamanoHalo = 260 + (quieto ? 0.0 : onda * 10);
 
                   return Stack(
@@ -176,11 +177,8 @@ class _SplashScreenState extends State<SplashScreen>
                         top: centroY - _tamanoMascota / 2 + flotar,
                         child: Transform.scale(
                           scale: escalaMascota,
-                          child: MascotaNana(
-                            tamano: _tamanoMascota,
-                            ojosCerrados: pico(_parpadeo),
-                            escalaCorazon: escalaCorazon,
-                          ),
+                          // El mismo logo del splash nativo y del ícono.
+                          child: const LogoNana(tamano: _tamanoMascota),
                         ),
                       ),
                       Positioned(

@@ -12,7 +12,6 @@ import 'arranque.dart';
 import 'bienvenida.dart';
 import 'codigo_vinculacion.dart';
 import 'como_va_la_prueba.dart';
-import 'unirme_con_codigo.dart';
 
 // «Mis ajustes y cuenta» de quien cuida (pestaña Más): su letra, colores,
 // «Oye NANA» y huella, y lo de su cuenta (antes en el menú «Mi cuenta»).
@@ -117,11 +116,6 @@ class _MisAjustesState extends State<MisAjustes> {
                 icono: Icons.person_add_alt,
                 texto: 'Cuidar a otra persona',
                 onTap: () => _ir(const AltaAdulto()),
-              ),
-              Renglon(
-                icono: Icons.group_add_outlined,
-                texto: 'Me invitaron, tengo un código',
-                onTap: () => _ir(const UnirmeConCodigo()),
               ),
               if (permisos.borrarDatos)
                 Renglon(
