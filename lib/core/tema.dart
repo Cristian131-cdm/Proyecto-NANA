@@ -14,6 +14,9 @@ class ColoresNana {
   static const alertaClaro = Color(0xFFFFF1D6);
   static const ok = Color(0xFF1F8A4C);
   static const okClaro = Color(0xFFDFF4E7);
+  // Pantalla «pidió ayuda»: rojo oscuro con letra blanca (contraste > 7:1).
+  static const urgente = Color(0xFFA3241A);
+  static const urgenteOscuro = Color(0xFF7E1A12);
 
   // Pantalla de la cámara: fondo oscuro y el rojo de "cámara encendida".
   static const noche = Color(0xFF1A1426);

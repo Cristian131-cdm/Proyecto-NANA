@@ -282,16 +282,12 @@ class _PanelCuidadorState extends State<PanelCuidador> {
                                             ),
                                           if (permisos.rol !=
                                               RolCuidador.principal)
-                                            Text(
+                                            InsigniaRol(
                                               permisos.rol ==
                                                       RolCuidador.suplente
                                                   ? 'Eres suplente '
                                                         '(${vigenciaSuplente(adulto.suplente!)})'
-                                                  : 'Eres familiar: ves y acompañas',
-                                              style: const TextStyle(
-                                                fontSize: 14,
-                                                color: ColoresNana.tintaSuave,
-                                              ),
+                                                  : 'Eres familiar',
                                             ),
                                         ],
                                       ),
@@ -347,6 +343,7 @@ class _PanelCuidadorState extends State<PanelCuidador> {
                       key: ValueKey(adulto.folio),
                       folio: adulto.folio,
                       puedeEditar: permisos.editarMedicinasYRutinas,
+                      creadoPor: adulto.creadoPor,
                     ),
                   ),
                   _Viva(
@@ -418,6 +415,32 @@ class _PanelCuidadorState extends State<PanelCuidador> {
               label: 'Más',
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// Pastilla bajo el nombre: «Eres familiar» o «Eres suplente (…)».
+class InsigniaRol extends StatelessWidget {
+  final String texto;
+  const InsigniaRol(this.texto, {super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(top: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+      decoration: BoxDecoration(
+        color: ColoresNana.moradoClaro,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        texto,
+        style: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: ColoresNana.tinta,
         ),
       ),
     );

@@ -6,6 +6,8 @@ class Alerta {
   final bool atendida;
   final String tipo;
   final String? texto;
+  // Quién de la familia ya respondió, por uid: «Ya voy» o «Ya la atendí».
+  final Map<String, RespuestaAlerta> respuestas;
 
   const Alerta({
     required this.id,
@@ -13,9 +15,44 @@ class Alerta {
     this.atendida = false,
     this.tipo = 'pide_ayuda',
     this.texto,
+    this.respuestas = const {},
   });
 
   bool get esFrase => tipo == 'frase';
+
+  Alerta copyWith({
+    bool? atendida,
+    Map<String, RespuestaAlerta>? respuestas,
+  }) => Alerta(
+    id: id,
+    fecha: fecha,
+    atendida: atendida ?? this.atendida,
+    tipo: tipo,
+    texto: texto,
+    respuestas: respuestas ?? this.respuestas,
+  );
+}
+
+// 'voy' = «Ya voy»; 'atendi' = «Ya la atendí».
+class RespuestaAlerta {
+  final String nombre;
+  final String estado;
+
+  const RespuestaAlerta({required this.nombre, required this.estado});
+
+  bool get atendio => estado == 'atendi';
+
+  Map<String, dynamic> aMapa() => {'nombre': nombre, 'estado': estado};
+
+  static Map<String, RespuestaAlerta> deMapa(Object? m) => {
+    if (m is Map)
+      for (final MapEntry(:key, :value) in m.entries)
+        if (value is Map)
+          '$key': RespuestaAlerta(
+            nombre: '${value['nombre'] ?? ''}',
+            estado: '${value['estado'] ?? 'voy'}',
+          ),
+  };
 }
 
 // Qué avisos quiere la familia (pantalla "Familia y alertas"). "Pide ayuda"

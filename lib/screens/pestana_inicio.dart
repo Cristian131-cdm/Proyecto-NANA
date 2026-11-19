@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/ajustes.dart';
 import '../core/dia.dart';
 import '../core/servicios.dart';
 import '../core/tema.dart';
@@ -13,6 +14,7 @@ import '../widgets/aviso.dart';
 import '../widgets/caritas_animo.dart';
 import '../widgets/tarjeta_dato.dart';
 import '../widgets/icono_nana.dart';
+import 'alerta_ayuda.dart';
 
 // Lo que el cuidador ve al abrir NANA: alertas, cómo va el día y la línea
 // de tiempo. Todo llega en tiempo real de Firestore.
@@ -47,14 +49,20 @@ class _PestanaInicioState extends State<PestanaInicio> {
               stream: _reglas,
               builder: (context, reglas) => StreamBuilder<DateTime?>(
                 stream: _ultima,
-                builder: (context, ultima) => _Contenido(
-                  adulto: widget.adulto,
-                  meds: meds.data ?? const [],
-                  hoy: regs.data ?? const [],
-                  alertas: alertas.data ?? const [],
-                  rutinas: rutinas.data ?? const [],
-                  reglas: reglas.data ?? const ReglasAlerta(),
-                  ultima: ultima.data,
+                builder: (context, ultima) => ListenableBuilder(
+                  listenable: Listenable.merge([
+                    Ajustes.callarMedicina,
+                    Ajustes.callarSinNoticias,
+                  ]),
+                  builder: (context, _) => _Contenido(
+                    adulto: widget.adulto,
+                    meds: meds.data ?? const [],
+                    hoy: regs.data ?? const [],
+                    alertas: alertas.data ?? const [],
+                    rutinas: rutinas.data ?? const [],
+                    reglas: reglas.data ?? const ReglasAlerta(),
+                    ultima: ultima.data,
+                  ),
                 ),
               ),
             ),
@@ -137,11 +145,13 @@ class _Contenido extends StatelessWidget {
     final nombre = adulto.nombre;
     final telefono = adulto.telefono;
     final ahora = Servicios.reloj();
-    final vencidas = reglas.medicina
+    // Las reglas son de la familia; «Mis alertas» calla algunas solo aquí.
+    final vencidas = reglas.medicina && !Ajustes.callarMedicina.value
         ? sinConfirmar(meds: meds, hoy: hoy, ahora: ahora)
         : const <Medicamento>[];
     final callado =
         reglas.sinNoticias &&
+        !Ajustes.callarSinNoticias.value &&
         sinNoticias(
           ultima: ultima,
           ahora: ahora,
@@ -182,10 +192,24 @@ class _Contenido extends StatelessWidget {
             titulo: a.esFrase
                 ? '$nombre dijo: "${a.texto ?? ''}"'
                 : '$nombre pidió ayuda',
-            detalle: 'A las ${horaCorta(TimeOfDay.fromDateTime(a.fecha))}',
+            detalle: [
+              'A las ${horaCorta(TimeOfDay.fromDateTime(a.fecha))}',
+              for (final r in a.respuestas.values)
+                if (!r.atendio && r.nombre.isNotEmpty) '${r.nombre} va para allá',
+            ].join(' · '),
             onLlamar: llamarle,
             textoResuelta: a.esFrase ? 'Ya lo vi' : 'Ya lo atendí',
-            onResuelta: () => Servicios.repo.atenderAlerta(adulto.folio, a.id),
+            onResuelta: () => a.esFrase
+                ? Servicios.repo.atenderAlerta(adulto.folio, a.id)
+                : Servicios.repo.responderAlerta(adulto.folio, a.id, 'atendi'),
+            onAbrir: a.esFrase
+                ? null
+                : () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AlertaAyuda(adulto: adulto, alerta: a),
+                    ),
+                  ),
           ),
           const SizedBox(height: 12),
         ],
@@ -460,6 +484,8 @@ class _Alerta extends StatelessWidget {
   final VoidCallback? onLlamar; // null si no hay teléfono guardado
   final String? textoResuelta; // null: la alerta se quita sola
   final VoidCallback? onResuelta;
+  // «Pidió ayuda»: abre la pantalla completa con «Ya voy».
+  final VoidCallback? onAbrir;
 
   const _Alerta({
     required this.icono,
@@ -468,6 +494,7 @@ class _Alerta extends StatelessWidget {
     required this.onLlamar,
     this.textoResuelta,
     this.onResuelta,
+    this.onAbrir,
   });
 
   @override
@@ -550,6 +577,22 @@ class _Alerta extends StatelessWidget {
                 ),
             ],
           ),
+          if (onAbrir != null)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton(
+                onPressed: onAbrir,
+                style: TextButton.styleFrom(
+                  minimumSize: const Size(0, 48),
+                  foregroundColor: ColoresNana.alerta,
+                  textStyle: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                child: const Text('Avisar que voy ›'),
+              ),
+            ),
         ],
       ),
     );

@@ -376,6 +376,24 @@ class RepositorioFirebase implements RepositorioNana {
   );
 
   @override
+  Future<void> dejarDeAcompanar(String folio) => _intentar(() async {
+    final u = uid;
+    if (u == null) return;
+    final d = (await _adultos.doc(folio).get()).data() ?? {};
+    if (d['creadoPor'] == u) throw const ErrorNana(errorPrincipalNoSale);
+    final eraSuplente = _suplente(d['suplente'])?.uid == u;
+    // Primero la fila (la regla de borrar revisa que todavía sea de la
+    // familia), luego se quita de idsCuidadores.
+    final batch = _db.batch()
+      ..delete(_de(folio, 'cuidadores').doc(u))
+      ..update(_adultos.doc(folio), {
+        'idsCuidadores': FieldValue.arrayRemove([u]),
+        if (eraSuplente) 'suplente': FieldValue.delete(),
+      });
+    await batch.commit();
+  });
+
+  @override
   Stream<Apariencia?> apariencia(String folio) => _adultos
       .doc(folio)
       .snapshots()
@@ -723,6 +741,7 @@ class RepositorioFirebase implements RepositorioNana {
                   (s.data()['fecha'] as Timestamp?)?.toDate() ?? DateTime.now(),
               tipo: s.data()['tipo'] as String? ?? 'pide_ayuda',
               texto: s.data()['texto'] as String?,
+              respuestas: RespuestaAlerta.deMapa(s.data()['respuestas']),
             ),
         ],
       );
@@ -763,6 +782,22 @@ class RepositorioFirebase implements RepositorioNana {
       'alertas',
     ).doc(id).update({'atendida': true, 'atendidaPor': uid}),
   );
+
+  @override
+  Future<void> responderAlerta(String folio, String id, String estado) =>
+      _intentar(() async {
+        final u = uid;
+        if (u == null) return;
+        final yo = (await _usuarios.doc(u).get()).data() ?? {};
+        final nombre = '${yo['nombre'] ?? ''}'.trim();
+        await _de(folio, 'alertas').doc(id).update({
+          'respuestas.$u': RespuestaAlerta(
+            nombre: nombre,
+            estado: estado,
+          ).aMapa(),
+          if (estado == 'atendi') ...{'atendida': true, 'atendidaPor': u},
+        });
+      });
 
   @override
   Stream<ReglasAlerta> reglasAlerta(String folio) => _adultos

@@ -408,6 +408,24 @@ class RepositorioMemoria implements RepositorioNana {
   }
 
   @override
+  Future<void> dejarDeAcompanar(String folio) async {
+    final u = _uid;
+    final a = _adultos[folio];
+    if (u == null || a == null || !a.idsCuidadores.contains(u)) return;
+    if (a.creadoPor == u) throw const ErrorNana(errorPrincipalNoSale);
+    _adultos[folio] = _con(
+      a,
+      ids: [
+        for (final id in a.idsCuidadores)
+          if (id != u) id,
+      ],
+      suplente: a.suplente?.uid == u ? null : a.suplente,
+    );
+    _parentescos.remove((folio, u));
+    _avisar();
+  }
+
+  @override
   Stream<Apariencia?> apariencia(String folio) =>
       _vigilar(() => _apariencias[folio]);
 
@@ -655,15 +673,23 @@ class RepositorioMemoria implements RepositorioNana {
   Future<void> atenderAlerta(String folio, String id) async {
     final lista = _alertas[folio] ?? [];
     final i = lista.indexWhere((a) => a.id == id);
-    if (i != -1) {
-      lista[i] = Alerta(
-        id: id,
-        fecha: lista[i].fecha,
-        atendida: true,
-        tipo: lista[i].tipo,
-        texto: lista[i].texto,
-      );
-    }
+    if (i != -1) lista[i] = lista[i].copyWith(atendida: true);
+    _avisar();
+  }
+
+  @override
+  Future<void> responderAlerta(String folio, String id, String estado) async {
+    final u = _uid;
+    final lista = _alertas[folio] ?? [];
+    final i = lista.indexWhere((a) => a.id == id);
+    if (u == null || i == -1) return;
+    lista[i] = lista[i].copyWith(
+      atendida: estado == 'atendi' ? true : null,
+      respuestas: {
+        ...lista[i].respuestas,
+        u: RespuestaAlerta(nombre: _usuarios[u]?.nombre ?? '', estado: estado),
+      },
+    );
     _avisar();
   }
 

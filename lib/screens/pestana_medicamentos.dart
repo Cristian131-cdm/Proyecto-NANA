@@ -10,6 +10,7 @@ import '../core/servicios.dart';
 import '../core/tema.dart';
 import '../models/medicamento.dart';
 import '../widgets/aviso.dart';
+import '../widgets/con_encargado.dart';
 import '../widgets/tarjeta_dato.dart';
 
 const unidadesDosis = ['mg', 'mcg', 'g', 'ml', 'UI', 'gotas', 'tabletas'];
@@ -51,10 +52,13 @@ class PestanaMedicamentos extends StatefulWidget {
   final String folio;
   // false para el familiar invitado: ve las medicinas, no las cambia.
   final bool puedeEditar;
+  // uid del encargado principal, para decirle al familiar quién las cambia.
+  final String? creadoPor;
   const PestanaMedicamentos({
     super.key,
     required this.folio,
     this.puedeEditar = true,
+    this.creadoPor,
   });
 
   @override
@@ -136,6 +140,15 @@ class _PestanaMedicamentosState extends State<PestanaMedicamentos> {
                         },
                 ),
                 const SizedBox(height: 10),
+              ],
+              if (!widget.puedeEditar) ...[
+                const SizedBox(height: 6),
+                ConEncargado(
+                  folio: folio,
+                  creadoPor: widget.creadoPor,
+                  builder: (encargado) =>
+                      AvisoCandado('Las agrega y cambia $encargado.'),
+                ),
               ],
             ],
           ),

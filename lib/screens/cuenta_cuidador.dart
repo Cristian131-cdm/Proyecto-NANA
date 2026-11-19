@@ -8,7 +8,7 @@ import '../widgets/aviso.dart';
 import '../widgets/formulario.dart';
 import 'alta_adulto.dart';
 import 'arranque.dart';
-import 'panel_cuidador.dart';
+import 'bienvenida_familiar.dart';
 import 'recomendar_huella.dart';
 
 final _correoValido = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
@@ -89,10 +89,13 @@ class _CuentaCuidadorState extends State<CuentaCuidador> {
       }
       final inv = widget.invitacion;
       if (inv != null) {
-        await repo.unirmeComoFamiliar(inv.codigo, _parentesco!);
+        final adulto = await repo.unirmeComoFamiliar(inv.codigo, _parentesco!);
         Medicion.tarea('invitacion_usada');
         if (mounted) {
-          await entrarRecomendandoHuella(context, const PanelCuidador());
+          await entrarRecomendandoHuella(
+            context,
+            BienvenidaFamiliar(adulto: adulto),
+          );
         }
         return;
       }

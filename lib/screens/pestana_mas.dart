@@ -4,9 +4,12 @@ import '../core/permisos.dart';
 import '../core/semana.dart' show avisoAlcance;
 import '../core/servicios.dart';
 import '../core/tema.dart';
+import '../data/repositorio.dart' show ErrorNana;
 import '../models/adulto.dart';
+import '../widgets/aviso.dart';
 import '../widgets/tarjeta_dato.dart' show TarjetaDato;
 import 'familia_alertas.dart';
+import 'mis_alertas.dart';
 import 'mis_ajustes.dart';
 import 'pantalla_del_adulto.dart';
 import 'resumen_expediente.dart';
@@ -23,6 +26,7 @@ class PestanaMas extends StatelessWidget {
   Widget build(BuildContext context) {
     final a = adulto;
     final permisos = Permisos.de(a, Servicios.repo.uid, Servicios.reloj());
+    final esFamiliar = permisos.rol == RolCuidador.familiar;
     void ir(Widget pantalla) =>
         Navigator.push(context, MaterialPageRoute(builder: (_) => pantalla));
 
@@ -58,6 +62,7 @@ class PestanaMas extends StatelessWidget {
             Renglon(
               icono: Icons.schedule,
               texto: 'Rutinas',
+              nota: permisos.editarMedicinasYRutinas ? null : 'Solo ver',
               onTap: () => ir(
                 ConBarra(
                   titulo: 'Rutinas de ${a.nombre}',
@@ -68,25 +73,25 @@ class PestanaMas extends StatelessWidget {
                 ),
               ),
             ),
-            Renglon(
-              icono: Icons.folder_outlined,
-              texto: 'Su expediente',
-              onTap: () => ir(
-                ConBarra(
-                  titulo: 'Su expediente',
-                  child: permisos.verSalud
-                      ? ResumenExpediente(
-                          adulto: a.nombre,
-                          folio: a.folio,
-                          puedeEditar: permisos.editarSalud,
-                        )
-                      : ExpedientePrivado(adulto: a.nombre),
+            // El familiar no ve el expediente: ni la entrada se le muestra.
+            if (permisos.verSalud)
+              Renglon(
+                icono: Icons.folder_outlined,
+                texto: 'Su expediente',
+                onTap: () => ir(
+                  ConBarra(
+                    titulo: 'Su expediente',
+                    child: ResumenExpediente(
+                      adulto: a.nombre,
+                      folio: a.folio,
+                      puedeEditar: permisos.editarSalud,
+                    ),
+                  ),
                 ),
               ),
-            ),
             Renglon(
               icono: Icons.family_restroom,
-              texto: 'Familia y alertas',
+              texto: esFamiliar ? 'Quién más la cuida' : 'Familia y alertas',
               onTap: () => ir(FamiliaAlertas(adulto: a.nombre, folio: a.folio)),
             ),
             if (permisos.pantallaDelAdulto)
@@ -103,6 +108,11 @@ class PestanaMas extends StatelessWidget {
         GrupoRenglones(
           children: [
             Renglon(
+              icono: Icons.notifications_outlined,
+              texto: 'Mis alertas',
+              onTap: () => ir(MisAlertas(adulto: a.nombre)),
+            ),
+            Renglon(
               icono: Icons.text_fields,
               texto: 'Mis ajustes y cuenta',
               onTap: () => ir(MisAjustes(adulto: a)),
@@ -114,6 +124,29 @@ class PestanaMas extends StatelessWidget {
             ),
           ],
         ),
+        if (permisos.rol != RolCuidador.principal) ...[
+          const SizedBox(height: 18),
+          OutlinedButton(
+            onPressed: () => _dejarDeAcompanar(context, a),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size(double.infinity, 62),
+              padding: const EdgeInsets.all(14),
+              foregroundColor: ColoresNana.urgente,
+              side: const BorderSide(color: ColoresNana.urgente, width: 2),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              textStyle: const TextStyle(
+                fontSize: 19,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            child: Text(
+              'Dejar de acompañar a ${a.nombre}',
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
         const SizedBox(height: 24),
         const Text(
           avisoAlcance,
@@ -122,6 +155,41 @@ class PestanaMas extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  Future<void> _dejarDeAcompanar(BuildContext context, Adulto a) async {
+    final si = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        title: Text('¿Dejar de acompañar a ${a.nombre}?'),
+        content: Text(
+          'Ya no verás su día ni te llegarán sus alertas. Para volver, te '
+          'tienen que invitar con un código nuevo.',
+          style: const TextStyle(fontSize: 18),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: FilledButton.styleFrom(
+              backgroundColor: ColoresNana.urgente,
+            ),
+            child: const Text('Sí, salir'),
+          ),
+        ],
+      ),
+    );
+    if (si != true) return;
+    try {
+      await Servicios.repo.dejarDeAcompanar(a.folio);
+      if (context.mounted) mostrarAviso(context, 'Ya no acompañas a ${a.nombre}');
+    } on ErrorNana catch (e) {
+      if (context.mounted) mostrarAviso(context, e.mensaje);
+    }
   }
 }
 

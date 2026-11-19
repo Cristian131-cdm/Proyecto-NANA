@@ -8,8 +8,8 @@ import '../widgets/campo_codigo.dart';
 import '../widgets/formulario.dart';
 import 'alta_adulto.dart';
 import 'arranque.dart';
+import 'bienvenida_familiar.dart';
 import 'cuenta_cuidador.dart';
-import 'panel_cuidador.dart';
 
 // Quien todavía no tiene cuenta escribe primero su código de invitación;
 // si sirve, pasa al formulario que crea su cuenta y lo une.
@@ -116,9 +116,12 @@ class _UnirmeConCodigoState extends State<UnirmeConCodigo> {
       _error = null;
     });
     try {
-      await Servicios.repo.unirmeComoFamiliar(codigo, _parentesco!);
+      final adulto = await Servicios.repo.unirmeComoFamiliar(
+        codigo,
+        _parentesco!,
+      );
       if (!mounted) return;
-      entrarA(context, const PanelCuidador());
+      entrarA(context, BienvenidaFamiliar(adulto: adulto));
     } on ErrorNana catch (e) {
       setState(() => _error = e.mensaje);
     } finally {

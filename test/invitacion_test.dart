@@ -249,6 +249,12 @@ void main() {
       await t.pump(const Duration(milliseconds: 200));
     }
 
+    // Primero la bienvenida del familiar, luego el panel.
+    expect(find.text('Ya acompañas a Rosa'), findsOneWidget);
+    await _bajarYTocar(t, 'Empezar');
+    for (var i = 0; i < 6; i++) {
+      await t.pump(const Duration(milliseconds: 200));
+    }
     expect(find.byType(PanelCuidador), findsOneWidget);
     expect(find.byType(AltaAdulto), findsNothing);
     expect((await repo.adultosACargo().first).single.nombre, 'Rosa');
@@ -331,6 +337,12 @@ void main() {
       await t.pump(const Duration(milliseconds: 200));
     }
 
+    expect(find.text('Ya acompañas a Rosa'), findsOneWidget);
+    expect(find.text('Te invitó Ana, que la cuida.'), findsOneWidget);
+    await _bajarYTocar(t, 'Empezar');
+    for (var i = 0; i < 6; i++) {
+      await t.pump(const Duration(milliseconds: 200));
+    }
     expect(find.byType(PanelCuidador), findsOneWidget);
     expect((await repo.adultosACargo().first).single.nombre, 'Rosa');
     final familia = await repo.familiaDe('rosa').first;

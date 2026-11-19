@@ -12,7 +12,11 @@ import 'package:nana_app/data/demo.dart';
 import 'package:nana_app/data/repositorio_memoria.dart';
 import 'package:nana_app/models/actividad.dart';
 import 'package:nana_app/models/adulto.dart';
+import 'package:nana_app/models/alerta.dart';
+import 'package:nana_app/screens/alerta_ayuda.dart';
 import 'package:nana_app/screens/alta_adulto.dart';
+import 'package:nana_app/screens/bienvenida_familiar.dart';
+import 'package:nana_app/screens/mis_alertas.dart';
 import 'package:nana_app/screens/bienvenida.dart';
 import 'package:nana_app/screens/candado.dart';
 import 'package:nana_app/screens/codigo_vinculacion.dart';
@@ -228,6 +232,38 @@ final _pantallas = <String, _Pantalla>{
   'Pantalla del adulto': (
     sesion: 'ana',
     crear: () => const PantallaDelAdulto(adulto: 'Rosa', folio: 'rosa'),
+  ),
+  // Familiar invitado
+  'Bienvenida del familiar': (
+    sesion: 'ana',
+    crear: () => const BienvenidaFamiliar(
+      adulto: Adulto(
+        folio: 'rosa',
+        nombre: 'María Guadalupe',
+        apellidos: 'Martínez',
+        tieneCelular: true,
+        idsCuidadores: ['ana'],
+        creadoPor: 'ana',
+      ),
+    ),
+  ),
+  'Pidió ayuda': (
+    sesion: 'ana',
+    crear: () => AlertaAyuda(
+      adulto: _rosa,
+      alerta: Alerta(
+        id: 'a1',
+        fecha: DateTime(2026, 11, 12, 8, 58),
+        respuestas: const {
+          'ana': RespuestaAlerta(nombre: 'Ana', estado: 'voy'),
+          'luis': RespuestaAlerta(nombre: 'Luis Fernando', estado: 'atendi'),
+        },
+      ),
+    ),
+  ),
+  'Mis alertas': (
+    sesion: 'ana',
+    crear: () => const MisAlertas(adulto: 'María Guadalupe'),
   ),
 };
 

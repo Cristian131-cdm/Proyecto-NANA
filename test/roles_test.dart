@@ -321,12 +321,15 @@ void main() {
     testWidgets(
       'En su panel, el familiar no puede agregar ni ver el expediente',
       (t) async {
+        // Alto para que la pestaña Más se dibuje completa.
+        await t.binding.setSurfaceSize(const Size(800, 1800));
+        addTearDown(() => t.binding.setSurfaceSize(null));
         await entraLuis();
         await t.pumpWidget(const MaterialApp(home: PanelCuidador()));
         for (var i = 0; i < 6; i++) {
           await t.pump(const Duration(milliseconds: 200));
         }
-        expect(find.text('Eres familiar: ves y acompañas'), findsOneWidget);
+        expect(find.text('Eres familiar'), findsOneWidget);
 
         await t.tap(find.text('Medicinas').last);
         for (var i = 0; i < 4; i++) {
@@ -335,32 +338,44 @@ void main() {
         expect(find.textContaining('Losartán'), findsWidgets);
         expect(find.text('Agregar medicina'), findsNothing);
         expect(find.byTooltip('Borrar Losartán'), findsNothing);
+        expect(find.text('Las agrega y cambia Ana.'), findsOneWidget);
 
         await t.tap(find.text('Más').last);
         for (var i = 0; i < 4; i++) {
           await t.pump(const Duration(milliseconds: 200));
         }
-        // El familiar no ve «Pantalla de Rosa» (solo el principal la cambia).
+        // El familiar no ve «Pantalla de Rosa» ni la entrada del expediente.
         expect(find.text('Pantalla de Rosa'), findsNothing);
-        await t.tap(find.text('Su expediente'));
-        for (var i = 0; i < 4; i++) {
-          await t.pump(const Duration(milliseconds: 200));
-        }
-        expect(find.text('El expediente de Rosa es privado'), findsOneWidget);
+        expect(find.text('Su expediente'), findsNothing);
+        expect(find.text('Quién más la cuida'), findsOneWidget);
+        expect(find.text('Solo ver'), findsOneWidget);
+        expect(find.text('Mis alertas'), findsOneWidget);
+        expect(find.text('Dejar de acompañar a Rosa'), findsOneWidget);
       },
     );
 
     testWidgets('El principal sí puede agregar medicinas', (t) async {
+      await t.binding.setSurfaceSize(const Size(800, 1800));
+      addTearDown(() => t.binding.setSurfaceSize(null));
       await t.pumpWidget(const MaterialApp(home: PanelCuidador()));
       for (var i = 0; i < 6; i++) {
         await t.pump(const Duration(milliseconds: 200));
       }
-      expect(find.text('Eres familiar: ves y acompañas'), findsNothing);
+      expect(find.text('Eres familiar'), findsNothing);
       await t.tap(find.text('Medicinas').last);
       for (var i = 0; i < 4; i++) {
         await t.pump(const Duration(milliseconds: 200));
       }
       expect(find.text('Agregar medicina'), findsWidgets);
+      expect(find.text('Las agrega y cambia Ana.'), findsNothing);
+
+      await t.tap(find.text('Más').last);
+      for (var i = 0; i < 4; i++) {
+        await t.pump(const Duration(milliseconds: 200));
+      }
+      expect(find.text('Su expediente'), findsOneWidget);
+      expect(find.text('Familia y alertas'), findsOneWidget);
+      expect(find.text('Dejar de acompañar a Rosa'), findsNothing);
     });
   });
 }

@@ -50,6 +50,13 @@ class Ajustes {
   static final ValueNotifier<bool> huellaActivada = ValueNotifier(false);
   static final ValueNotifier<bool> huellaOfrecida = ValueNotifier(false);
 
+  // «Mis alertas» de quien cuida: lo que NO quiere que le avise ESTE celular.
+  // Van al revés (callar) para que, sin guardar nada, todo avise.
+  // «Pidió ayuda» no está: siempre avisa.
+  static final ValueNotifier<bool> callarFrases = ValueNotifier(false);
+  static final ValueNotifier<bool> callarMedicina = ValueNotifier(false);
+  static final ValueNotifier<bool> callarSinNoticias = ValueNotifier(false);
+
   static Map<String, ValueNotifier<bool>> get _interruptores => {
     'encuesta_hecha': encuestaHecha,
     'que_me_hable': queMeHable,
@@ -62,6 +69,9 @@ class Ajustes {
     'pantalla_es_boton': pantallaEsBoton,
     'huella_activada': huellaActivada,
     'huella_ofrecida': huellaOfrecida,
+    'callar_frases': callarFrases,
+    'callar_medicina': callarMedicina,
+    'callar_sin_noticias': callarSinNoticias,
   };
 
   static SharedPreferences? _prefs;

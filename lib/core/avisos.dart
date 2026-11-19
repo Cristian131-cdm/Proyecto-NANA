@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../models/alerta.dart';
+import 'ajustes.dart';
 import 'alarmas.dart';
 import 'dia.dart';
 
@@ -126,6 +127,11 @@ class VigilanteAlertas {
         return;
       }
       for (final a in lista) {
+        // Las frases se pueden callar en «Mis alertas»; «pidió ayuda», nunca.
+        if (a.esFrase && Ajustes.callarFrases.value) {
+          vistas.add(a.id);
+          continue;
+        }
         if (vistas.add(a.id) && a.fecha.isAfter(desde)) {
           final (titulo, cuerpo) = textoAviso(nombre, a);
           // Con el prefijo no choca con el id de una alarma de medicina.

@@ -34,6 +34,9 @@ const errorSoloEncargado =
 const errorSinPermiso =
     'Eso solo lo puede hacer quien dio de alta a esta persona.';
 const errorYaLaCuidas = 'Ya cuidas a esta persona. No necesitas el código.';
+const errorPrincipalNoSale =
+    'Tú diste de alta a esta persona. Si ya no la acompañas, usa "Borrar '
+    'todos los datos" en Mis ajustes y cuenta.';
 
 // Todo lo que las pantallas leen o escriben. Hay dos versiones:
 // RepositorioFirebase (la real) y RepositorioMemoria (pruebas y demo sin internet).
@@ -75,6 +78,9 @@ abstract class RepositorioNana {
   Future<void> quitarSuplente(String folio);
   // Saca a alguien de la familia de esta persona (nunca al principal).
   Future<void> quitarFamiliar(String folio, String uid);
+  // El familiar o el suplente se sale por su cuenta. El principal no puede
+  // (tendría que borrar los datos de la persona).
+  Future<void> dejarDeAcompanar(String folio);
 
   // Cómo se ve NANA en el celular de la persona mayor (lo decide el principal).
   Stream<Apariencia?> apariencia(String folio);
@@ -125,6 +131,9 @@ abstract class RepositorioNana {
   Stream<List<Alerta>> alertasSinAtender(String folio);
   Future<bool> pedirAyuda(String folio);
   Future<void> atenderAlerta(String folio, String id);
+  // Alguien de la familia responde a «pidió ayuda»: estado 'voy' o 'atendi'.
+  // 'atendi' además la marca como atendida para todos.
+  Future<void> responderAlerta(String folio, String id, String estado);
   // El adulto dijo algo preocupante ("Me duele algo"): le llega a la familia.
   Future<void> avisarFrase(String folio, String frase);
   Stream<ReglasAlerta> reglasAlerta(String folio);

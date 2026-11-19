@@ -193,11 +193,13 @@ class Renglon extends StatelessWidget {
   final IconData icono;
   final String texto;
   final VoidCallback onTap;
+  final String? nota; // a la derecha, chiquita: «Solo ver»
   const Renglon({
     super.key,
     required this.icono,
     required this.texto,
     required this.onTap,
+    this.nota,
   });
 
   @override
@@ -220,6 +222,20 @@ class Renglon extends StatelessWidget {
                 ),
               ),
             ),
+            if (nota != null)
+              Flexible(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: Text(
+                    nota!,
+                    textAlign: TextAlign.end,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      color: ColoresNana.tintaSuave,
+                    ),
+                  ),
+                ),
+              ),
             const Icon(Icons.chevron_right, color: ColoresNana.tintaSuave),
           ],
         ),
