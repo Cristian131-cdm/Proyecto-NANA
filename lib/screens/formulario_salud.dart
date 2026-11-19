@@ -16,6 +16,9 @@ class FormularioSalud extends StatefulWidget {
   // Al venir del registro, a dónde sigue al guardar o con "Lo hago después".
   // Si es null, al guardar regresa a la pantalla anterior.
   final void Function(BuildContext context)? alTerminar;
+  // En el registro: «Paso 5 de 6». Desde el expediente no lleva pasos.
+  final int? paso;
+  final int? de;
 
   const FormularioSalud({
     super.key,
@@ -23,6 +26,8 @@ class FormularioSalud extends StatefulWidget {
     required this.nombre,
     this.inicial = Salud.vacia,
     this.alTerminar,
+    this.paso,
+    this.de,
   });
 
   @override
@@ -147,6 +152,8 @@ class _FormularioSaludState extends State<FormularioSalud> {
     final revisando = _documento != null;
     return PantallaPaso(
       barra: 'Salud de $nombre',
+      paso: widget.paso,
+      de: widget.de,
       titulo: revisando ? 'Revisa lo que encontré' : '¿Qué padece $nombre?',
       subtitulo: revisando
           ? null

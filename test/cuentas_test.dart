@@ -51,7 +51,7 @@ Future<void> _aceptarPermiso(WidgetTester t) async {
 
 Future<void> _crearCuentaDeAna(WidgetTester t) async {
   await t.pumpWidget(const MaterialApp(home: Bienvenida()));
-  await _tocar(t, 'Soy cuidador o familiar');
+  await _tocar(t, 'Cuido a alguien');
   await _tocar(t, 'Crear cuenta');
   await _escribir(t, 'Nombre', 'Ana');
   await _escribir(t, 'Celular (10 números)', '5512345678');
@@ -111,7 +111,7 @@ void main() {
     Servicios.repo = conAna;
 
     await t.pumpWidget(const MaterialApp(home: Bienvenida()));
-    await _tocar(t, 'Soy adulto mayor');
+    await _tocar(t, 'Soy la persona mayor');
     await t.enterText(find.byType(TextField), codigo.codigo);
     await _tocar(t, 'Entrar');
 
@@ -121,7 +121,7 @@ void main() {
 
   testWidgets('Un código que no existe muestra un aviso amable', (t) async {
     await t.pumpWidget(const MaterialApp(home: Bienvenida()));
-    await _tocar(t, 'Soy adulto mayor');
+    await _tocar(t, 'Soy la persona mayor');
     await t.enterText(find.byType(TextField), '000000');
     await _tocar(t, 'Entrar');
 
@@ -130,7 +130,7 @@ void main() {
 
   testWidgets('El botón Entrar espera a tener 6 números', (t) async {
     await t.pumpWidget(const MaterialApp(home: Bienvenida()));
-    await _tocar(t, 'Soy adulto mayor');
+    await _tocar(t, 'Soy la persona mayor');
     await t.enterText(find.byType(TextField), '48291');
     await t.pump();
 
@@ -151,7 +151,7 @@ void main() {
     await repo.cerrarSesion();
 
     await t.pumpWidget(const MaterialApp(home: Bienvenida()));
-    await _tocar(t, 'Soy cuidador o familiar');
+    await _tocar(t, 'Cuido a alguien');
     await _tocar(t, 'Ya tengo cuenta');
     await _escribir(t, 'Correo', 'luis@gmail.com');
     await _escribir(t, 'Contraseña', 'secreto1');

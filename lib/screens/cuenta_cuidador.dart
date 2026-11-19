@@ -62,7 +62,7 @@ class _CuentaCuidadorState extends State<CuentaCuidador> {
       _errorCorreo == null &&
       _errorContrasena == null &&
       (!widget.crear || (_errorNombre == null && _errorTelefono == null)) &&
-      (widget.invitacion == null || _parentesco != null);
+      (widget.invitacion == null || parentescoListo(_parentesco));
 
   Future<void> _enviar() async {
     setState(() => _intento = true);
@@ -134,20 +134,27 @@ class _CuentaCuidadorState extends State<CuentaCuidador> {
     void cambio(String _) => setState(() {});
 
     final inv = widget.invitacion;
+    // Registro nuevo de quien cuida: paso 1 de 6 (luego el alta, la salud y
+    // el código). Con invitación no hay pasos: es una sola pantalla.
+    final registro = crear && inv == null;
     return PantallaPaso(
+      paso: registro ? 1 : null,
+      de: registro ? 6 : null,
       barra: inv != null
-          ? 'Código de invitación'
+          ? 'Tus datos'
           : crear
           ? 'Crear cuenta'
           : 'Iniciar sesión',
       titulo: inv != null
-          ? 'Vas a cuidar a ${inv.nombreAdulto}'
+          ? 'Vas a acompañar a ${inv.nombreAdulto}'
           : crear
-          ? 'Tus datos'
+          ? 'Primero, tu cuenta'
           : 'Qué gusto verte',
       subtitulo: inv != null
-          ? '${inv.nombreInvita.isEmpty ? '' : 'Te invitó ${inv.nombreInvita}. '}'
-                'Llena tus datos para crear tu cuenta.'
+          ? crear
+                ? '${inv.nombreInvita.isEmpty ? '' : 'Te invitó ${inv.nombreInvita}. '}'
+                      'Llena tus datos para crear tu cuenta.'
+                : 'Entra con el correo y la contraseña de tu cuenta de NANA.'
           : crear
           ? 'Con ellos te avisamos si tu familiar necesita algo.'
           : null,
@@ -204,22 +211,40 @@ class _CuentaCuidadorState extends State<CuentaCuidador> {
             valor: _parentesco,
             onCambio: (p) => setState(() => _parentesco = p),
           ),
-          if (_intento && _parentesco == null) ...[
+          if (_intento && errorParentesco(_parentesco) != null) ...[
             const SizedBox(height: 12),
-            const MensajeError('Elige qué es tuyo'),
+            MensajeError(errorParentesco(_parentesco)!),
           ],
           const SizedBox(height: 20),
         ],
         const SizedBox(height: 8),
         BotonPrincipal(
-          texto: inv != null
-              ? 'Unirme'
-              : crear
+          texto: crear
               ? 'Crear mi cuenta'
+              : inv != null
+              ? 'Entrar y unirme'
               : 'Entrar',
           ocupado: _ocupado,
           onPressed: _enviar,
         ),
+        // Raro, pero pasa: ya tiene cuenta (cuida a otra persona) y lo
+        // invitaron. Entra con su cuenta y se une con el mismo código.
+        if (inv != null && crear) ...[
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: () => Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (_) => CuentaCuidador(crear: false, invitacion: inv),
+              ),
+            ),
+            style: TextButton.styleFrom(
+              minimumSize: const Size(double.infinity, 56),
+              textStyle: const TextStyle(fontSize: 18),
+            ),
+            child: const Text('Ya tengo cuenta en NANA'),
+          ),
+        ],
         if (!crear) ...[
           const SizedBox(height: 8),
           TextButton(

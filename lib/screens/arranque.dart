@@ -21,7 +21,9 @@ Future<Widget> destinoInicial() async {
   if (usuario == null) return const Bienvenida();
   if (usuario.rol == Rol.adulto) return pantallaDelAdulto();
   final adultos = await repo.adultosACargo().first;
-  return adultos.isEmpty ? const AltaAdulto() : const PanelCuidador();
+  return adultos.isEmpty
+      ? const AltaAdulto(desdeRegistro: true)
+      : const PanelCuidador();
 }
 
 Widget pantallaDelAdulto() => Ajustes.encuestaHecha.value

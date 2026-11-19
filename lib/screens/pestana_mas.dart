@@ -175,9 +175,7 @@ class PestanaMas extends StatelessWidget {
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            style: FilledButton.styleFrom(
-              backgroundColor: ColoresNana.urgente,
-            ),
+            style: FilledButton.styleFrom(backgroundColor: ColoresNana.urgente),
             child: const Text('Sí, salir'),
           ),
         ],
@@ -186,7 +184,9 @@ class PestanaMas extends StatelessWidget {
     if (si != true) return;
     try {
       await Servicios.repo.dejarDeAcompanar(a.folio);
-      if (context.mounted) mostrarAviso(context, 'Ya no acompañas a ${a.nombre}');
+      if (context.mounted) {
+        mostrarAviso(context, 'Ya no acompañas a ${a.nombre}');
+      }
     } on ErrorNana catch (e) {
       if (context.mounted) mostrarAviso(context, e.mensaje);
     }

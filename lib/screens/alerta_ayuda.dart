@@ -239,7 +239,10 @@ class _Boton extends StatelessWidget {
     final hijo = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (icono != null) ...[Icon(icono, size: 26), const SizedBox(width: 10)],
+        if (icono != null) ...[
+          Icon(icono, size: 26),
+          const SizedBox(width: 10),
+        ],
         Flexible(child: Text(texto, textAlign: TextAlign.center)),
       ],
     );

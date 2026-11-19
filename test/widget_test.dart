@@ -30,12 +30,12 @@ void main() {
     // 0.4 s de pausa y 6 s de animación.
     await tester.pump(const Duration(milliseconds: 400));
     await tester.pump(const Duration(seconds: 3));
-    expect(find.text('Soy adulto mayor'), findsNothing);
+    expect(find.text('Soy la persona mayor'), findsNothing);
     await tester.pump(const Duration(seconds: 3, milliseconds: 100));
     await tester.pumpAndSettle();
 
-    expect(find.text('Soy adulto mayor'), findsOneWidget);
-    expect(find.text('Soy cuidador o familiar'), findsOneWidget);
+    expect(find.text('Soy la persona mayor'), findsOneWidget);
+    expect(find.text('Cuido a alguien'), findsOneWidget);
   });
 
   testWidgets('Tocar el splash lo salta', (tester) async {
@@ -44,7 +44,7 @@ void main() {
     await tester.tap(find.byType(GestureDetector).first);
     await tester.pumpAndSettle();
 
-    expect(find.text('Soy adulto mayor'), findsOneWidget);
+    expect(find.text('Soy la persona mayor'), findsOneWidget);
   });
 
   testWidgets('El adulto marca su medicina con "Ya"', (tester) async {

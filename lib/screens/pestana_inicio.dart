@@ -195,7 +195,8 @@ class _Contenido extends StatelessWidget {
             detalle: [
               'A las ${horaCorta(TimeOfDay.fromDateTime(a.fecha))}',
               for (final r in a.respuestas.values)
-                if (!r.atendio && r.nombre.isNotEmpty) '${r.nombre} va para allá',
+                if (!r.atendio && r.nombre.isNotEmpty)
+                  '${r.nombre} va para allá',
             ].join(' · '),
             onLlamar: llamarle,
             textoResuelta: a.esFrase ? 'Ya lo vi' : 'Ya lo atendí',

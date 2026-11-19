@@ -55,19 +55,17 @@ Future<void> _escribir(WidgetTester t, String etiqueta, String texto) async {
   await t.enterText(campo, texto);
 }
 
-// Bienvenida → Soy cuidador o familiar → Tengo un código de invitación.
+// Bienvenida → Me invitaron → código → Continuar.
 Future<void> _abrirInvitacion(WidgetTester t, String codigo) async {
   // Pantalla alta para que el formulario completo quepa sin ir y venir.
   await t.binding.setSurfaceSize(const Size(800, 2000));
   addTearDown(() => t.binding.setSurfaceSize(null));
   await t.pumpWidget(const MaterialApp(home: Bienvenida()));
   await t.pumpAndSettle();
-  await t.tap(find.text('Soy cuidador o familiar'));
-  await t.pumpAndSettle();
-  await _bajarYTocar(t, 'Tengo un código de invitación');
+  await t.tap(find.text('Me invitaron'));
   await t.pumpAndSettle();
   await t.enterText(find.byType(TextField), codigo);
-  await t.pump();
+  await t.pumpAndSettle();
   await _bajarYTocar(t, 'Continuar');
   await t.pumpAndSettle();
 }
@@ -192,7 +190,7 @@ void main() {
   test('El mensaje de invitación dice cómo entrar', () {
     final texto = textoInvitacion('Rosa', '482913');
     expect(texto, contains('482 913'));
-    expect(texto, contains('Tengo un código de invitación'));
+    expect(texto, contains('Me invitaron'));
     expect(texto, contains('24 horas'));
   });
 
@@ -317,7 +315,7 @@ void main() {
     await repo.cerrarSesion();
 
     await _abrirInvitacion(t, codigo.codigo);
-    expect(find.text('Vas a cuidar a Rosa'), findsOneWidget);
+    expect(find.text('Vas a acompañar a Rosa'), findsOneWidget);
     expect(find.textContaining('Te invitó Ana'), findsOneWidget);
 
     await _escribir(t, 'Nombre', 'Luis');
@@ -325,14 +323,14 @@ void main() {
     await _escribir(t, 'Correo', 'luis@gmail.com');
     await _escribir(t, 'Contraseña', 'secreto1');
     // Sin decir qué es suyo no avanza ni crea la cuenta.
-    await _bajarYTocar(t, 'Unirme');
+    await _bajarYTocar(t, 'Crear mi cuenta');
     await t.pumpAndSettle();
     expect(find.text('Elige qué es tuyo'), findsOneWidget);
     expect(repo.uid, isNull);
 
     await _bajarYTocar(t, 'mamá');
     await t.pumpAndSettle();
-    await _bajarYTocar(t, 'Unirme');
+    await _bajarYTocar(t, 'Crear mi cuenta');
     for (var i = 0; i < 10; i++) {
       await t.pump(const Duration(milliseconds: 200));
     }
@@ -363,7 +361,7 @@ void main() {
     await _escribir(t, 'Contraseña', 'secreto1');
     await _bajarYTocar(t, 'mamá');
     await t.pumpAndSettle();
-    await _bajarYTocar(t, 'Unirme');
+    await _bajarYTocar(t, 'Crear mi cuenta');
     await t.pumpAndSettle();
 
     await t.scrollUntilVisible(
@@ -383,7 +381,7 @@ void main() {
       await _abrirInvitacion(t, delAdulto.codigo);
 
       expect(find.text(errorCodigoDelAdulto), findsOneWidget);
-      expect(find.text('Unirme'), findsNothing);
+      expect(find.text('Crear mi cuenta'), findsNothing);
     },
   );
 
@@ -391,7 +389,7 @@ void main() {
     await repo.cerrarSesion();
     await t.pumpWidget(const MaterialApp(home: Bienvenida()));
     await t.pumpAndSettle();
-    await t.tap(find.text('Soy adulto mayor'));
+    await t.tap(find.text('Soy la persona mayor'));
     await t.pumpAndSettle();
 
     expect(find.text('Escribe tu código'), findsOneWidget);

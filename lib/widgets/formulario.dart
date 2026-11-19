@@ -4,6 +4,45 @@ import '../core/medicion.dart';
 import '../core/tema.dart';
 import 'mascota_nana.dart';
 
+// Segmentos bajo la barra: morados los pasos hechos y el actual.
+class BarraPasos extends StatelessWidget implements PreferredSizeWidget {
+  final int paso;
+  final int de;
+  const BarraPasos({super.key, required this.paso, required this.de});
+
+  @override
+  Size get preferredSize => const Size.fromHeight(16);
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: 'Paso $paso de $de',
+      excludeSemantics: true,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+        child: Row(
+          children: [
+            for (var i = 1; i <= de; i++) ...[
+              if (i > 1) const SizedBox(width: 6),
+              Expanded(
+                child: Container(
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: i <= paso
+                        ? ColoresNana.morado
+                        : ColoresNana.moradoClaro,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 // Piezas comunes de las pantallas de registro, para que todas se vean igual:
 // la mascota arriba, un título grande y campos de letra grande.
 class PantallaPaso extends StatelessWidget {
@@ -11,6 +50,9 @@ class PantallaPaso extends StatelessWidget {
   final String? subtitulo;
   final List<Widget> children;
   final String? barra;
+  // En un registro de varios pasos: arriba dice «Paso 2 de 6» y una barrita.
+  final int? paso;
+  final int? de;
 
   const PantallaPaso({
     super.key,
@@ -18,12 +60,22 @@ class PantallaPaso extends StatelessWidget {
     this.subtitulo,
     required this.children,
     this.barra,
+    this.paso,
+    this.de,
   });
 
   @override
   Widget build(BuildContext context) {
+    final conPasos = paso != null && de != null;
     return Scaffold(
-      appBar: AppBar(title: barra == null ? null : Text(barra!)),
+      appBar: AppBar(
+        title: conPasos
+            ? Text('Paso $paso de $de')
+            : barra == null
+            ? null
+            : Text(barra!),
+        bottom: conPasos ? BarraPasos(paso: paso!, de: de!) : null,
+      ),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),

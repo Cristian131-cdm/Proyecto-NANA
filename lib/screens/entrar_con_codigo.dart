@@ -82,7 +82,7 @@ class _EntrarConCodigoState extends State<EntrarConCodigo> {
         ),
         const SizedBox(height: 8),
         const Text(
-          'Si eres familiar, regresa y toca "Soy cuidador o familiar".',
+          'Si eres familiar, regresa y toca "Cuido a alguien" o "Me invitaron".',
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 18, color: ColoresNana.tintaSuave),
         ),

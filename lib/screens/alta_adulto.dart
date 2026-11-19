@@ -13,7 +13,10 @@ import 'unirme_con_codigo.dart';
 
 // Después de crear su cuenta, el cuidador da de alta a quien va a cuidar.
 class AltaAdulto extends StatefulWidget {
-  const AltaAdulto({super.key});
+  // true justo después de crear la cuenta: los pasos van de 2 a 6 (el 1 fue
+  // la cuenta). Desde «Cuidar a otra persona» van de 1 a 5.
+  final bool desdeRegistro;
+  const AltaAdulto({super.key, this.desdeRegistro = false});
 
   static const parentescos = [
     'mamá',
@@ -49,13 +52,19 @@ class _AltaAdultoState extends State<AltaAdulto> {
   }
 
   String get _quien => _nombre.text.trim();
+  // Pasos del registro: cuenta (solo si viene de crearla), quién, permiso,
+  // celular, salud y código.
+  int get _base => widget.desdeRegistro ? 1 : 0;
+  int get _total => _base + 5;
   String get _numero => _telefono.text.replaceAll(' ', '');
   bool get _telefonoMal =>
       _numero.isNotEmpty && !RegExp(r'^\d{10}$').hasMatch(_numero);
 
   void _siguiente() {
     setState(() => _intento = true);
-    if (_quien.isEmpty || _parentesco == null || _telefonoMal) return;
+    if (_quien.isEmpty || !parentescoListo(_parentesco) || _telefonoMal) {
+      return;
+    }
     setState(() => _paso = 2);
   }
 
@@ -84,12 +93,19 @@ class _AltaAdultoState extends State<AltaAdulto> {
           builder: (_) => FormularioSalud(
             folio: folio,
             nombre: nombre,
+            paso: _base + 4,
+            de: _total,
             alTerminar: (ctx) => Navigator.pushReplacement(
               ctx,
               MaterialPageRoute(
                 builder: (_) => codigo == null
-                    ? SinCelular(nombre: nombre)
-                    : PantallaCodigo(codigo: codigo, nombreAdulto: nombre),
+                    ? SinCelular(nombre: nombre, paso: _total, de: _total)
+                    : PantallaCodigo(
+                        codigo: codigo,
+                        nombreAdulto: nombre,
+                        paso: _total,
+                        de: _total,
+                      ),
               ),
             ),
           ),
@@ -117,7 +133,8 @@ class _AltaAdultoState extends State<AltaAdulto> {
     return PantallaPaso(
       // Con llave propia cada paso abre desde arriba.
       key: const ValueKey('paso2'),
-      barra: 'Paso 2 de 3',
+      paso: _base + 2,
+      de: _total,
       titulo: 'Antes de guardar sus datos',
       subtitulo: 'NANA guarda lo mínimo, con tu permiso.',
       children: [
@@ -167,11 +184,12 @@ class _AltaAdultoState extends State<AltaAdulto> {
 
   Widget _pasoQuien() {
     final faltaNombre = _intento && _quien.isEmpty;
-    final faltaParentesco = _intento && _parentesco == null;
+    final faltaParentesco = _intento ? errorParentesco(_parentesco) : null;
     return PantallaPaso(
       // Con llave propia cada paso abre desde arriba.
       key: const ValueKey('paso1'),
-      barra: 'Paso 1 de 3',
+      paso: _base + 1,
+      de: _total,
       titulo: '¿A quién vas a cuidar?',
       children: [
         CampoNana(
@@ -197,25 +215,28 @@ class _AltaAdultoState extends State<AltaAdulto> {
           valor: _parentesco,
           onCambio: (p) => setState(() => _parentesco = p),
         ),
-        if (faltaParentesco) ...[
+        if (faltaParentesco != null) ...[
           const SizedBox(height: 12),
-          const MensajeError('Elige qué es tuyo'),
+          MensajeError(faltaParentesco),
         ],
         const SizedBox(height: 28),
         BotonPrincipal(texto: 'Siguiente', onPressed: _siguiente),
         const SizedBox(height: 8),
         // Si alguien de la familia ya la dio de alta, no hay que repetirlo.
-        TextButton(
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const UnirmeConCodigo()),
+        // En el registro nuevo no hace falta: el invitado tiene su botón en
+        // la entrada. Aquí queda para quien ya tiene cuenta.
+        if (!widget.desdeRegistro)
+          TextButton(
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const UnirmeConCodigo()),
+            ),
+            style: TextButton.styleFrom(
+              minimumSize: const Size(double.infinity, 56),
+              textStyle: const TextStyle(fontSize: 20),
+            ),
+            child: const Text('¿Te invitaron? Usa tu código'),
           ),
-          style: TextButton.styleFrom(
-            minimumSize: const Size(double.infinity, 56),
-            textStyle: const TextStyle(fontSize: 20),
-          ),
-          child: const Text('¿Te invitaron? Usa tu código'),
-        ),
       ],
     );
   }
@@ -224,7 +245,8 @@ class _AltaAdultoState extends State<AltaAdulto> {
     return PantallaPaso(
       // Con llave propia cada paso abre desde arriba.
       key: const ValueKey('paso3'),
-      barra: 'Paso 3 de 3',
+      paso: _base + 3,
+      de: _total,
       titulo: '¿$_quien tiene celular propio?',
       subtitulo: 'Si tiene, te damos un código para que use NANA en su propio celular.',
       children: [
@@ -278,7 +300,19 @@ List<(IconData, String)> avisosDeDatos(String quien) => [
 ];
 
 // Las opciones de "¿Qué es tuyo?", iguales al dar de alta y al unirse.
-class SelectorParentesco extends StatelessWidget {
+// Listo para guardar: eligió una opción, o tocó «otro» y escribió qué es.
+bool parentescoListo(String? p) =>
+    p != null && p.trim().isNotEmpty && p != 'otro';
+
+// El error que se muestra bajo el selector (null si está bien).
+String? errorParentesco(String? p) => p == null
+    ? 'Elige qué es tuyo'
+    : parentescoListo(p)
+    ? null
+    : 'Escribe qué es tuyo';
+
+// Con «otro» aparece un campo y lo que se escribe («vecina») es el valor.
+class SelectorParentesco extends StatefulWidget {
   final String? valor;
   final ValueChanged<String> onCambio;
   const SelectorParentesco({
@@ -288,20 +322,60 @@ class SelectorParentesco extends StatelessWidget {
   });
 
   @override
+  State<SelectorParentesco> createState() => _SelectorParentescoState();
+}
+
+class _SelectorParentescoState extends State<SelectorParentesco> {
+  late final _otro = TextEditingController(
+    text: _esOtro(widget.valor) && widget.valor != 'otro' ? widget.valor : '',
+  );
+
+  static bool _esOtro(String? v) =>
+      v != null && (v == 'otro' || !AltaAdulto.parentescos.contains(v));
+
+  @override
+  void dispose() {
+    _otro.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 10,
-      runSpacing: 10,
+    final otro = _esOtro(widget.valor);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        for (final p in AltaAdulto.parentescos)
-          ChoiceChip(
-            label: Text(p, style: const TextStyle(fontSize: 20)),
-            selected: valor == p,
-            showCheckmark: true,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            selectedColor: ColoresNana.moradoClaro,
-            onSelected: (_) => onCambio(p),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            for (final p in AltaAdulto.parentescos)
+              ChoiceChip(
+                label: Text(p, style: const TextStyle(fontSize: 20)),
+                selected: p == 'otro' ? otro : widget.valor == p,
+                showCheckmark: true,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
+                selectedColor: ColoresNana.moradoClaro,
+                onSelected: (_) => widget.onCambio(
+                  p == 'otro' && _otro.text.trim().isNotEmpty
+                      ? _otro.text.trim()
+                      : p,
+                ),
+              ),
+          ],
+        ),
+        if (otro) ...[
+          const SizedBox(height: 14),
+          CampoNana(
+            controller: _otro,
+            etiqueta: 'Escribe qué es tuyo (ej. sobrina, vecina)',
+            onChanged: (t) =>
+                widget.onCambio(t.trim().isEmpty ? 'otro' : t.trim()),
           ),
+        ],
       ],
     );
   }
@@ -309,11 +383,15 @@ class SelectorParentesco extends StatelessWidget {
 
 class SinCelular extends StatelessWidget {
   final String nombre;
-  const SinCelular({super.key, required this.nombre});
+  final int? paso;
+  final int? de;
+  const SinCelular({super.key, required this.nombre, this.paso, this.de});
 
   @override
   Widget build(BuildContext context) {
     return PantallaPaso(
+      paso: paso,
+      de: de,
       titulo: 'Tú llevarás el día de $nombre',
       subtitulo:
           'Desde tu celular anotas sus medicinas y cómo va. '

@@ -46,7 +46,7 @@ class EventoUso {
 // así nunca se cuela un nombre que no esté en esta lista.
 const pantallasConocidas = {
   'Bienvenida': 'Bienvenida',
-  'OpcionesCuidador': 'Soy cuidador o familiar',
+  'OpcionesCuidador': 'Cuido a alguien',
   'CuentaCuidador': 'Cuenta del cuidador',
   'InvitadoConCodigo': 'Código de invitación',
   'UnirmeConCodigo': 'Unirme con código',

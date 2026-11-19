@@ -24,8 +24,7 @@ const errorCodigo =
 // Hay dos códigos de 6 números y no se pueden cruzar: el del celular del
 // adulto y el que invita a un familiar a cuidar.
 const errorCodigoFamiliar =
-    'Ese código es para un familiar. Regresa, toca "Soy cuidador o familiar" '
-    'y luego "Tengo un código de invitación".';
+    'Ese código es para un familiar. Regresa y toca "Me invitaron".';
 const errorCodigoDelAdulto =
     'Ese código es para el celular de la persona mayor. Pide que te inviten '
     'desde "Familia y alertas".';

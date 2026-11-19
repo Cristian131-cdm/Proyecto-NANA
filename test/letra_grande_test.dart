@@ -261,6 +261,19 @@ final _pantallas = <String, _Pantalla>{
       ),
     ),
   ),
+  '«Otro» con su campo': (
+    sesion: 'ana',
+    crear: () => Scaffold(
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [SelectorParentesco(valor: 'vecina', onCambio: (_) {})],
+      ),
+    ),
+  ),
+  'Alta en el registro (paso 2 de 6)': (
+    sesion: 'ana',
+    crear: () => const AltaAdulto(desdeRegistro: true),
+  ),
   'Mis alertas': (
     sesion: 'ana',
     crear: () => const MisAlertas(adulto: 'María Guadalupe'),

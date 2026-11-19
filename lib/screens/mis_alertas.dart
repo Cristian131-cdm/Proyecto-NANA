@@ -29,7 +29,10 @@ class MisAlertas extends StatelessWidget {
               color: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(22),
-                side: const BorderSide(color: ColoresNana.moradoClaro, width: 2),
+                side: const BorderSide(
+                  color: ColoresNana.moradoClaro,
+                  width: 2,
+                ),
               ),
               clipBehavior: Clip.antiAlias,
               child: Column(

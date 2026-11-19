@@ -22,11 +22,16 @@ String _hora(DateTime t) {
 class PantallaCodigo extends StatelessWidget {
   final CodigoVinculacion codigo;
   final String nombreAdulto;
+  // En el registro: «Paso 6 de 6». Desde Mis ajustes no lleva pasos.
+  final int? paso;
+  final int? de;
 
   const PantallaCodigo({
     super.key,
     required this.codigo,
     required this.nombreAdulto,
+    this.paso,
+    this.de,
   });
 
   @override
@@ -50,10 +55,12 @@ class PantallaCodigo extends StatelessWidget {
           );
         }
         return PantallaPaso(
+          paso: paso,
+          de: de,
           titulo: 'Código para $nombreAdulto',
           subtitulo:
-              'Abre NANA en su celular, toca "Soy adulto mayor" y '
-              'luego "Entrar con un código".',
+              'En su celular, abre NANA, toca «Soy la persona mayor» y '
+              'escribe estos números.',
           children: [
             Container(
               padding: const EdgeInsets.symmetric(vertical: 24),
@@ -101,7 +108,7 @@ class PantallaCodigo extends StatelessWidget {
                     onPressed: () => SharePlus.instance.share(
                       ShareParams(
                         text:
-                            'Abre NANA, toca "Soy adulto mayor" y escribe '
+                            'Abre NANA, toca "Soy la persona mayor" y escribe '
                             'este código: $visible',
                       ),
                     ),

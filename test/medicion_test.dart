@@ -36,7 +36,7 @@ void main() {
   testWidgets('Apagado no anota nada', (t) async {
     await t.pumpWidget(app(const Bienvenida()));
     await t.pumpAndSettle();
-    await t.tap(find.text('Soy cuidador o familiar'));
+    await t.tap(find.text('Cuido a alguien'));
     await t.pumpAndSettle();
     Medicion.tarea('alta');
     Medicion.error();
@@ -49,7 +49,7 @@ void main() {
     await t.pumpWidget(app(const Bienvenida()));
     await t.pumpAndSettle();
     ahora = ahora.add(const Duration(seconds: 8));
-    await t.tap(find.text('Soy cuidador o familiar'));
+    await t.tap(find.text('Cuido a alguien'));
     await t.pumpAndSettle();
     ahora = ahora.add(const Duration(seconds: 5));
     await t.pageBack();
@@ -58,8 +58,8 @@ void main() {
     final e = Medicion.pendientes;
     expect(e.map((x) => '${x.tipo.name}:${x.pantalla}:${x.segundos}'), [
       'pantalla:Bienvenida:8',
-      'pantalla:Soy cuidador o familiar:5',
-      'regreso:Soy cuidador o familiar:0',
+      'pantalla:Cuido a alguien:5',
+      'regreso:Cuido a alguien:0',
     ]);
   });
 
