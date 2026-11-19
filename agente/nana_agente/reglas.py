@@ -30,6 +30,20 @@ URGENCIA = (
     "auxilio",
     "emergencia",
     "ayudenme",
+    "ayudame",
+    "socorro",
+    "ambulancia",
+    "me resbale",
+    "me pegue en la cabeza",
+    "me falta el aire",
+    "me voy a desmayar",
+    "me siento muy mal",
+    "muy mareada",
+    "muy mareado",
+    "no siento las piernas",
+    "no siento el brazo",
+    "huele a gas",
+    "no me puedo mover",
 )
 
 PREGUNTA_MEDICA = (

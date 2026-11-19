@@ -1,5 +1,6 @@
 """Corre el banco de frases contra un proveedor y dice cuántas pasan.
 
+    python agente/correr_banco.py                    (clasificador propio)
     python agente/correr_banco.py --proveedor guion
     python agente/correr_banco.py --proveedor ollama --modelo llama3.2
 """
@@ -11,18 +12,23 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from nana_agente import banco  # noqa: E402
+from nana_agente.propio import ProveedorPropio  # noqa: E402
 from nana_agente.proveedor import ProveedorGuion, ProveedorOllama  # noqa: E402
 
 
 def main() -> int:
     sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser()
-    ap.add_argument("--proveedor", choices=["guion", "ollama"], default="guion")
+    ap.add_argument("--proveedor", choices=["propio", "guion", "ollama"], default="propio")
     ap.add_argument("--modelo", default="llama3.2")
     ap.add_argument("--limite", type=float, default=5.0)
     a = ap.parse_args()
 
-    proveedor = ProveedorGuion() if a.proveedor == "guion" else ProveedorOllama(a.modelo)
+    proveedor = {
+        "propio": ProveedorPropio,
+        "guion": ProveedorGuion,
+        "ollama": lambda: ProveedorOllama(a.modelo),
+    }[a.proveedor]()
     casos = banco.leer()
     errores = banco.validar(casos)
     if errores:

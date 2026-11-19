@@ -3,7 +3,7 @@
     python agente/servidor_local.py
 
 Variables de entorno:
-    NANA_PROVEEDORES  lista en orden, separada por comas: ollama,guion  (por defecto: guion)
+    NANA_PROVEEDORES  lista en orden, separada por comas: propio,guion  (por defecto: propio)
     NANA_OLLAMA       modelo de Ollama (por defecto: llama3.2)
     NANA_CLAVE_DEMO   si se pone, la app debe mandarla en el encabezado X-Nana-Demo
     NANA_PUERTO       por defecto 8787
@@ -24,6 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from nana_agente import frases_fijas as fijas  # noqa: E402
 from nana_agente.cadena import responder  # noqa: E402
 from nana_agente.modelos import Peticion, Resultado  # noqa: E402
+from nana_agente.propio import ProveedorPropio  # noqa: E402
 from nana_agente.proveedor import ConRespaldo, ProveedorGuion, ProveedorOllama  # noqa: E402
 
 TOPE_DIARIO = 40
@@ -31,8 +32,9 @@ TOPE_CUERPO = 20_000
 
 
 def armar_proveedor() -> ConRespaldo:
-    nombres = [n.strip() for n in os.environ.get("NANA_PROVEEDORES", "guion").split(",") if n.strip()]
+    nombres = [n.strip() for n in os.environ.get("NANA_PROVEEDORES", "propio").split(",") if n.strip()]
     disponibles = {
+        "propio": ProveedorPropio,
         "guion": ProveedorGuion,
         "ollama": lambda: ProveedorOllama(os.environ.get("NANA_OLLAMA", "llama3.2")),
     }
@@ -69,7 +71,12 @@ def crear_manejador(proveedor: ConRespaldo, clave: str, tope: Tope):
 
         def do_GET(self):  # noqa: N802
             if self.path == "/salud":
-                self._json(200, {"ok": True, "proveedores": proveedor.nombre})
+                salud = {"ok": True, "proveedores": proveedor.nombre}
+                for p in proveedor.proveedores:
+                    if isinstance(p, ProveedorPropio):
+                        # Qué modelo está contestando: se ve en la demo.
+                        salud["modelo"] = {k: p.info[k] for k in ("entrenado", "huella", "frases")}
+                self._json(200, salud)
             else:
                 self._json(404, {"error": "no existe"})
 

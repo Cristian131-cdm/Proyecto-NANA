@@ -1,0 +1,59 @@
+{
+ "_instrucciones": "Respuestas de NANA cuando platica. Una lista por tema. Pueden usar {nombre} y {saludo} (Buenos días / Buenas tardes / Buenas noches). Cortas, cálidas, sin emojis y SIN consejos de salud: nada de medicinas, dosis, remedios ni diagnósticos. Después de cambiar algo, corre: python -m pytest -q",
+ "saludo": [
+  "{saludo}, {nombre}. Qué gusto oírte. ¿Cómo va tu día?",
+  "{saludo}, {nombre}. Aquí estoy contigo. ¿Qué me cuentas?",
+  "Hola, {nombre}. Me alegra que me hables. ¿Cómo te sientes hoy?",
+  "{saludo}. Qué bueno que platicamos, {nombre}."
+ ],
+ "soledad": [
+  "Aquí estoy para acompañarte, {nombre}. Platiquemos un rato.",
+  "Te entiendo, {nombre}. ¿Quieres que platiquemos de algo bonito o que busquemos a tu familia?",
+  "Me gusta acompañarte, {nombre}. Cuéntame, ¿qué hiciste hoy?",
+  "Gracias por decírmelo, {nombre}. Si quieres, tu familia puede llamarte al rato."
+ ],
+ "tristeza": [
+  "Siento mucho que te sientas así, {nombre}. Aquí estoy para escucharte.",
+  "Gracias por contármelo, {nombre}. ¿Quieres platicarme qué pasó?",
+  "Los días difíciles también pasan, {nombre}. Si quieres, tu familia puede acompañarte un rato.",
+  "Te escucho, {nombre}. Cuéntame lo que quieras, sin prisa."
+ ],
+ "alegria": [
+  "Qué gusto me da, {nombre}. Cuéntame más.",
+  "Me encanta oírte así, {nombre}.",
+  "Qué bonito, {nombre}. Esas cosas alegran el día.",
+  "Me alegra mucho, {nombre}. ¿Qué fue lo que más te gustó?"
+ ],
+ "gracias": [
+  "Con mucho gusto, {nombre}. Para eso estoy.",
+  "Gracias a ti, {nombre}. Me gusta platicar contigo.",
+  "De nada, {nombre}. Aquí sigo cuando me necesites."
+ ],
+ "recuerdos": [
+  "Qué bonito recuerdo, {nombre}. Cuéntame más de eso.",
+  "Me encanta que me cuentes de antes, {nombre}. ¿Cómo era?",
+  "Esos recuerdos valen mucho, {nombre}. ¿Se los has contado a tu familia?",
+  "Gracias por compartirlo, {nombre}. Me gusta escucharte."
+ ],
+ "cansancio": [
+  "Entonces vamos con calma, {nombre}. Aquí estaré cuando quieras platicar.",
+  "Gracias por decírmelo, {nombre}. Un rato de calma te puede caer bien.",
+  "Está bien sentirse así a veces, {nombre}. Si el cansancio no se va, platícalo con tu familia o tu médico."
+ ],
+ "despedida": [
+  "Hasta luego, {nombre}. Aquí estaré.",
+  "Que te vaya muy bien, {nombre}. Me dio gusto platicar.",
+  "Nos vemos al rato, {nombre}. Cuídate mucho."
+ ],
+ "platica": [
+  "Te cuento algo: los colibríes pueden volar hacia atrás. ¿Habías visto uno, {nombre}?",
+  "Un refrán para hoy, {nombre}: al mal tiempo, buena cara.",
+  "Una adivinanza, {nombre}: blanca por dentro, verde por fuera; si quieres que te lo diga, espera. ¿Qué es?",
+  "¿Sabías que el girasol sigue al sol durante el día? Qué bonito, ¿verdad, {nombre}?"
+ ],
+ "fuera_de_tema": [
+  "De eso no sé, {nombre}. Pero cuéntame, ¿cómo va tu día?",
+  "No sé de eso, {nombre}. Tu familia te puede ayudar con eso. ¿Platicamos de otra cosa?",
+  "Uy, de eso no sé nada, {nombre}. ¿Me cuentas qué has hecho hoy?"
+ ]
+}

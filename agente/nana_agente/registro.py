@@ -6,6 +6,7 @@ horarios. La pregunta de confirmación la escribe el código, no el modelo.
 
 from __future__ import annotations
 
+import difflib
 import json
 
 from .modelos import Pendiente, Peticion, Propuesta
@@ -50,6 +51,16 @@ ANIMOS = {1: "muy mal", 2: "mal", 3: "regular", 4: "bien", 5: "muy bien"}
 NO_ESTA = "No encontré eso en tu lista de hoy. Puedes tocarlo en Mi día."
 
 
+def menciona(titulo: str, frase: str) -> bool:
+    """¿La frase nombra este pendiente? Aguanta errores del dictado:
+    "lozartan" cuenta como "Losartán" (se parecen en 80 % o más)."""
+    claves = [w for w in normalizar(titulo).split() if len(w) >= 4]
+    dichas = normalizar(frase).split()
+    return any(
+        difflib.SequenceMatcher(None, c, d).ratio() >= 0.8 for c in claves for d in dichas
+    )
+
+
 def _pregunta(p: Pendiente) -> str:
     if p.tipo == "medicina":
         return f"¿Anoto que ya te tomaste {p.titulo}?"
@@ -91,8 +102,7 @@ def proponer(
         # Con dos medicinas pendientes y sin decir cuál, pregunta el código.
         medicinas = [m for m in pendientes if m.tipo == "medicina"]
         if p.tipo == "medicina" and len(medicinas) > 1:
-            dicho = f" {normalizar(pet.texto)} "
-            if f" {normalizar(p.titulo)} " not in dicho:
+            if not menciona(p.titulo, pet.texto):
                 nombres = " o ".join(m.titulo for m in medicinas[:3])
                 return None, f"¿Cuál te tomaste: {nombres}?"
         return Propuesta("registro", _pregunta(p), id=p.id, titulo=p.titulo, clase=p.tipo), ""
