@@ -288,66 +288,15 @@ class _FamiliaAlertasState extends State<FamiliaAlertas> {
   Future<void> _invitar() async {
     if (_invitando) return;
     setState(() => _invitando = true);
-    final String codigo;
     try {
-      codigo = (await Servicios.repo.generarCodigo(
-        widget.folio,
-        familiar: true,
-      )).codigo;
-    } on ErrorNana catch (e) {
-      if (mounted) mostrarAviso(context, e.mensaje);
-      return;
+      await invitarConCodigo(
+        context,
+        folio: widget.folio,
+        adulto: widget.adulto,
+      );
     } finally {
       if (mounted) setState(() => _invitando = false);
     }
-    if (!mounted) return;
-    Medicion.tarea('invitacion_creada');
-    final texto = textoInvitacion(widget.adulto, codigo);
-    showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        title: const Text('Código de invitación'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SelectableText(
-              formatearCodigo(codigo),
-              semanticsLabel: codigo.split('').join(' '),
-              style: const TextStyle(
-                fontSize: 40,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 4,
-                color: ColoresNana.morado,
-              ),
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'Sirve una sola vez y vence en 24 horas. Tu familiar abre '
-              'NANA y toca "Me invitaron".',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16, color: ColoresNana.tintaSuave),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton.icon(
-            onPressed: () {
-              Clipboard.setData(ClipboardData(text: codigo));
-              Navigator.pop(context);
-              mostrarAviso(this.context, 'Código copiado');
-            },
-            icon: const Icon(Icons.copy),
-            label: const Text('Copiar'),
-          ),
-          FilledButton.icon(
-            onPressed: () => SharePlus.instance.share(ShareParams(text: texto)),
-            icon: const Icon(Icons.share),
-            label: const Text('Compartir'),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -667,4 +616,69 @@ class PantallaPrivacidad extends StatelessWidget {
       ),
     );
   }
+}
+
+// Crea un código de invitación para que alguien de la familia acompañe a
+// [adulto] y lo muestra con Copiar y Compartir. Lo usan «Familia y alertas»
+// y el botón grande de la pestaña Más.
+Future<void> invitarConCodigo(
+  BuildContext context, {
+  required String folio,
+  required String adulto,
+}) async {
+  final String codigo;
+  try {
+    codigo = (await Servicios.repo.generarCodigo(folio, familiar: true)).codigo;
+  } on ErrorNana catch (e) {
+    if (context.mounted) mostrarAviso(context, e.mensaje);
+    return;
+  }
+  if (!context.mounted) return;
+  Medicion.tarea('invitacion_creada');
+  final texto = textoInvitacion(adulto, codigo);
+  showDialog<void>(
+    context: context,
+    builder: (dialogo) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      title: const Text('Código de invitación'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SelectableText(
+            formatearCodigo(codigo),
+            semanticsLabel: codigo.split('').join(' '),
+            style: const TextStyle(
+              fontSize: 40,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 4,
+              color: ColoresNana.morado,
+            ),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Sirve una sola vez y vence en 24 horas. Tu familiar abre '
+            'NANA y toca "Me invitaron".',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 16, color: ColoresNana.tintaSuave),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton.icon(
+          onPressed: () {
+            Clipboard.setData(ClipboardData(text: codigo));
+            Navigator.pop(dialogo);
+            mostrarAviso(context, 'Código copiado');
+          },
+          icon: const Icon(Icons.copy),
+          label: const Text('Copiar'),
+        ),
+        FilledButton.icon(
+          onPressed: () => SharePlus.instance.share(ShareParams(text: texto)),
+          icon: const Icon(Icons.share),
+          label: const Text('Compartir'),
+        ),
+      ],
+    ),
+  );
 }

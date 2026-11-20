@@ -149,3 +149,21 @@ class PantallaCodigo extends StatelessWidget {
     );
   }
 }
+
+// Genera un código nuevo para el celular de la persona mayor y abre la
+// pantalla con los 6 números. Lo usan «Mis ajustes» y el botón grande de la
+// pestaña Más.
+Future<void> abrirCodigoDelAdulto(BuildContext context, Adulto a) async {
+  try {
+    final codigo = await Servicios.repo.generarCodigo(a.folio);
+    if (!context.mounted) return;
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PantallaCodigo(codigo: codigo, nombreAdulto: a.nombre),
+      ),
+    );
+  } catch (e) {
+    if (context.mounted) mostrarAviso(context, '$e');
+  }
+}

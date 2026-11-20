@@ -9,6 +9,7 @@ import '../models/adulto.dart';
 import '../widgets/aviso.dart';
 import '../widgets/tarjeta_dato.dart' show TarjetaDato;
 import 'arranque.dart';
+import 'codigo_vinculacion.dart';
 import 'familia_alertas.dart';
 import 'mis_alertas.dart';
 import 'mis_ajustes.dart';
@@ -56,7 +57,33 @@ class PestanaMas extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 14),
+        // Los dos códigos, a la vista: antes estaban en Mis ajustes y en
+        // Familia y alertas, y costaba encontrarlos.
+        if (permisos.codigoDelAdulto || permisos.invitar) ...[
+          const SizedBox(height: 14),
+          const _Titulo('Códigos'),
+          if (permisos.codigoDelAdulto)
+            _TarjetaCodigo(
+              icono: Icons.phonelink_ring,
+              titulo: 'Código para el celular de ${a.nombre}',
+              detalle: a.uidAdulto == null
+                  ? 'Para que ${a.nombre} entre a NANA en su celular'
+                  : 'Por si cambia de celular o se sale',
+              lleno: a.uidAdulto == null,
+              onTap: () => abrirCodigoDelAdulto(context, a),
+            ),
+          if (permisos.codigoDelAdulto && permisos.invitar)
+            const SizedBox(height: 10),
+          if (permisos.invitar)
+            _TarjetaCodigo(
+              icono: Icons.person_add_alt_1,
+              titulo: 'Invitar a alguien de la familia',
+              detalle: 'Le das un código para que acompañe a ${a.nombre}',
+              onTap: () =>
+                  invitarConCodigo(context, folio: a.folio, adulto: a.nombre),
+            ),
+        ],
+        const SizedBox(height: 18),
         _Titulo('De ${a.nombre}'),
         GrupoRenglones(
           children: [
@@ -198,6 +225,85 @@ class PestanaMas extends StatelessWidget {
     } on ErrorNana catch (e) {
       if (context.mounted) mostrarAviso(context, e.mensaje);
     }
+  }
+}
+
+// Botón grande de un código: ícono en círculo, título y para qué sirve.
+// Lleno (morado) cuando hace falta usarlo ya: su celular todavía no entra.
+class _TarjetaCodigo extends StatelessWidget {
+  final IconData icono;
+  final String titulo;
+  final String detalle;
+  final bool lleno;
+  final VoidCallback onTap;
+
+  const _TarjetaCodigo({
+    required this.icono,
+    required this.titulo,
+    required this.detalle,
+    required this.onTap,
+    this.lleno = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: '$titulo. $detalle',
+      excludeSemantics: true,
+      child: Material(
+        color: lleno ? ColoresNana.morado : ColoresNana.moradoClaro,
+        borderRadius: BorderRadius.circular(22),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 84),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 24,
+                    backgroundColor: Colors.white,
+                    child: Icon(icono, color: ColoresNana.morado, size: 28),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          titulo,
+                          style: TextStyle(
+                            fontSize: 19,
+                            fontWeight: FontWeight.bold,
+                            color: lleno ? Colors.white : ColoresNana.morado,
+                          ),
+                        ),
+                        Text(
+                          detalle,
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: lleno
+                                ? ColoresNana.moradoClaro
+                                : ColoresNana.tinta,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.chevron_right,
+                    color: lleno ? Colors.white : ColoresNana.morado,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 

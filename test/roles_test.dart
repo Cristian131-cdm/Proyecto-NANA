@@ -351,6 +351,8 @@ void main() {
         expect(find.text('Solo ver'), findsOneWidget);
         expect(find.text('Mis alertas'), findsOneWidget);
         expect(find.text('Dejar de acompañar a Rosa'), findsOneWidget);
+        // El familiar no da códigos: no ve esa sección.
+        expect(find.text('Códigos'), findsNothing);
       },
     );
 

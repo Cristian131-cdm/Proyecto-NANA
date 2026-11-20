@@ -37,16 +37,7 @@ class _MisAjustesState extends State<MisAjustes> {
   void _ir(Widget pantalla) =>
       Navigator.push(context, MaterialPageRoute(builder: (_) => pantalla));
 
-  Future<void> _codigo() async {
-    final a = widget.adulto;
-    try {
-      final codigo = await Servicios.repo.generarCodigo(a.folio);
-      if (!mounted) return;
-      _ir(PantallaCodigo(codigo: codigo, nombreAdulto: a.nombre));
-    } catch (e) {
-      if (mounted) mostrarAviso(context, '$e');
-    }
-  }
+  Future<void> _codigo() => abrirCodigoDelAdulto(context, widget.adulto);
 
   Future<void> _demo() async {
     final a = widget.adulto;

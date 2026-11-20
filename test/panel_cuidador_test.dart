@@ -7,6 +7,7 @@ import 'package:nana_app/core/biometria.dart';
 import 'package:nana_app/core/servicios.dart';
 import 'package:nana_app/data/repositorio_memoria.dart';
 import 'package:nana_app/screens/bienvenida.dart';
+import 'package:nana_app/screens/codigo_vinculacion.dart';
 import 'package:nana_app/screens/familia_alertas.dart';
 import 'package:nana_app/screens/mis_ajustes.dart';
 import 'package:nana_app/screens/panel_cuidador.dart';
@@ -92,10 +93,45 @@ void main() {
     }
 
     Future<void> tocar(WidgetTester t, String texto) async {
-      await t.ensureVisible(find.text(texto));
+      // La lista de Más es larga: se baja (o sube) hasta el renglón.
+      final lista = find
+          .descendant(
+            of: find.byType(PestanaMas),
+            matching: find.byType(Scrollable),
+          )
+          .first;
+      if (find.text(texto).evaluate().isEmpty) {
+        await t.scrollUntilVisible(find.text(texto), 200, scrollable: lista);
+      }
+      // Al centro de la lista, para que la barra de pestañas no lo tape.
+      await Scrollable.ensureVisible(
+        t.element(find.text(texto)),
+        alignment: 0.5,
+      );
+      await t.pumpAndSettle();
       await t.tap(find.text(texto));
       await t.pumpAndSettle();
     }
+
+    testWidgets('Los dos códigos están arriba en Más y funcionan', (t) async {
+      await irAMas(t);
+      expect(find.text('Códigos'), findsOneWidget);
+
+      await tocar(t, 'Invitar a alguien de la familia');
+      expect(find.text('Código de invitación'), findsOneWidget);
+      await t.tapAt(const Offset(5, 5)); // cierra el diálogo
+      await t.pumpAndSettle();
+
+      // La pantalla del código tiene la mascota animada: no se «asienta».
+      await Scrollable.ensureVisible(
+        t.element(find.text('Código para el celular de Rosa')),
+        alignment: 0.5,
+      );
+      await t.pumpAndSettle();
+      await t.tap(find.text('Código para el celular de Rosa'));
+      await _esperar(t);
+      expect(find.byType(PantallaCodigo), findsOneWidget);
+    });
 
     testWidgets('abre Rutinas y Su expediente con su barra', (t) async {
       await irAMas(t);
