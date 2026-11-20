@@ -20,17 +20,15 @@ class Alerta {
 
   bool get esFrase => tipo == 'frase';
 
-  Alerta copyWith({
-    bool? atendida,
-    Map<String, RespuestaAlerta>? respuestas,
-  }) => Alerta(
-    id: id,
-    fecha: fecha,
-    atendida: atendida ?? this.atendida,
-    tipo: tipo,
-    texto: texto,
-    respuestas: respuestas ?? this.respuestas,
-  );
+  Alerta copyWith({bool? atendida, Map<String, RespuestaAlerta>? respuestas}) =>
+      Alerta(
+        id: id,
+        fecha: fecha,
+        atendida: atendida ?? this.atendida,
+        tipo: tipo,
+        texto: texto,
+        respuestas: respuestas ?? this.respuestas,
+      );
 }
 
 // 'voy' = «Ya voy»; 'atendi' = «Ya la atendí».

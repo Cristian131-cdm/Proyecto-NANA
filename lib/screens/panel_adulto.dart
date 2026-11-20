@@ -21,7 +21,6 @@ import '../widgets/festejo.dart';
 import '../widgets/mascota_nana.dart';
 import '../widgets/tarjeta_ahora.dart';
 import 'arranque.dart';
-import 'bienvenida.dart';
 import 'mi_dia.dart';
 import 'mi_familia.dart';
 import 'nana_escucha.dart';
@@ -381,8 +380,7 @@ class _PanelAdultoState extends State<PanelAdulto> {
     _apariencia?.cancel();
     // Sin sesión no hay medicinas: se quitan las alarmas de este celular.
     await Servicios.alarmas.programar(_yo?.nombre ?? '', const []);
-    await Servicios.repo.cerrarSesion();
-    if (mounted) entrarA(context, const Bienvenida());
+    if (mounted) await salirDeNana(context);
   }
 
   Widget _inicio(List<Actividad> dia, int? animo) {
@@ -540,10 +538,7 @@ class _PanelAdultoState extends State<PanelAdulto> {
             ),
             const SizedBox(height: 16),
             OutlinedButton.icon(
-              onPressed: () async {
-                await Servicios.repo.cerrarSesion();
-                if (mounted) entrarA(context, const Bienvenida());
-              },
+              onPressed: () => salirDeNana(context),
               icon: const Icon(Icons.pin_outlined, size: 28),
               label: const Text('Entrar con un código'),
               style: OutlinedButton.styleFrom(

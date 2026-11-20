@@ -11,6 +11,7 @@ import 'package:nana_app/data/repositorio_memoria.dart';
 import 'package:nana_app/models/adulto.dart';
 import 'package:nana_app/models/alerta.dart';
 import 'package:nana_app/screens/alerta_ayuda.dart';
+import 'package:nana_app/screens/bienvenida.dart';
 import 'package:nana_app/screens/bienvenida_familiar.dart';
 import 'package:nana_app/screens/mis_alertas.dart';
 import 'package:nana_app/screens/panel_cuidador.dart';
@@ -72,9 +73,7 @@ void main() {
     expect(find.text('Te invitó Ana, que la cuida.'), findsOneWidget);
     expect(find.text('Recibir sus alertas'), findsOneWidget);
     expect(
-      find.text(
-        'Sus medicinas, rutinas y su expediente solo los cambia Ana.',
-      ),
+      find.text('Sus medicinas, rutinas y su expediente solo los cambia Ana.'),
       findsOneWidget,
     );
     await t.scrollUntilVisible(find.text('Empezar'), 200);
@@ -84,34 +83,36 @@ void main() {
     expect(find.text('Eres familiar'), findsOneWidget);
   });
 
-  testWidgets('«Ya voy» le dice a la familia quién va; «Ya la atendí» la cierra', (
-    t,
-  ) async {
-    final rosa = await entraLuis();
-    await repo.pedirAyuda('rosa');
-    final alerta = (await repo.alertasSinAtender('rosa').first).single;
+  testWidgets(
+    '«Ya voy» le dice a la familia quién va; «Ya la atendí» la cierra',
+    (t) async {
+      final rosa = await entraLuis();
+      await repo.pedirAyuda('rosa');
+      final alerta = (await repo.alertasSinAtender('rosa').first).single;
 
-    await t.pumpWidget(
-      MaterialApp(home: AlertaAyuda(adulto: rosa, alerta: alerta)),
-    );
-    await esperar(t);
-    expect(find.text('Rosa pidió ayuda'), findsOneWidget);
-    expect(find.text('Nadie ha respondido todavía.'), findsOneWidget);
+      await t.pumpWidget(
+        MaterialApp(
+          home: AlertaAyuda(adulto: rosa, alerta: alerta),
+        ),
+      );
+      await esperar(t);
+      expect(find.text('Rosa pidió ayuda'), findsOneWidget);
+      expect(find.text('Nadie ha respondido todavía.'), findsOneWidget);
 
-    await t.tap(find.text('Ya voy'));
-    await esperar(t);
-    expect(find.text('Luis (tú)'), findsOneWidget);
-    expect(find.text('Va para allá'), findsOneWidget);
-    final respuestas = (await repo.alertasSinAtender('rosa').first)
-        .single
-        .respuestas;
-    expect(respuestas.values.single.estado, 'voy');
+      await t.tap(find.text('Ya voy'));
+      await esperar(t);
+      expect(find.text('Luis (tú)'), findsOneWidget);
+      expect(find.text('Va para allá'), findsOneWidget);
+      final respuestas =
+          (await repo.alertasSinAtender('rosa').first).single.respuestas;
+      expect(respuestas.values.single.estado, 'voy');
 
-    await t.scrollUntilVisible(find.text('Ya la atendí'), -200);
-    await t.tap(find.text('Ya la atendí'));
-    await esperar(t);
-    expect(await repo.alertasSinAtender('rosa').first, isEmpty);
-  });
+      await t.scrollUntilVisible(find.text('Ya la atendí'), -200);
+      await t.tap(find.text('Ya la atendí'));
+      await esperar(t);
+      expect(await repo.alertasSinAtender('rosa').first, isEmpty);
+    },
+  );
 
   test('El familiar se sale por su cuenta; el principal no puede', () async {
     await entraLuis();
@@ -132,6 +133,32 @@ void main() {
     );
     expect((await repo.adultosACargo().first).single.idsCuidadores, ['ana']);
   });
+
+  testWidgets(
+    'Si deja de acompañar a su única persona, sale a la entrada sin huella',
+    (t) async {
+      await t.binding.setSurfaceSize(const Size(800, 1800));
+      addTearDown(() => t.binding.setSurfaceSize(null));
+      await entraLuis();
+      Ajustes.huellaActivada.value = true;
+      await t.pumpWidget(const MaterialApp(home: PanelCuidador()));
+      await esperar(t);
+      await t.tap(find.text('Más').last);
+      await esperar(t, 4);
+      await t.tap(find.text('Dejar de acompañar a Rosa'));
+      await esperar(t, 3);
+      await t.tap(find.text('Sí, salir'));
+      await esperar(t);
+
+      expect(repo.uid, isNull);
+      expect(find.byType(Bienvenida), findsOneWidget);
+      expect(find.text('Ya no acompañas a Rosa'), findsOneWidget);
+      expect(Ajustes.huellaActivada.value, isFalse);
+      // La bienvenida deja un temporizador.
+      await t.pumpWidget(const SizedBox());
+      await t.pump(const Duration(seconds: 10));
+    },
+  );
 
   testWidgets('Mis alertas guarda lo que calla este celular', (t) async {
     await t.pumpWidget(const MaterialApp(home: MisAlertas(adulto: 'Rosa')));

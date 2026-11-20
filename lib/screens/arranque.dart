@@ -30,6 +30,22 @@ Widget pantallaDelAdulto() => Ajustes.encuestaHecha.value
     ? const PanelAdulto()
     : const EncuestaApariencia();
 
+// Cierra la sesión de este celular y vuelve a la entrada de tres botones.
+// La huella era de esa cuenta: se apaga para que no se la pida a quien entre
+// después. [aviso] se muestra al llegar («Ya no acompañas a Rosa»).
+Future<void> salirDeNana(BuildContext context, {String? aviso}) async {
+  await Servicios.repo.cerrarSesion();
+  Ajustes.huellaActivada.value = false;
+  Ajustes.huellaOfrecida.value = false;
+  if (!context.mounted) return;
+  entrarA(context, const Bienvenida());
+  if (aviso != null) {
+    ScaffoldMessenger.maybeOf(context)
+      ?..clearSnackBars()
+      ..showSnackBar(SnackBar(content: Text(aviso)));
+  }
+}
+
 // Entra a una pantalla principal borrando lo de atrás (registro, código...).
 void entrarA(BuildContext context, Widget destino) {
   Navigator.of(context).pushAndRemoveUntil(

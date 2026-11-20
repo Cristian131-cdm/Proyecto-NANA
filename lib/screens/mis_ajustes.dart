@@ -9,7 +9,6 @@ import '../widgets/ajustes_texto.dart';
 import '../widgets/aviso.dart';
 import 'alta_adulto.dart';
 import 'arranque.dart';
-import 'bienvenida.dart';
 import 'codigo_vinculacion.dart';
 import 'como_va_la_prueba.dart';
 
@@ -83,10 +82,7 @@ class _MisAjustesState extends State<MisAjustes> {
     }
   }
 
-  Future<void> _salir() async {
-    await Servicios.repo.cerrarSesion();
-    if (mounted) entrarA(context, const Bienvenida());
-  }
+  Future<void> _salir() => salirDeNana(context);
 
   @override
   Widget build(BuildContext context) {

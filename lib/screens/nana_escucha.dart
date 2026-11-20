@@ -79,16 +79,41 @@ class _NanaEscuchaState extends State<NanaEscucha>
     });
   }
 
+  // Al salir con una frase («Listo, se lo cuento a tu familia») esa última
+  // frase sí se deja terminar; en cualquier otra salida NANA se calla.
+  bool _dejarTerminar = false;
+
   @override
   void dispose() {
     _cerrada = true;
-    Servicios.voz.dejarDeEscuchar();
+    if (_dejarTerminar) {
+      Servicios.voz.dejarDeEscuchar();
+    } else {
+      _parar();
+    }
     _pulso.dispose();
     super.dispose();
   }
 
+  // NANA deja de hablar y suelta el micrófono.
+  void _parar() {
+    Servicios.voz.callar();
+    Servicios.voz.dejarDeEscuchar();
+  }
+
+  // Antes de abrir otra pantalla (señas, más frases): que no siga hablando
+  // ni escuchando detrás.
+  Future<T?> _sinVoz<T>(Future<T?> Function() abrir) {
+    _parar();
+    return abrir();
+  }
+
+  // Solo escucha si esta pantalla está al frente.
+  bool get _alFrente =>
+      !_cerrada && mounted && (ModalRoute.of(context)?.isCurrent ?? true);
+
   Future<void> _escuchar() async {
-    if (_cerrada || !mounted) return;
+    if (!_alFrente) return;
     final oido = await Servicios.voz.escuchar(
       basta: (t) =>
           NanaEscucha.urgentes.contains(entender(t, NanaEscucha.comandos)),
@@ -127,13 +152,15 @@ class _NanaEscuchaState extends State<NanaEscucha>
   void _decir(String frase) {
     if (_cerrada) return;
     _cerrada = true;
+    _dejarTerminar = true;
+    Servicios.voz.dejarDeEscuchar();
     nanaDice(context, 'Listo, se lo cuento a tu familia', siempre: true);
     Navigator.pop(context);
     widget.onFrase(frase);
   }
 
   Future<void> _masFrases() async {
-    final f = await mostrarHojaFrases(context);
+    final f = await _sinVoz(() => mostrarHojaFrases(context));
     if (f != null && mounted) _decir(f);
   }
 
@@ -222,7 +249,10 @@ class _NanaEscuchaState extends State<NanaEscucha>
                   child: _Forma(
                     icono: Icons.ondemand_video,
                     titulo: 'Ver en señas',
-                    onTap: () => abrirVerEnSenas(context),
+                    onTap: () {
+                      _parar();
+                      abrirVerEnSenas(context);
+                    },
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -231,7 +261,9 @@ class _NanaEscuchaState extends State<NanaEscucha>
                     icono: Icons.videocam_outlined,
                     titulo: 'Hablar con señas',
                     onTap: () async {
-                      final frase = await abrirHablarConSenas(context);
+                      final frase = await _sinVoz(
+                        () => abrirHablarConSenas(context),
+                      );
                       if (frase != null && mounted) _decir(frase);
                     },
                   ),
@@ -240,7 +272,10 @@ class _NanaEscuchaState extends State<NanaEscucha>
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () {
+                _parar();
+                Navigator.pop(context);
+              },
               icon: const Icon(Icons.stop_circle_outlined, size: 30),
               label: const Text('Terminar'),
             ),

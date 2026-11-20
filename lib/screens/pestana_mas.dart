@@ -8,6 +8,7 @@ import '../data/repositorio.dart' show ErrorNana;
 import '../models/adulto.dart';
 import '../widgets/aviso.dart';
 import '../widgets/tarjeta_dato.dart' show TarjetaDato;
+import 'arranque.dart';
 import 'familia_alertas.dart';
 import 'mis_alertas.dart';
 import 'mis_ajustes.dart';
@@ -184,8 +185,15 @@ class PestanaMas extends StatelessWidget {
     if (si != true) return;
     try {
       await Servicios.repo.dejarDeAcompanar(a.folio);
-      if (context.mounted) {
-        mostrarAviso(context, 'Ya no acompañas a ${a.nombre}');
+      final aviso = 'Ya no acompañas a ${a.nombre}';
+      // Si era la única persona, ya no hay nada que ver con esta cuenta:
+      // se cierra la sesión y vuelve a la entrada de tres botones.
+      final quedan = await Servicios.repo.adultosACargo().first;
+      if (!context.mounted) return;
+      if (quedan.isEmpty) {
+        await salirDeNana(context, aviso: aviso);
+      } else {
+        mostrarAviso(context, aviso);
       }
     } on ErrorNana catch (e) {
       if (context.mounted) mostrarAviso(context, e.mensaje);

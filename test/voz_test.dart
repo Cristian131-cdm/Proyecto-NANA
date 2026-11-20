@@ -191,7 +191,8 @@ void main() {
     t,
   ) async {
     final dichas = <String>[];
-    Servicios.voz = VozNula(respuestas: ['me siento mal']);
+    final voz = VozNula(respuestas: ['me siento mal']);
+    Servicios.voz = voz;
     await t.pumpWidget(
       MaterialApp(
         home: Builder(
@@ -214,6 +215,60 @@ void main() {
     await t.pump(const Duration(seconds: 1));
     await t.pump(const Duration(seconds: 1));
     expect(dichas, ['Me siento mal']);
+    // «Listo, se lo cuento a tu familia» se deja terminar: no se calla.
+    expect(voz.callado, 0);
+  });
+
+  testWidgets('Hablando con NANA: «Terminar» la calla y suelta el micrófono', (
+    t,
+  ) async {
+    await t.binding.setSurfaceSize(const Size(800, 1800));
+    addTearDown(() => t.binding.setSurfaceSize(null));
+    final voz = VozNula();
+    Servicios.voz = voz;
+    await t.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => TextButton(
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => NanaEscucha(nombre: 'Rosa', onFrase: (_) {}),
+              ),
+            ),
+            child: const Text('abrir'),
+          ),
+        ),
+      ),
+    );
+    await t.tap(find.text('abrir'));
+    await _esperar(t);
+    final antes = voz.callado;
+    await t.tap(find.text('Terminar'));
+    await _esperar(t);
+    expect(find.byType(NanaEscucha), findsNothing);
+    expect(voz.callado, greaterThan(antes));
+    expect(voz.soltado, greaterThan(0));
+  });
+
+  testWidgets('Hablando con NANA: al abrir «Ver en señas» deja de hablar', (
+    t,
+  ) async {
+    await t.binding.setSurfaceSize(const Size(800, 1800));
+    addTearDown(() => t.binding.setSurfaceSize(null));
+    final voz = VozNula();
+    Servicios.voz = voz;
+    await t.pumpWidget(
+      MaterialApp(
+        home: NanaEscucha(nombre: 'Rosa', onFrase: (_) {}),
+      ),
+    );
+    await _esperar(t);
+    final antes = (voz.callado, voz.soltado);
+    await t.tap(find.text('Ver en señas'));
+    await _esperar(t);
+    expect(voz.callado, greaterThan(antes.$1));
+    expect(voz.soltado, greaterThan(antes.$2));
   });
 
   testWidgets('Si estaba en "Decir" y habla, el botón vuelve a ser Hablar', (

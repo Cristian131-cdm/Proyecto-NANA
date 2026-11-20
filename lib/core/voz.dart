@@ -68,8 +68,12 @@ class VozNula implements Voz {
 
   @override
   Future<void> decir(String texto) async => dicho.add(texto);
+  // Para las pruebas: cuántas veces se le pidió callarse o soltar el micrófono.
+  int callado = 0;
+  int soltado = 0;
+
   @override
-  Future<void> callar() async {}
+  Future<void> callar() async => callado++;
   @override
   Future<String?> escuchar({
     Duration maximo = const Duration(seconds: 8),
@@ -77,7 +81,7 @@ class VozNula implements Voz {
     bool Function(String parcial)? sirve,
   }) async => respuestas.isEmpty ? null : respuestas.removeAt(0);
   @override
-  Future<void> dejarDeEscuchar() async {}
+  Future<void> dejarDeEscuchar() async => soltado++;
   @override
   String? problema;
 }

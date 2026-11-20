@@ -111,10 +111,7 @@ void main() {
 
     await t.enterText(find.byType(TextField), codigo.codigo);
     await t.pumpAndSettle();
-    expect(
-      find.text('Vas a acompañar a Rosa. Te invitó Ana.'),
-      findsOneWidget,
-    );
+    expect(find.text('Vas a acompañar a Rosa. Te invitó Ana.'), findsOneWidget);
     await _bajarYTocar(t, 'Continuar');
     await t.pumpAndSettle();
     expect(find.text('Vas a acompañar a Rosa'), findsOneWidget);
@@ -213,9 +210,7 @@ void main() {
     expect(find.text('Paso 5 de 6'), findsOneWidget);
   });
 
-  testWidgets('«Cuidar a otra persona» (ya con cuenta) va de 1 a 5', (
-    t,
-  ) async {
+  testWidgets('«Cuidar a otra persona» (ya con cuenta) va de 1 a 5', (t) async {
     await abrir(t, const AltaAdulto());
     expect(find.text('Paso 1 de 5'), findsOneWidget);
     // Quien ya tiene cuenta entra por aquí si lo invitan.

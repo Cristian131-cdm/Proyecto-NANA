@@ -53,7 +53,11 @@ class AvisoCandado extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.lock_outline, color: ColoresNana.tintaSuave, size: 26),
+          const Icon(
+            Icons.lock_outline,
+            color: ColoresNana.tintaSuave,
+            size: 26,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(

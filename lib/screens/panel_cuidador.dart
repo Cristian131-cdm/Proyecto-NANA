@@ -131,6 +131,12 @@ class _PanelCuidadorState extends State<PanelCuidador> {
                 ),
                 child: const Text('Me invitaron, tengo un código'),
               ),
+              const SizedBox(height: 8),
+              // Por si lo quitaron desde otro celular y no quiere seguir aquí.
+              BotonSecundario(
+                texto: 'Cerrar sesión',
+                onPressed: () => salirDeNana(context),
+              ),
             ],
           );
         }

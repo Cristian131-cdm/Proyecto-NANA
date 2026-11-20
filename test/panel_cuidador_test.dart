@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'package:nana_app/core/ajustes.dart';
 import 'package:nana_app/core/biometria.dart';
 import 'package:nana_app/core/servicios.dart';
 import 'package:nana_app/data/repositorio_memoria.dart';
@@ -118,6 +119,9 @@ void main() {
     });
 
     testWidgets('Mis ajustes tiene la cuenta y cierra sesión', (t) async {
+      // La huella era de esta cuenta: al salir se apaga.
+      Ajustes.huellaActivada.value = true;
+      Ajustes.huellaOfrecida.value = true;
       await irAMas(t);
       await tocar(t, 'Mis ajustes y cuenta');
       expect(find.byType(MisAjustes), findsOneWidget);
@@ -138,6 +142,8 @@ void main() {
       await t.pumpAndSettle();
       expect(Servicios.repo.uid, isNull);
       expect(find.byType(Bienvenida), findsOneWidget);
+      expect(Ajustes.huellaActivada.value, isFalse);
+      expect(Ajustes.huellaOfrecida.value, isFalse);
       // La bienvenida deja un temporizador.
       await t.pumpWidget(const SizedBox());
       await t.pump(const Duration(seconds: 10));
