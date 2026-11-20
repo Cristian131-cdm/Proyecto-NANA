@@ -26,6 +26,20 @@ Future<Widget> destinoInicial() async {
       : const PanelCuidador();
 }
 
+// Al abrir la app: si quedó una sesión de quien cuida pero ya no tiene a nadie
+// a su cargo (se salió del grupo, lo quitaron, o dejó el registro a medias),
+// no tiene caso pedir la huella ni mandarlo al alta: se cierra esa sesión y
+// se muestra la entrada de tres botones. Para seguir un registro a medias
+// basta con «Ya tengo cuenta · Iniciar sesión».
+Future<Widget> destinoAlArrancar() async {
+  final destino = await destinoInicial();
+  if (destino is! AltaAdulto) return destino;
+  await Servicios.repo.cerrarSesion();
+  Ajustes.huellaActivada.value = false;
+  Ajustes.huellaOfrecida.value = false;
+  return const Bienvenida();
+}
+
 Widget pantallaDelAdulto() => Ajustes.encuestaHecha.value
     ? const PanelAdulto()
     : const EncuestaApariencia();
@@ -71,7 +85,7 @@ class _ArranqueState extends State<Arranque> {
   Future<void> _arrancar() async {
     Widget destino;
     try {
-      destino = await destinoInicial();
+      destino = await destinoAlArrancar();
     } catch (_) {
       destino = const Bienvenida();
     }

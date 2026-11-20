@@ -11,6 +11,7 @@ import 'package:nana_app/data/repositorio_memoria.dart';
 import 'package:nana_app/models/adulto.dart';
 import 'package:nana_app/models/alerta.dart';
 import 'package:nana_app/screens/alerta_ayuda.dart';
+import 'package:nana_app/screens/arranque.dart';
 import 'package:nana_app/screens/bienvenida.dart';
 import 'package:nana_app/screens/bienvenida_familiar.dart';
 import 'package:nana_app/screens/mis_alertas.dart';
@@ -159,6 +160,32 @@ void main() {
       await t.pump(const Duration(seconds: 10));
     },
   );
+
+  test(
+    'Si al abrir hay sesión pero ya no cuida a nadie, sale sin huella',
+    () async {
+      // Lo que le pasó al A72: se salió del grupo con la versión anterior y
+      // la sesión quedó abierta, con la huella prendida.
+      await entraLuis();
+      await repo.dejarDeAcompanar('rosa');
+      Ajustes.huellaActivada.value = true;
+      expect(repo.uid, isNotNull);
+
+      final destino = await destinoAlArrancar();
+      expect(destino, isA<Bienvenida>());
+      expect(repo.uid, isNull);
+      expect(Ajustes.huellaActivada.value, isFalse);
+    },
+  );
+
+  test('Quien sí cuida a alguien sigue entrando a su panel', () async {
+    Ajustes.huellaActivada.value = true;
+    addTearDown(() => Ajustes.huellaActivada.value = false);
+    final destino = await destinoAlArrancar();
+    expect(destino, isA<PanelCuidador>());
+    expect(repo.uid, 'ana');
+    expect(Ajustes.huellaActivada.value, isTrue);
+  });
 
   testWidgets('Mis alertas guarda lo que calla este celular', (t) async {
     await t.pumpWidget(const MaterialApp(home: MisAlertas(adulto: 'Rosa')));
