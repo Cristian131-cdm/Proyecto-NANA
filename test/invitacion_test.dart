@@ -194,17 +194,20 @@ void main() {
     expect(texto, contains('24 horas'));
   });
 
-  testWidgets('Familia y alertas da una invitación de 6 números que sí sirve', (
-    t,
-  ) async {
+  testWidgets('Invitar da una invitación de 6 números que sí sirve', (t) async {
+    // El botón vive arriba de la pestaña Más; aquí se prueba lo que hace.
     await t.pumpWidget(
-      const MaterialApp(
-        home: FamiliaAlertas(adulto: 'Rosa', folio: 'rosa'),
+      MaterialApp(
+        home: Builder(
+          builder: (context) => TextButton(
+            onPressed: () =>
+                invitarConCodigo(context, folio: 'rosa', adulto: 'Rosa'),
+            child: const Text('invitar'),
+          ),
+        ),
       ),
     );
-    await t.pumpAndSettle();
-    await t.ensureVisible(find.text('Invitar a alguien con código'));
-    await t.tap(find.text('Invitar a alguien con código'));
+    await t.tap(find.text('invitar'));
     await t.pumpAndSettle();
 
     expect(find.text('Código de invitación'), findsOneWidget);

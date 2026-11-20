@@ -273,7 +273,8 @@ void main() {
       await comoAna();
       await abrirFamilia(t);
 
-      expect(find.text('Invitar a alguien con código'), findsOneWidget);
+      // Invitar ya no está aquí: vive arriba de la pestaña Más.
+      expect(find.text('Invitar a alguien con código'), findsNothing);
       expect(find.text('Pantalla de Rosa'), findsOneWidget);
       expect(find.text('Borrar todos los datos de Rosa'), findsOneWidget);
       expect(find.textContaining('Encargado principal'), findsOneWidget);

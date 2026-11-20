@@ -162,7 +162,8 @@ void main() {
       await tocar(t, 'Mis ajustes y cuenta');
       expect(find.byType(MisAjustes), findsOneWidget);
       expect(find.text('Cuidar a otra persona'), findsOneWidget);
-      expect(find.text('Código para el celular de Rosa'), findsOneWidget);
+      // El código ya no se repite aquí: vive arriba de la pestaña Más.
+      expect(find.text('Código para el celular de Rosa'), findsNothing);
       // Queda abajo de la lista: se baja hasta verlo.
       await t.scrollUntilVisible(
         find.text('Cerrar sesión'),

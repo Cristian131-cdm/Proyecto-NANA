@@ -9,7 +9,6 @@ import '../widgets/ajustes_texto.dart';
 import '../widgets/aviso.dart';
 import 'alta_adulto.dart';
 import 'arranque.dart';
-import 'codigo_vinculacion.dart';
 import 'como_va_la_prueba.dart';
 
 // «Mis ajustes y cuenta» de quien cuida (pestaña Más): su letra, colores,
@@ -36,8 +35,6 @@ class _MisAjustesState extends State<MisAjustes> {
 
   void _ir(Widget pantalla) =>
       Navigator.push(context, MaterialPageRoute(builder: (_) => pantalla));
-
-  Future<void> _codigo() => abrirCodigoDelAdulto(context, widget.adulto);
 
   Future<void> _demo() async {
     final a = widget.adulto;
@@ -93,12 +90,6 @@ class _MisAjustesState extends State<MisAjustes> {
           const SizedBox(height: 8),
           GrupoRenglones(
             children: [
-              if (permisos.codigoDelAdulto)
-                Renglon(
-                  icono: Icons.phonelink_ring,
-                  texto: 'Código para el celular de ${a.nombre}',
-                  onTap: _codigo,
-                ),
               Renglon(
                 icono: Icons.person_add_alt,
                 texto: 'Cuidar a otra persona',

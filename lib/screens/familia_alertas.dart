@@ -241,8 +241,6 @@ class _FamiliaAlertasState extends State<FamiliaAlertas> {
     );
   }
 
-  bool _invitando = false;
-
   Future<void> _borrarTodo() async {
     final adulto = widget.adulto;
     final si = await showDialog<bool>(
@@ -282,20 +280,6 @@ class _FamiliaAlertasState extends State<FamiliaAlertas> {
       entrarA(context, destino);
     } on ErrorNana catch (e) {
       if (mounted) mostrarAviso(context, e.mensaje);
-    }
-  }
-
-  Future<void> _invitar() async {
-    if (_invitando) return;
-    setState(() => _invitando = true);
-    try {
-      await invitarConCodigo(
-        context,
-        folio: widget.folio,
-        adulto: widget.adulto,
-      );
-    } finally {
-      if (mounted) setState(() => _invitando = false);
     }
   }
 
@@ -367,15 +351,8 @@ class _FamiliaAlertasState extends State<FamiliaAlertas> {
                 : '${_papel(f, a)} · ${f.telefono}',
             onTap: () => _verFamiliar(f, f.uid == yo, a, p),
           ),
-        if (p.invitar)
-          BotonSecundario(
-            icono: Icons.person_add_alt_1,
-            texto: _invitando
-                ? 'Creando el código…'
-                : 'Invitar a alguien con código',
-            onPressed: _invitar,
-          )
-        else
+        // Invitar con código vive arriba de la pestaña Más (un solo lugar).
+        if (!p.invitar)
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 8),
             child: Text(
