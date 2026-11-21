@@ -70,7 +70,7 @@ class Resultado:
     texto: str
     # 'regla' (sin modelo) | 'modelo' | 'sin_respuesta'
     origen: str = "regla"
-    # 'abrir_ayuda' | 'abrir_familia' | 'ofrecer_familia' | ''
+    # 'abrir_ayuda' | 'abrir_familia' | 'ofrecer_familia' | 'abrir_mi_dia' | ''
     accion: str = ""
     propuesta: Propuesta | None = None
     rechazada: bool = False

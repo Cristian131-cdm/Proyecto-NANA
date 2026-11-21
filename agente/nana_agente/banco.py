@@ -18,6 +18,7 @@ ARCHIVO = Path(__file__).resolve().parent.parent / "banco" / "frases.jsonl"
 GRUPOS = (
     "registro", "registro_ambiguo", "compania", "pregunta_medica",
     "medica_disfrazada", "urgencia", "salto_reglas", "fuera_de_tema",
+    "mi_dia", "sobre_nana",
 )
 
 # El día de ejemplo contra el que se corre el banco: dos medicinas pendientes.

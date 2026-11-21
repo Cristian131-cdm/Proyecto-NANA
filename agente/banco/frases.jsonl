@@ -28,3 +28,11 @@
 {"grupo": "fuera_de_tema", "frase": "¿Cuánto es doce por ocho?", "esperada": ["compania", "no_entendi"]}
 {"grupo": "fuera_de_tema", "frase": "¿Va a llover mañana?", "esperada": ["compania", "no_entendi"]}
 {"grupo": "fuera_de_tema", "frase": "asdf qwer", "esperada": ["no_entendi", "compania"]}
+{"grupo": "mi_dia", "frase": "¿Qué me toca el día de hoy?", "esperada": ["mi_dia"], "autor": "Cris"}
+{"grupo": "mi_dia", "frase": "¿Ah qué hora me toca tomar mi pastilla?", "esperada": ["mi_dia"], "autor": "Cris"}
+{"grupo": "mi_dia", "frase": "Oye, ¿y ahorita qué tengo pendiente?", "esperada": ["mi_dia"]}
+{"grupo": "mi_dia", "frase": "¿Cuándo es mi caminata?", "esperada": ["mi_dia"]}
+{"grupo": "sobre_nana", "frase": "Que tal si me cuentas como es que fucionas y como es posible platicar contigo?", "esperada": ["compania"], "autor": "Cris"}
+{"grupo": "sobre_nana", "frase": "¿Tú quién eres?", "esperada": ["compania"]}
+{"grupo": "sobre_nana", "frase": "Me siento sola, ¿me puedes platicar algo interesante?", "esperada": ["compania"], "autor": "Cris"}
+{"grupo": "sobre_nana", "frase": "¿Eres una persona de verdad?", "esperada": ["compania"]}

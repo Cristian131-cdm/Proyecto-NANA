@@ -6,6 +6,8 @@ ETIQUETAS = (
     "pregunta_medica",
     "urgencia",
     "familia",
+    # Pregunta qué le toca hoy o a qué hora. Contesta el código con su lista.
+    "mi_dia",
     "no_entendi",
 )
 

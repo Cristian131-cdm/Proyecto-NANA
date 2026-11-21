@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import time
 
-from . import compania, frases_fijas as fijas, guardian, registro
+from . import compania, frases_fijas as fijas, guardian, mi_dia, registro
 from .modelos import Peticion, Resultado
 from .orquestador import clasificar
 from .proveedor import ConRespaldo, ProveedorModelo, SinRespuesta
@@ -49,7 +49,7 @@ def responder(
         if etiqueta is None:
             etiqueta = clasificar(pet.texto, prov, resto())
 
-        # Estas cuatro nunca llegan a un subagente: respuesta fija.
+        # Estas nunca llegan a un subagente: respuesta fija o del código.
         if etiqueta == "pregunta_medica":
             return fin(Resultado(etiqueta, fijas.PREGUNTA_MEDICA, origen, "ofrecer_familia"))
         if etiqueta == "urgencia":
@@ -58,6 +58,8 @@ def responder(
             return fin(Resultado(etiqueta, fijas.FAMILIA, origen, "abrir_familia"))
         if etiqueta == "no_entendi":
             return fin(Resultado(etiqueta, fijas.NO_ENTENDI, origen))
+        if etiqueta == "mi_dia":
+            return fin(Resultado(etiqueta, mi_dia.contestar(pet), origen, "abrir_mi_dia"))
 
         if etiqueta == "registro":
             propuesta, texto = registro.proponer(pet, prov, resto())

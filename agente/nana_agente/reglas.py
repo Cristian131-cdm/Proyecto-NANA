@@ -46,6 +46,27 @@ URGENCIA = (
     "no me puedo mover",
 )
 
+MI_DIA = (
+    "que me toca",
+    "que toca hoy",
+    "a que hora me toca",
+    "hora me toca",
+    "cuando es mi",
+    "tengo pendiente",
+    "a que hora tomo",
+    "a que hora me tomo",
+    "a que hora es mi",
+    "a que hora como",
+    "a que hora camino",
+    "cuando me toca",
+    "que tengo hoy",
+    "que tengo que hacer",
+    "que me falta",
+    "que sigue",
+    "mi lista",
+    "mis pendientes",
+)
+
 PREGUNTA_MEDICA = (
     "que medicina me tomo",
     "que medicina tomo",
@@ -75,12 +96,18 @@ PREGUNTA_MEDICA = (
 
 
 def regla_fija(texto: str) -> str | None:
-    """Devuelve 'urgencia', 'pregunta_medica' o None si hay que preguntarle al orquestador."""
+    """Devuelve 'urgencia', 'mi_dia', 'pregunta_medica' o None si hay que preguntarle al orquestador."""
     t = f" {normalizar(texto)} "
     # La urgencia va primero: "me caí, ¿qué me tomo?" es una urgencia.
     for frase in URGENCIA:
         if f" {frase} " in t:
             return "urgencia"
+    # Antes que la médica: "¿a qué hora me tomo la pastilla?" pregunta un
+    # horario, no un consejo. La respuesta sale de su lista, así que aunque
+    # la frase rozara lo médico, NANA solo repite lo que anotó la familia.
+    for frase in MI_DIA:
+        if f" {frase} " in t:
+            return "mi_dia"
     for frase in PREGUNTA_MEDICA:
         if f" {frase} " in t:
             return "pregunta_medica"

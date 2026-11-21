@@ -175,7 +175,8 @@ class ProveedorGuion(ProveedorModelo):
     _FAMILIA = ("mi hija", "mi hijo", "mi nieta", "mi nieto", "mi familia", "llama")
     _COMPANIA = ("me siento", "sola", "solo", "triste", "aburrida", "aburrido",
                  "platica", "cuentame", "gracias", "buenos dias", "buenas", "hola",
-                 "contenta", "contento", "feliz", "extrano", "como estas")
+                 "contenta", "contento", "feliz", "extrano", "como estas",
+                 "quien eres", "funcionas", "fucionas", "interesante", "persona de verdad")
 
     def estructurado(self, sistema, texto, esquema):
         props = esquema.get("properties", {})
