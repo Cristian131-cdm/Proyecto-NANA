@@ -103,7 +103,11 @@ class _AlertaAyudaState extends State<AlertaAyuda> {
               header: true,
               liveRegion: true,
               child: Text(
-                _atendida ? 'Ya atendieron a $nombre' : '$nombre pidió ayuda',
+                _atendida
+                    ? 'Ya atendieron a $nombre'
+                    : _alerta.noContesto
+                    ? '$nombre pidió ayuda y no contesta'
+                    : '$nombre pidió ayuda',
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 32,
@@ -114,7 +118,7 @@ class _AlertaAyudaState extends State<AlertaAyuda> {
             ),
             const SizedBox(height: 6),
             Text(
-              hace,
+              '${_alerta.comoSePidio} · $hace',
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 20, color: Colors.white),
             ),

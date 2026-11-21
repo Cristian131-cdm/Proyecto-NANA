@@ -128,7 +128,8 @@ abstract class RepositorioNana {
 
   // Alertas. pedirAyuda devuelve false si quedó en cola por falta de internet.
   Stream<List<Alerta>> alertasSinAtender(String folio);
-  Future<bool> pedirAyuda(String folio);
+  // [como]: 'boton', 'voz' o 'sin_respuesta' (ver Alerta.como).
+  Future<bool> pedirAyuda(String folio, {String como = 'boton'});
   Future<void> atenderAlerta(String folio, String id);
   // Alguien de la familia responde a «pidió ayuda»: estado 'voy' o 'atendi'.
   // 'atendi' además la marca como atendida para todos.

@@ -95,9 +95,15 @@ class AvisosLocales implements Avisos {
           '$nombre dijo: "${a.texto ?? ''}"',
           'A las $hora. Abre NANA para llamarle.',
         )
+      : a.noContesto
+      ? (
+          '$nombre necesita ayuda y no contesta',
+          'Dijo que necesitaba ayuda a las $hora y después no contestó. '
+              'Llámale ya.',
+        )
       : (
           '$nombre necesita ayuda',
-          'Tocó "Necesito ayuda" a las $hora. Abre NANA para llamarle.',
+          '${a.comoSePidio} a las $hora. Abre NANA para llamarle.',
         );
 }
 

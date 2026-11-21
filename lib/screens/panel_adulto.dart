@@ -21,6 +21,7 @@ import '../widgets/festejo.dart';
 import '../widgets/mascota_nana.dart';
 import '../widgets/tarjeta_ahora.dart';
 import 'arranque.dart';
+import 'aviso_ayuda.dart';
 import 'mi_dia.dart';
 import 'mi_familia.dart';
 import 'nana_escucha.dart';
@@ -246,7 +247,7 @@ class _PanelAdultoState extends State<PanelAdulto> {
           if (!mounted) return;
           switch (r.accion) {
             case AccionPlatica.ayuda:
-              _confirmarAviso();
+              _confirmarAviso(porVoz: true);
             case AccionPlatica.familia:
               _ir(MiFamilia(folio: _folio));
             case AccionPlatica.frase when r.frase != null:
@@ -258,68 +259,22 @@ class _PanelAdultoState extends State<PanelAdulto> {
     );
   }
 
-  Future<void> _confirmarAviso() async {
+  // «Voy a avisar a tu familia» con cuenta regresiva (screens/aviso_ayuda.dart).
+  // [porVoz]: la pidió hablando; si después no contesta, se avisa sola.
+  Future<void> _confirmarAviso({bool porVoz = false}) async {
     if (_yo?.tieneFamilia != true) {
       mostrarAviso(context, 'Todavía no tienes familia conectada');
       return;
     }
-    final si = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        title: const Text(
-          '¿Le aviso a tu familia?',
-          style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Les mando un mensaje para que sepan que necesitas ayuda.',
-              style: TextStyle(fontSize: 20),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              height: 60,
-              child: FilledButton(
-                onPressed: () => Navigator.pop(context, true),
-                style: FilledButton.styleFrom(
-                  backgroundColor: ColoresNana.alerta,
-                  shape: const StadiumBorder(),
-                  textStyle: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                child: const Text('Sí, avisar'),
-              ),
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                style: TextButton.styleFrom(
-                  textStyle: const TextStyle(fontSize: 20),
-                ),
-                child: const Text('No, cancelar'),
-              ),
-            ),
-          ],
+    await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AvisoAyuda(
+          folio: _folio,
+          nombre: _yo?.nombre ?? '',
+          porVoz: porVoz,
         ),
       ),
-    );
-    if (si != true || !mounted) return;
-    Medicion.tarea('pidio_ayuda');
-    final llego = await Servicios.repo.pedirAyuda(_folio);
-    if (!mounted) return;
-    mostrarAviso(
-      context,
-      llego
-          ? 'Listo, ya le avisé a tu familia'
-          : 'No hay internet. Lo mando en cuanto haya',
     );
   }
 

@@ -309,6 +309,58 @@ T? entender<T>(String? oido, List<(T, List<String>)> intenciones) {
   return null;
 }
 
+enum RespuestaAviso { avisar, cancelar, no }
+
+// Lo que se puede contestar en «Voy a avisar a tu familia». Ante la duda se
+// avisa: por eso "no estoy bien" va antes que "estoy bien", y un "no" a secas
+// solo hace que NANA vuelva a preguntar (puede querer decir "no estoy bien").
+const respuestasAviso = <(RespuestaAviso, List<String>)>[
+  (
+    RespuestaAviso.avisar,
+    [
+      'no estoy bien',
+      'no me siento bien',
+      'no me puedo',
+      'no puedo',
+      'no me dejes',
+    ],
+  ),
+  (
+    RespuestaAviso.cancelar,
+    [
+      'estoy bien',
+      'ya estoy bien',
+      'no pasa nada',
+      'no fue nada',
+      'cancela',
+      'cancelar',
+      'fue sin querer',
+      'me equivoque',
+      'no te preocupes',
+      'no avises',
+      'no les avises',
+    ],
+  ),
+  (
+    RespuestaAviso.avisar,
+    [
+      'avisales',
+      'avisa',
+      'avisale',
+      'si',
+      'ayuda',
+      'ayudame',
+      'auxilio',
+      'ven',
+      'vengan',
+      'por favor',
+      'rapido',
+      'me duele',
+    ],
+  ),
+  (RespuestaAviso.no, ['no']),
+];
+
 enum RespuestaRecordatorio { si, alRato }
 
 // Lo que se puede contestar en el recordatorio de una medicina.

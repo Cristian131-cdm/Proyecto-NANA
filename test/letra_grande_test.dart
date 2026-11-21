@@ -43,6 +43,7 @@ import 'package:nana_app/screens/pestana_mas.dart';
 import 'package:nana_app/screens/mis_ajustes.dart';
 import 'package:nana_app/screens/resumen_expediente.dart';
 import 'package:nana_app/screens/recomendar_huella.dart';
+import 'package:nana_app/screens/aviso_ayuda.dart';
 import 'package:nana_app/screens/recordatorio_alarma.dart';
 import 'package:nana_app/screens/senas.dart';
 import 'package:nana_app/screens/tablero_frases.dart';
@@ -185,6 +186,10 @@ final _pantallas = <String, _Pantalla>{
   'Recordatorio': (
     sesion: 'rosa-cel',
     crear: () => const RecordatorioAlarma(actividad: _losartan, nombre: 'Rosa'),
+  ),
+  'Aviso a la familia': (
+    sesion: 'rosa-cel',
+    crear: () => const AvisoAyuda(folio: 'rosa', nombre: 'Rosa'),
   ),
   'Ver en señas': (sesion: 'rosa-cel', crear: () => const VerEnSenas()),
   'Permiso de cámara': (

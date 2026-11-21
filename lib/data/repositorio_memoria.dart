@@ -651,10 +651,10 @@ class RepositorioMemoria implements RepositorioNana {
   );
 
   @override
-  Future<bool> pedirAyuda(String folio) async {
+  Future<bool> pedirAyuda(String folio, {String como = 'boton'}) async {
     _alertas
         .putIfAbsent(folio, () => [])
-        .add(Alerta(id: _nuevoId(), fecha: reloj()));
+        .add(Alerta(id: _nuevoId(), fecha: reloj(), como: como));
     _avisar();
     return !sinInternet;
   }

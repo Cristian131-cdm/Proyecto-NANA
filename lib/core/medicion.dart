@@ -65,6 +65,7 @@ const pantallasConocidas = {
   'PlaticaNana': 'Platicando con NANA',
   'TableroFrases': 'Decir (tablero)',
   'RecordatorioAlarma': 'Recordatorio',
+  'AvisoAyuda': 'Aviso a la familia',
   'VerEnSenas': 'Ver en señas',
   'ConsentimientoCamara': 'Permiso de cámara',
   'CamaraSenas': 'Cámara de señas',

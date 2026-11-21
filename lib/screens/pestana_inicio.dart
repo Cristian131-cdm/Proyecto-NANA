@@ -184,15 +184,18 @@ class _Contenido extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
       children: [
-        for (final a in alertas) ...[
+        for (final a in ordenarAlertas(alertas)) ...[
           _Alerta(
             icono: a.esFrase
                 ? Icons.chat_bubble_outline
                 : Icons.notifications_active_outlined,
             titulo: a.esFrase
                 ? '$nombre dijo: "${a.texto ?? ''}"'
+                : a.noContesto
+                ? '$nombre pidió ayuda y no contesta'
                 : '$nombre pidió ayuda',
             detalle: [
+              if (!a.esFrase) a.comoSePidio,
               'A las ${horaCorta(TimeOfDay.fromDateTime(a.fecha))}',
               for (final r in a.respuestas.values)
                 if (!r.atendio && r.nombre.isNotEmpty)

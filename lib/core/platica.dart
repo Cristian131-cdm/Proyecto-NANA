@@ -188,7 +188,7 @@ RespuestaPlatica respuestaAdulto(
   final comando = entender(oido, comandosAdulto);
   if (comando == 'Necesito ayuda') {
     return const RespuestaPlatica(
-      'Voy a avisarle a tu familia. Confírmalo en la pantalla.',
+      'Te escucho. Voy a avisarle a tu familia.',
       accion: AccionPlatica.ayuda,
     );
   }

@@ -11,8 +11,9 @@ Future<void> _pedirAyuda(WidgetTester t) async {
   await t.pumpWidget(const MaterialApp(home: PanelAdulto()));
   await t.pumpAndSettle();
   await t.tap(find.text('Ayuda'));
-  await t.pumpAndSettle();
-  await t.tap(find.text('Sí, avisar'));
+  await t.pump();
+  await t.pump(const Duration(milliseconds: 400));
+  await t.tap(find.text('Avisar ya'));
   await t.pumpAndSettle();
 }
 
@@ -54,7 +55,7 @@ void main() {
     await t.pumpAndSettle();
 
     expect(find.text('Todavía no tienes familia conectada'), findsOneWidget);
-    expect(find.text('Sí, avisar'), findsNothing);
+    expect(find.text('Avisar ya'), findsNothing);
   });
 
   testWidgets('La familia ve la alerta y la marca como atendida', (t) async {

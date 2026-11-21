@@ -742,14 +742,16 @@ class RepositorioFirebase implements RepositorioNana {
               tipo: s.data()['tipo'] as String? ?? 'pide_ayuda',
               texto: s.data()['texto'] as String?,
               respuestas: RespuestaAlerta.deMapa(s.data()['respuestas']),
+              como: s.data()['como'] as String? ?? 'boton',
             ),
         ],
       );
 
   @override
-  Future<bool> pedirAyuda(String folio) async {
+  Future<bool> pedirAyuda(String folio, {String como = 'boton'}) async {
     final escrito = _de(folio, 'alertas').add({
       'tipo': 'pide_ayuda',
+      'como': como,
       'fecha': Timestamp.now(),
       'atendida': false,
       'creadaPor': uid,

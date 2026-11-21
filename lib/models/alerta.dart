@@ -8,6 +8,10 @@ class Alerta {
   final String? texto;
   // Quién de la familia ya respondió, por uid: «Ya voy» o «Ya la atendí».
   final Map<String, RespuestaAlerta> respuestas;
+  // Cómo pidió ayuda: 'boton' (tocó «Necesito ayuda»), 'voz' (lo dijo y
+  // confirmó) o 'sin_respuesta' (dijo algo de urgencia y luego no contestó:
+  // la más grave, porque puede que no se pueda mover).
+  final String como;
 
   const Alerta({
     required this.id,
@@ -16,9 +20,18 @@ class Alerta {
     this.tipo = 'pide_ayuda',
     this.texto,
     this.respuestas = const {},
+    this.como = 'boton',
   });
 
   bool get esFrase => tipo == 'frase';
+  bool get noContesto => !esFrase && como == 'sin_respuesta';
+
+  // Para la familia: cómo la pidió, en palabras.
+  String get comoSePidio => switch (como) {
+    'voz' => 'Pidió ayuda con la voz',
+    'sin_respuesta' => 'Dijo que necesitaba ayuda y después no contestó',
+    _ => 'Tocó «Necesito ayuda»',
+  };
 
   Alerta copyWith({bool? atendida, Map<String, RespuestaAlerta>? respuestas}) =>
       Alerta(
@@ -28,8 +41,16 @@ class Alerta {
         tipo: tipo,
         texto: texto,
         respuestas: respuestas ?? this.respuestas,
+        como: como,
       );
 }
+
+// Las de «no contestó» primero; luego las más nuevas.
+List<Alerta> ordenarAlertas(Iterable<Alerta> alertas) =>
+    alertas.toList()..sort((a, b) {
+      if (a.noContesto != b.noContesto) return a.noContesto ? -1 : 1;
+      return b.fecha.compareTo(a.fecha);
+    });
 
 // 'voy' = «Ya voy»; 'atendi' = «Ya la atendí».
 class RespuestaAlerta {
