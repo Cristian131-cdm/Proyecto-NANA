@@ -212,19 +212,25 @@ class ProveedorGuion(ProveedorModelo):
 
 
 class ProveedorOllama(ProveedorModelo):
-    """Modelo abierto corriendo en una máquina propia (http://localhost:11434).
+    """Modelo abierto corriendo en una máquina propia (http://127.0.0.1:11434).
 
-    SIN PROBAR: Ollama no estaba instalado cuando se escribió. Antes de usarlo
-    hay que correr el banco de frases contra él.
+    Probado el 2026-11-21 con qwen3:8b en una RTX 4060 de 8 GB.
+    Se usa 127.0.0.1 y no "localhost": en Windows, "localhost" prueba primero
+    IPv6 y se pierden ~2 s en cada llamada.
     """
 
-    def __init__(self, modelo: str = "llama3.2", url: str = "http://localhost:11434"):
+    def __init__(self, modelo: str = "llama3.2", url: str = "http://127.0.0.1:11434",
+                 keep_alive: str = "30m"):
         self.modelo = modelo
         self.url = url.rstrip("/")
+        self.keep_alive = keep_alive
         self.nombre = f"ollama:{modelo}"
 
     def _chat(self, cuerpo: dict) -> dict:
-        cuerpo = {"model": self.modelo, "stream": False, **cuerpo}
+        # think=False: Qwen 3 "piensa" antes de contestar y se pasa de los 5 s.
+        # keep_alive: que el modelo no se descargue de la GPU entre frases.
+        cuerpo = {"model": self.modelo, "stream": False, "think": False,
+                  "keep_alive": self.keep_alive, **cuerpo}
         pedido = urllib.request.Request(
             f"{self.url}/api/chat",
             data=json.dumps(cuerpo).encode("utf-8"),
