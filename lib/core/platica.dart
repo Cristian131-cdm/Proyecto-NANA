@@ -61,7 +61,42 @@ typedef Responder = Future<RespuestaPlatica> Function(String oido);
 // Las preocupantes van primero, para que "ya tomé mi medicina pero me siento
 // mal" cuente como "me siento mal".
 const comandosAdulto = <(String, List<String>)>[
-  ('Necesito ayuda', ['ayuda', 'auxilio', 'emergencia', 'me cai']),
+  // Las urgencias abren «Voy a avisar a tu familia» con cuenta regresiva.
+  // Van aquí y no solo en el agente (agente/nana_agente/reglas.py, URGENCIA)
+  // para que funcionen sin la laptop. test/urgencias_test.dart revisa que
+  // ninguna de las del agente falte aquí.
+  (
+    'Necesito ayuda',
+    [
+      'ayuda',
+      'ayudame',
+      'ayudenme',
+      'auxilio',
+      'socorro',
+      'emergencia',
+      'ambulancia',
+      'me cai',
+      'me resbale',
+      'no me puedo levantar',
+      'no puedo levantarme',
+      'no me puedo mover',
+      'me pegue en la cabeza',
+      'dolor en el pecho',
+      'me duele el pecho',
+      'no puedo respirar',
+      'me estoy ahogando',
+      'me falta el aire',
+      'me desmaye',
+      'me voy a desmayar',
+      'estoy sangrando',
+      'me siento muy mal',
+      'muy mareada',
+      'muy mareado',
+      'no siento las piernas',
+      'no siento el brazo',
+      'huele a gas',
+    ],
+  ),
   (
     'Me siento mal',
     [
