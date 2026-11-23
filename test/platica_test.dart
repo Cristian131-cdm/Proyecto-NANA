@@ -178,6 +178,34 @@ void main() {
       }
     });
 
+    test('las despedidas de todos los días también cierran la plática', () {
+      for (final f in [
+        'Nos vemos, NANA',
+        'chao',
+        'bye',
+        'luego platicamos',
+        'al rato platicamos',
+        'hasta mañana',
+        'ya me voy a dormir',
+        'ya me tengo que ir',
+        'ya no quiero platicar',
+        'cierra',
+        'ya me voy',
+        'bueno, ya me voy, NANA',
+        'me voy, gracias',
+      ]) {
+        expect(_adulto(f).accion, AccionPlatica.terminar, reason: f);
+      }
+      // Estas NO cierran: son saludo o siguen la plática.
+      for (final f in [
+        'buenas noches',
+        'ya me voy a tomar la pastilla',
+        'me voy a bañar y regreso',
+      ]) {
+        expect(_adulto(f).accion, isNot(AccionPlatica.terminar), reason: f);
+      }
+    });
+
     test(
       '«gracias NANA» o «adiós» terminan; lo desconocido explica qué decir',
       () {

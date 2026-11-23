@@ -118,7 +118,33 @@ const frasesTerminar = [
   'nada mas',
   'ya termine',
   'terminar',
+  // Agregadas el 2026-11-23 (cómo se despide la gente de verdad). No va
+  // "buenas noches": también se usa para saludar al empezar. Ni "ya me voy"
+  // a secas: "ya me voy a tomar la pastilla" cerraría la plática.
+  'nos vemos',
+  'chao',
+  'bye',
+  'luego platicamos',
+  'al rato platicamos',
+  'hasta manana',
+  'me voy a dormir',
+  'ya me tengo que ir',
+  'ya no quiero platicar',
+  'cierra',
 ];
+
+// "me voy" solo cuenta al final de la frase: "bueno, ya me voy, NANA" se
+// despide, pero "ya me voy a tomar la pastilla" sigue la plática.
+const _despedidasAlFinal = ['me voy', 'ya me voy', 'me retiro'];
+
+bool esDespedida(String oido) {
+  if (_dice(oido, frasesTerminar)) return true;
+  var t = normalizar(oido);
+  for (final cola in [' nana', ' adios', ' gracias']) {
+    if (t.endsWith(cola)) t = t.substring(0, t.length - cola.length).trim();
+  }
+  return _despedidasAlFinal.any((f) => t == f || t.endsWith(' $f'));
+}
 
 // Preguntas de salud: NANA no aconseja (Charter: solo registra, recuerda y
 // alerta).
@@ -198,7 +224,7 @@ RespuestaPlatica respuestaAdulto(
   required String Function() queSigue,
   required DateTime ahora,
 }) {
-  if (_dice(oido, frasesTerminar)) {
+  if (esDespedida(oido)) {
     return RespuestaPlatica(
       'Aquí estoy cuando me necesites, $nombre.',
       accion: AccionPlatica.terminar,
@@ -410,7 +436,7 @@ String _animoDeHoy(DatosEncargado d) {
 }
 
 RespuestaPlatica respuestaEncargado(String oido, DatosEncargado d) {
-  if (_dice(oido, frasesTerminar)) {
+  if (esDespedida(oido)) {
     return const RespuestaPlatica(
       'Listo. Aquí estoy cuando me necesites.',
       accion: AccionPlatica.terminar,
