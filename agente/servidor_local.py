@@ -135,13 +135,18 @@ def crear_manejador(proveedor: ConRespaldo, clave: str, tope: Tope):
         def do_POST(self):  # noqa: N802
             if self.path != "/agente":
                 return self._json(404, {"error": "no existe"})
-            if clave and self.headers.get("X-Nana-Demo") != clave:
-                return self._json(401, {"error": "falta la clave de la demo"})
             largo = int(self.headers.get("Content-Length") or 0)
             if largo <= 0 or largo > TOPE_CUERPO:
+                self.close_connection = True
                 return self._json(400, {"error": "petición vacía o muy grande"})
+            # Se lee antes de contestar cualquier error: si se responde sin
+            # leer, Windows a veces corta la conexión (WinError 10053) y la
+            # app no recibe ni el error.
+            datos = self.rfile.read(largo)
+            if clave and self.headers.get("X-Nana-Demo") != clave:
+                return self._json(401, {"error": "falta la clave de la demo"})
             try:
-                cuerpo = json.loads(self.rfile.read(largo).decode("utf-8"))
+                cuerpo = json.loads(datos.decode("utf-8"))
                 pet = Peticion.de_json(cuerpo)
             except (ValueError, KeyError, TypeError, AttributeError):
                 return self._json(400, {"error": "la petición no es JSON válido"})

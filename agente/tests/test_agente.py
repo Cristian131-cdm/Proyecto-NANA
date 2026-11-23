@@ -225,3 +225,65 @@ def test_companía_quita_emojis():
     falso_ = ProveedorFalso(conversaciones="¡Buenos días, Rosa! 🌞 ¿Cómo estás? 😊👍🏽")
     t = compania.platicar(Peticion("hola", "Rosa"), ConRespaldo([falso_]))
     assert t == "¡Buenos días, Rosa! ¿Cómo estás?"
+
+
+# ---------- Contestar a una pregunta de NANA ----------
+
+def test_respuesta_corta_solo_si_nana_pregunto():
+    from nana_agente.cadena import es_respuesta_corta
+    pregunta = "¿Quieres que te cuente un chiste blanco?"
+    assert es_respuesta_corta("Sí por favor", pregunta)
+    assert es_respuesta_corta("sí", pregunta)
+    assert es_respuesta_corta("claro que sí", pregunta)
+    assert not es_respuesta_corta("sí", "Qué bueno que estás bien.")
+    assert not es_respuesta_corta("sí", None)
+    assert not es_respuesta_corta("sí pero ayer fui al mercado y estaba lleno", pregunta)
+
+
+def test_un_si_a_una_pregunta_de_nana_sigue_la_platica():
+    historial = (
+        {"role": "user", "content": "me siento sola"},
+        {"role": "assistant", "content": "Ay, Rosa. ¿Quieres que platiquemos de cuando eras joven?"},
+    )
+    # El orquestador (sin contexto) diría no_entendi; la cadena lo corrige.
+    prov = falso("no_entendi", platica="Cuéntame, ¿dónde creciste?")
+    r = responder(Peticion("sí por favor", "Rosa", DIA, historial), prov)
+    assert r.etiqueta == "compania"
+    assert "creciste" in r.texto
+    # Y el orquestador sí recibió lo último que dijo NANA.
+    assert "cuando eras joven" in prov.pedidos[0][1]
+
+
+def test_un_si_sin_pregunta_sigue_sin_entenderse():
+    r = responder(Peticion("sí", "Rosa", DIA), falso("no_entendi"))
+    assert r.etiqueta == "no_entendi"
+
+
+# ---------- Chistes de la lista, no del modelo ----------
+
+def test_pide_chiste():
+    from nana_agente.compania import pide_chiste
+    oferta = ({"role": "assistant", "content": "¿Quieres que te cuente un chiste blanco?"},)
+    assert pide_chiste(Peticion("cuéntame un chiste", "Rosa"))
+    assert pide_chiste(Peticion("sí, por favor", "Rosa", (), oferta))
+    assert not pide_chiste(Peticion("sí, por favor", "Rosa"))
+    assert not pide_chiste(Peticion("no, gracias", "Rosa", (), oferta))
+
+
+def test_el_chiste_sale_de_la_lista_y_no_se_repite():
+    import random
+    from nana_agente.compania import CHISTES, chiste
+    contado = CHISTES[0] + " ¿Te cuento otro?"
+    h = tuple({"role": "assistant", "content": c} for c in CHISTES[:-1])
+    t = chiste(Peticion("otro", "Rosa", (), h), random.Random(1))
+    assert t.startswith(CHISTES[-1])
+    assert contado not in t
+
+
+def test_la_cadena_cuenta_el_chiste_sin_preguntarle_al_modelo():
+    from nana_agente.compania import CHISTES
+    oferta = ({"role": "assistant", "content": "Ay, Rosa. ¿Quieres que te cuente un chiste blanco?"},)
+    prov = falso("compania", platica="un chiste inventado del modelo")
+    r = responder(Peticion("sí, por favor", "Rosa", DIA, oferta), prov)
+    assert any(r.texto.startswith(c) for c in CHISTES)
+    assert not any(p[0] == "conversar" for p in prov.pedidos)

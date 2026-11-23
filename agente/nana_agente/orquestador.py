@@ -36,7 +36,26 @@ SISTEMA = (
 )
 
 
-def clasificar(texto: str, proveedor: ConRespaldo, limite: float | None = None) -> str:
-    r = proveedor.estructurado(SISTEMA, texto, ESQUEMA, limite=limite)
+def _con_contexto(antes: str | None) -> str:
+    """Las instrucciones, más lo último que dijo NANA si lo hay.
+
+    Sin esto, un "sí" o "sí, por favor" que contesta a una pregunta de NANA
+    llega solo y se clasifica como no_entendi.
+    """
+    if not antes:
+        return SISTEMA
+    return (
+        f"{SISTEMA}\nLo último que dijo NANA fue: «{antes[:300]}». Si la persona "
+        "le está contestando (sí, no, claro, por favor, cuéntame), es compania."
+    )
+
+
+def clasificar(
+    texto: str,
+    proveedor: ConRespaldo,
+    limite: float | None = None,
+    antes: str | None = None,
+) -> str:
+    r = proveedor.estructurado(_con_contexto(antes), texto, ESQUEMA, limite=limite)
     etiqueta = r.get("etiqueta") if isinstance(r, dict) else None
     return etiqueta if etiqueta in ETIQUETAS else "no_entendi"

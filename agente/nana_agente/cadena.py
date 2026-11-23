@@ -18,6 +18,27 @@ from .reglas import normalizar, regla_fija
 TOPE_FRASE = 300
 LIMITE = 5.0
 
+# Contestaciones cortas a una pregunta de NANA.
+CORTAS = ("si", "no", "claro", "por favor", "cuentame", "dale", "ok", "va",
+          "sale", "andale", "orale", "bueno", "esta bien", "me gustaria", "quiero")
+
+
+def _ultimo_de_nana(pet: Peticion) -> str | None:
+    for m in reversed(pet.historial):
+        if m.get("role") == "assistant":
+            return str(m.get("content", "")) or None
+    return None
+
+
+def es_respuesta_corta(texto: str, antes: str | None) -> bool:
+    """¿Contesta, en pocas palabras, a algo que NANA acaba de preguntar?"""
+    if not antes or "?" not in antes:
+        return False
+    t = normalizar(texto)
+    if not t or len(t.split()) > 5:
+        return False
+    return any(f" {c} " in f" {t} " for c in CORTAS)
+
 
 def responder(
     pet: Peticion, proveedor: ProveedorModelo, limite: float = LIMITE
@@ -45,9 +66,14 @@ def responder(
 
     etiqueta = regla_fija(pet.texto)
     origen = "regla" if etiqueta else "modelo"
+    antes = _ultimo_de_nana(pet)
     try:
         if etiqueta is None:
-            etiqueta = clasificar(pet.texto, prov, resto())
+            etiqueta = clasificar(pet.texto, prov, resto(), antes=antes)
+            # Red de seguridad, sin modelo: si NANA acaba de preguntar algo y
+            # la persona contesta corto ("sí", "sí por favor"), sigue la plática.
+            if etiqueta == "no_entendi" and es_respuesta_corta(pet.texto, antes):
+                etiqueta = "compania"
 
         # Estas nunca llegan a un subagente: respuesta fija o del código.
         if etiqueta == "pregunta_medica":
