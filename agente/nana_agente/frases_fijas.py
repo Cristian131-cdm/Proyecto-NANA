@@ -15,7 +15,9 @@ PREGUNTA_MEDICA = (
     "Eso pregúntaselo a tu médico o a tu familia. "
     "¿Quieres que le avise a tu familia?"
 )
-URGENCIA = "Voy a pedir ayuda. Toca el botón para avisarle a tu familia."
+# La app abre «Voy a avisar a tu familia» con cuenta regresiva: si nadie la
+# cancela, avisa sola. No hace falta pedir que toque nada.
+URGENCIA = "Te escucho. Voy a avisarle a tu familia."
 FAMILIA = "Vamos con tu familia."
 NO_ENTENDI = "No te entendí. Puedes tocar lo que me quieres decir."
 # El modelo no contestó a tiempo (o no hay ninguno disponible).

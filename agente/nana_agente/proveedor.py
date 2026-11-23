@@ -220,7 +220,7 @@ class ProveedorOllama(ProveedorModelo):
     IPv6 y se pierden ~2 s en cada llamada.
     """
 
-    def __init__(self, modelo: str = "llama3.2", url: str = "http://127.0.0.1:11434",
+    def __init__(self, modelo: str = "qwen3:8b", url: str = "http://127.0.0.1:11434",
                  keep_alive: str = "30m"):
         self.modelo = modelo
         self.url = url.rstrip("/")

@@ -2,7 +2,7 @@
 
     python agente/correr_banco.py                    (clasificador propio)
     python agente/correr_banco.py --proveedor guion
-    python agente/correr_banco.py --proveedor ollama --modelo llama3.2
+    python agente/correr_banco.py --proveedor ollama --modelo qwen3:8b
 """
 
 import argparse
@@ -20,7 +20,7 @@ def main() -> int:
     sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser()
     ap.add_argument("--proveedor", choices=["propio", "guion", "ollama"], default="propio")
-    ap.add_argument("--modelo", default="llama3.2")
+    ap.add_argument("--modelo", default="qwen3:8b")
     ap.add_argument("--limite", type=float, default=5.0)
     a = ap.parse_args()
 

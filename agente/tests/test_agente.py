@@ -218,3 +218,10 @@ def test_banco_completo_con_guion():
     filas = banco.correr(ProveedorGuion())
     assert [f.porque for f in filas if not f.pasa] == []
     assert not any(f.consejo for f in filas)
+
+
+def test_companía_quita_emojis():
+    from nana_agente import compania
+    falso_ = ProveedorFalso(conversaciones="¡Buenos días, Rosa! 🌞 ¿Cómo estás? 😊👍🏽")
+    t = compania.platicar(Peticion("hola", "Rosa"), ConRespaldo([falso_]))
+    assert t == "¡Buenos días, Rosa! ¿Cómo estás?"

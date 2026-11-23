@@ -3,8 +3,10 @@
     python agente/servidor_local.py
 
 Variables de entorno:
-    NANA_PROVEEDORES  lista en orden, separada por comas: propio,guion  (por defecto: propio)
-    NANA_OLLAMA       modelo de Ollama (por defecto: llama3.2)
+    NANA_PROVEEDORES  lista en orden, separada por comas  (por defecto: ollama,propio)
+                      ollama = Qwen en esta laptop · propio = clasificador sin modelo
+                      guion = simulado por palabras clave (solo para ensayar)
+    NANA_OLLAMA       modelo de Ollama (por defecto: qwen3:8b)
     NANA_CLAVE_DEMO   si se pone, la app debe mandarla en el encabezado X-Nana-Demo
     NANA_PUERTO       por defecto 8787
 
@@ -14,7 +16,9 @@ Firebase; este servidor no la verifica y no debe quedar abierto a internet.
 
 import json
 import os
+import socket
 import sys
+import time
 from datetime import date
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -25,23 +29,69 @@ from nana_agente import frases_fijas as fijas  # noqa: E402
 from nana_agente.cadena import responder  # noqa: E402
 from nana_agente.modelos import Peticion, Resultado  # noqa: E402
 from nana_agente.propio import ProveedorPropio  # noqa: E402
-from nana_agente.proveedor import ConRespaldo, ProveedorGuion, ProveedorOllama  # noqa: E402
+from nana_agente.proveedor import (  # noqa: E402
+    ConRespaldo, ProveedorCaido, ProveedorGuion, ProveedorOllama,
+)
 
 TOPE_DIARIO = 40
 TOPE_CUERPO = 20_000
 
 
+PROVEEDORES = "ollama,propio"
+MODELO_OLLAMA = "qwen3:8b"
+
+
 def armar_proveedor() -> ConRespaldo:
-    nombres = [n.strip() for n in os.environ.get("NANA_PROVEEDORES", "propio").split(",") if n.strip()]
+    nombres = [n.strip() for n in os.environ.get("NANA_PROVEEDORES", PROVEEDORES).split(",") if n.strip()]
     disponibles = {
         "propio": ProveedorPropio,
         "guion": ProveedorGuion,
-        "ollama": lambda: ProveedorOllama(os.environ.get("NANA_OLLAMA", "llama3.2")),
+        "ollama": lambda: ProveedorOllama(os.environ.get("NANA_OLLAMA", MODELO_OLLAMA)),
     }
     desconocidos = [n for n in nombres if n not in disponibles]
     if desconocidos:
         raise SystemExit(f"Proveedor desconocido: {', '.join(desconocidos)}")
     return ConRespaldo([disponibles[n]() for n in nombres])
+
+
+def calentar(proveedor: ConRespaldo) -> list[str]:
+    """Carga en la GPU los modelos de Ollama para que la primera frase no tarde.
+
+    Regresa una línea por modelo para imprimirla. Si Ollama no contesta no
+    detiene nada: contestará el siguiente proveedor de la lista.
+    """
+    lineas = []
+    for p in proveedor.proveedores:
+        if not isinstance(p, ProveedorOllama):
+            continue
+        inicio = time.monotonic()
+        try:
+            p.conversar("Contesta en una palabra.", [{"role": "user", "content": "hola"}])
+            lineas.append(f"{p.nombre} listo ({time.monotonic() - inicio:.1f} s)")
+        except ProveedorCaido as e:
+            lineas.append(f"AVISO: {p.nombre} no contestó ({e}). ¿Está abierto Ollama? "
+                          "Mientras tanto contesta el respaldo.")
+    return lineas
+
+
+def ips_locales() -> list[str]:
+    """Las IP de esta laptop en la red (la que el celular debe usar en la Fase 4)."""
+    ips: list[str] = []
+    try:
+        # No manda nada: solo pregunta por qué tarjeta de red saldría.
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            s.connect(("10.255.255.255", 1))
+            ips.append(s.getsockname()[0])
+    except OSError:
+        pass
+    try:
+        for ip in socket.gethostbyname_ex(socket.gethostname())[2]:
+            if ip not in ips:
+                ips.append(ip)
+    except OSError:
+        pass
+    # 127.x es la misma laptop y 169.254.x es una tarjeta sin red: no sirven.
+    return [ip for ip in ips if not ip.startswith(("127.", "169.254."))]
 
 
 class Tope:
@@ -73,6 +123,8 @@ def crear_manejador(proveedor: ConRespaldo, clave: str, tope: Tope):
             if self.path == "/salud":
                 salud = {"ok": True, "proveedores": proveedor.nombre}
                 for p in proveedor.proveedores:
+                    if isinstance(p, ProveedorOllama):
+                        salud["ollama"] = p.modelo
                     if isinstance(p, ProveedorPropio):
                         # Qué modelo está contestando: se ve en la demo.
                         salud["modelo"] = {k: p.info[k] for k in ("entrenado", "huella", "frases")}
@@ -114,9 +166,22 @@ def main():
     puerto = int(os.environ.get("NANA_PUERTO", "8787"))
     clave = os.environ.get("NANA_CLAVE_DEMO", "")
     servidor = ThreadingHTTPServer(("0.0.0.0", puerto), crear_manejador(proveedor, clave, Tope()))
-    print(f"Agente de NANA en http://localhost:{puerto}  ·  proveedores: {proveedor.nombre}")
+    print(f"Agente de NANA · proveedores: {proveedor.nombre}")
+    for linea in calentar(proveedor):
+        print(f"  {linea}")
+    print(f"\nEn esta laptop:  http://127.0.0.1:{puerto}/salud")
+    ips = ips_locales()
+    if ips:
+        print(f"Desde el celular (misma red o hotspot):  http://{ips[0]}:{puerto}/salud")
+        if len(ips) > 1:
+            # Las otras suelen ser redes virtuales de Windows; sirven si el
+            # celular está conectado al hotspot de la laptop (192.168.137.x).
+            print("  Si no abre, prueba: " + ", ".join(ips[1:]))
+    else:
+        print("No encontré la IP de la laptop en la red. ¿Está conectada al Wi-Fi o al hotspot?")
     if not clave:
-        print("AVISO: sin NANA_CLAVE_DEMO cualquiera en tu red puede llamarlo.")
+        print("\nAVISO: sin NANA_CLAVE_DEMO cualquiera en tu red puede llamarlo.")
+    print("\nCtrl+C para detenerlo. Cada frase sale aquí (solo el tema, no lo que dijo):\n")
     try:
         servidor.serve_forever()
     except KeyboardInterrupt:
