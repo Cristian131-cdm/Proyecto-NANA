@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../core/conversacion_adulto.dart';
 import '../core/ajustes.dart';
 import '../core/dia.dart';
 import '../core/frases.dart';
@@ -99,6 +100,9 @@ class _PanelAdultoState extends State<PanelAdulto> {
 
   // Lo último que se mostró en el inicio, para que NANA lo lea.
   String _textoInicio = '';
+  // El día que se ve en el inicio; el agente lo usa para «¿qué me toca?» y
+  // para saber qué puede proponer anotar.
+  List<Actividad> _dia = const [];
 
   int _hechas(List<Actividad> dia) =>
       dia.where((a) => a.estado == EstadoActividad.hecha).length;
@@ -222,21 +226,25 @@ class _PanelAdultoState extends State<PanelAdulto> {
   void _ir(Widget pantalla) =>
       Navigator.push(context, MaterialPageRoute(builder: (_) => pantalla));
 
-  // «Oye NANA»: la plática con NANA animada. Contesta sin IA con lo que ya
-  // sabe la app (core/platica.dart).
+  // «Oye NANA»: la plática con NANA animada. Primero las reglas de la app
+  // (core/platica.dart): ayuda, médica, familia, la hora… nunca dependen de
+  // la red. Lo demás (plática, lo que no entiende) se lo pregunta al agente
+  // de la laptop si hay uno configurado; si no contesta, la respuesta fija.
   void _abrirPlatica() {
     final nombre = _yo?.nombre ?? '';
+    final platica = ConversacionAdulto(
+      nombre: nombre,
+      queSigue: () => _textoInicio,
+      dia: () => _dia,
+      anotar: _marcarHecha,
+    );
+
     _ir(
       PlaticaNana(
         saludo: nombre.isEmpty
             ? 'Dime, te escucho.'
             : 'Dime, $nombre. Te escucho.',
-        responder: (oido) async => respuestaAdulto(
-          oido,
-          nombre: nombre,
-          queSigue: () => _textoInicio,
-          ahora: Servicios.reloj(),
-        ),
+        responder: platica.responder,
         sugerencias: const [
           '¿Qué sigue hoy?',
           'Ya comí',
@@ -339,6 +347,7 @@ class _PanelAdultoState extends State<PanelAdulto> {
   }
 
   Widget _inicio(List<Actividad> dia, int? animo) {
+    _dia = dia;
     final (que, actividad) = queToca(
       dia: dia,
       animoHoy: animo,

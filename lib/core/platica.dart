@@ -6,6 +6,7 @@ import '../models/medicamento.dart';
 import '../models/registro.dart';
 import '../models/rutina.dart';
 import '../widgets/caritas_animo.dart';
+import 'agente.dart';
 import 'dia.dart';
 import 'semana.dart';
 import 'servicios.dart';
@@ -14,7 +15,8 @@ import 'voz.dart';
 // Lo que NANA contesta en «Platicando con NANA», SIN IA: listas fijas y los
 // datos que ya tiene la app. Son funciones puras para probarlas. Cuando
 // exista el agente, se conecta en el mismo lugar (el [Responder] de la
-// pantalla) y estas respuestas quedan como respaldo.
+// pantalla) y estas respuestas quedan como respaldo: ver _abrirPlatica en
+// screens/panel_adulto.dart.
 
 enum AccionPlatica {
   ninguna,
@@ -28,13 +30,30 @@ class RespuestaPlatica {
   final String texto;
   final AccionPlatica accion;
   final String? frase;
+  // true: la resolvió una regla de la app (ayuda, médica, familia, la hora…)
+  // y no se le pregunta al agente. false: es plática; si hay agente, contesta
+  // él y esta respuesta queda de respaldo.
+  final bool fija;
 
   const RespuestaPlatica(
     this.texto, {
     this.accion = AccionPlatica.ninguna,
     this.frase,
+    this.fija = true,
   });
 }
+
+/// Lo que contestó el agente, como respuesta de la plática. Sus acciones
+/// abren lo mismo que las reglas de la app.
+RespuestaPlatica respuestaDelAgente(RespuestaAgente r) => RespuestaPlatica(
+  r.texto,
+  accion: switch (r.accion) {
+    'abrir_ayuda' => AccionPlatica.ayuda,
+    'abrir_familia' => AccionPlatica.familia,
+    _ => AccionPlatica.ninguna,
+  },
+  fija: false,
+);
 
 typedef Responder = Future<RespuestaPlatica> Function(String oido);
 
@@ -230,20 +249,29 @@ RespuestaPlatica respuestaAdulto(
     'quien' => const RespuestaPlatica(
       'Soy NANA, tu compañera. Te recuerdo las cosas de tu día y le aviso a '
       'tu familia si lo necesitas.',
+      fija: false,
     ),
     'como_estas' => const RespuestaPlatica(
       'Muy bien, gracias por preguntar. ¿Y tú cómo te sientes?',
+      fija: false,
     ),
     'hora' => RespuestaPlatica(decirHora(ahora)),
     'fecha' => RespuestaPlatica(decirFecha(ahora)),
     'triste' => const RespuestaPlatica(
       'Aquí estoy contigo. Si quieres hablar con tu familia, dime: llama a '
       'mi familia.',
+      fija: false,
     ),
-    'bien' => const RespuestaPlatica('Qué gusto me da.'),
-    'gracias' => const RespuestaPlatica('De nada. Aquí estoy.'),
-    'saludo' => RespuestaPlatica('${saludoDeLaHora(ahora)}, $nombre.'),
-    _ => const RespuestaPlatica('Todavía no entiendo eso. $ayudaParaDecir'),
+    'bien' => const RespuestaPlatica('Qué gusto me da.', fija: false),
+    'gracias' => const RespuestaPlatica('De nada. Aquí estoy.', fija: false),
+    'saludo' => RespuestaPlatica(
+      '${saludoDeLaHora(ahora)}, $nombre.',
+      fija: false,
+    ),
+    _ => const RespuestaPlatica(
+      'Todavía no entiendo eso. $ayudaParaDecir',
+      fija: false,
+    ),
   };
 }
 

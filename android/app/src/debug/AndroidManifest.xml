@@ -4,4 +4,8 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- NANA (pruebas y demo): el agente corre en la laptop por http:// en la
+         red local, y Android bloquea http sin cifrar si no se permite aquí.
+         Solo en debug: la versión release no cambia. -->
+    <application android:usesCleartextTraffic="true"/>
 </manifest>

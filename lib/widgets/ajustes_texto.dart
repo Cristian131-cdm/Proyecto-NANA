@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/ajustes.dart';
 import '../core/lector.dart';
 import '../core/tema.dart';
+import 'campo_servidor_agente.dart';
 import 'interruptor_huella.dart';
 import 'mascota_nana.dart';
 
@@ -292,6 +293,9 @@ class _HojaAjustesAdultoState extends State<HojaAjustesAdulto> {
               ),
               if (_masOpciones) ...[
                 const InterruptorHuella(),
+                const SizedBox(height: 12),
+                const CampoServidorAgente(),
+                const SizedBox(height: 4),
                 if (widget.onCerrarSesion case final salir?) ...[
                   const SizedBox(height: 8),
                   SizedBox(

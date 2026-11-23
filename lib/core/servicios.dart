@@ -1,5 +1,6 @@
 import '../data/repositorio.dart';
 import '../data/repositorio_memoria.dart';
+import 'agente.dart';
 import 'alarmas.dart';
 import 'avisos.dart';
 import 'biometria.dart';
@@ -21,6 +22,8 @@ class Servicios {
   static Voz voz = VozNula();
   // «Oye NANA». main() pone el de verdad; en pruebas no escucha nada.
   static Despertador despertador = DespertadorNulo();
+  // El agente de la laptop (Fase 4). Sin servidor configurado no hace nada.
+  static Agente agente = const AgenteNulo();
   // Fotos de recetas: solo en este celular, nunca en la nube.
   static FotosLocales fotos = const SinFotos();
 

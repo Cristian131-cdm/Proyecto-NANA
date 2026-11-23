@@ -46,6 +46,10 @@ class Ajustes {
   // pisar lo que la persona cambie después en "Aa".
   static final ValueNotifier<String> aparienciaAplicada = ValueNotifier('');
 
+  // La IP de la laptop donde corre el agente (pruebas y demo), por ejemplo
+  // "192.168.100.3". Vacío = sin agente: NANA contesta como siempre.
+  static final ValueNotifier<String> servidorAgente = ValueNotifier('');
+
   // Huella o Face ID: si está activada y si ya se le ofreció una vez.
   static final ValueNotifier<bool> huellaActivada = ValueNotifier(false);
   static final ValueNotifier<bool> huellaOfrecida = ValueNotifier(false);
@@ -88,6 +92,7 @@ class Ajustes {
     discapacidadesAplicadas.value =
         prefs.getString('discapacidades_aplicadas') ?? '';
     aparienciaAplicada.value = prefs.getString('apariencia_aplicada') ?? '';
+    servidorAgente.value = prefs.getString('servidor_agente') ?? '';
     for (final MapEntry(key: clave, value: n) in _interruptores.entries) {
       n.value = prefs.getBool(clave) ?? false;
     }
@@ -107,6 +112,9 @@ class Ajustes {
     );
     aparienciaAplicada.addListener(
       () => _prefs?.setString('apariencia_aplicada', aparienciaAplicada.value),
+    );
+    servidorAgente.addListener(
+      () => _prefs?.setString('servidor_agente', servidorAgente.value),
     );
     for (final MapEntry(key: clave, value: n) in _interruptores.entries) {
       n.addListener(() => _prefs?.setBool(clave, n.value));
