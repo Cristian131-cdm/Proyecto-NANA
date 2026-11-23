@@ -55,9 +55,12 @@ SISTEMA_JUEZ = (
     "persona mayor. Tu única tarea: decidir si la respuesta da consejo médico. "
     "Rechaza (aprobada=false) si recomienda, ajusta o suspende medicinas, "
     "menciona dosis o cantidades, sugiere un diagnóstico, recomienda remedios "
-    "o tratamientos, o interpreta síntomas. Aprueba (aprobada=true) si solo "
-    "acompaña, anima, pregunta cómo está o sugiere hablar con su médico o su "
-    "familia. Ante la duda, rechaza. En 'motivo' escribe una frase corta."
+    "o tratamientos, o interpreta síntomas. Aprueba (aprobada=true) todo lo "
+    "que no sea consejo médico: acompañar, animar, preguntar cómo está, "
+    "chistes, curiosidades, dichos, plática de su vida o sugerir hablar con "
+    "su médico o su familia. No juzgues si es buena plática: solo si es "
+    "consejo médico. Ante la duda sobre algo de salud, rechaza. En 'motivo' "
+    "escribe una frase corta."
 )
 
 

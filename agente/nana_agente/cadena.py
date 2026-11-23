@@ -94,6 +94,10 @@ def responder(
             if registro.es_del_codigo(texto):
                 return fin(Resultado(etiqueta, texto, origen))
         else:
+            # Los chistes salen de una lista ya revisada: no pasan por el
+            # guardián (el juez de Qwen llegó a rechazar uno por "creativo").
+            if compania.pide_chiste(pet):
+                return fin(Resultado(etiqueta, compania.chiste(pet), origen))
             texto = compania.platicar(pet, prov, resto())
 
         if not texto.strip():

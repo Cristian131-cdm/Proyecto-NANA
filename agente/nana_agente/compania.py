@@ -37,7 +37,11 @@ def pide_chiste(pet: Peticion) -> bool:
         return True
     antes = next((m.get("content", "") for m in reversed(pet.historial)
                   if m.get("role") == "assistant"), "")
-    if "chiste" not in normalizar(antes):
+    # NANA ofreció uno ("¿te cuento un chiste?") o acaba de contar uno de la
+    # lista y preguntó "¿Te cuento otro?" (esa frase no dice "chiste": sin
+    # revisar la lista, el «sí» se iba al modelo y repetía el mismo).
+    acaba_de_contar = any(c in antes for c in CHISTES)
+    if "chiste" not in normalizar(antes) and not acaba_de_contar:
         return False
     return any(f" {s} " in t for s in ("si", "claro", "por favor", "cuentame", "dale", "otro"))
 

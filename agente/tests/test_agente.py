@@ -287,3 +287,25 @@ def test_la_cadena_cuenta_el_chiste_sin_preguntarle_al_modelo():
     r = responder(Peticion("sí, por favor", "Rosa", DIA, oferta), prov)
     assert any(r.texto.startswith(c) for c in CHISTES)
     assert not any(p[0] == "conversar" for p in prov.pedidos)
+
+
+def test_si_despues_de_un_chiste_cuenta_otro_distinto():
+    from nana_agente.compania import CHISTES
+    h = []
+    contados = []
+    prov = falso("compania", platica="el modelo repetiría el mismo")
+    for frase in ["cuéntame un chiste", "sí", "otro", "sí, por favor"]:
+        r = responder(Peticion(frase, "Rosa", DIA, tuple(h)), prov)
+        assert any(r.texto.startswith(c) for c in CHISTES), (frase, r.texto)
+        contados.append(r.texto)
+        h += [{"role": "user", "content": frase}, {"role": "assistant", "content": r.texto}]
+    assert len(set(contados)) == 4
+
+
+def test_el_chiste_de_la_lista_no_pasa_por_el_juez():
+    from nana_agente.compania import CHISTES
+    # Un juez que rechaza todo: el chiste igual debe salir.
+    prov = falso("compania", juez={"aprobada": False, "motivo": "creativo"})
+    r = responder(Peticion("cuéntame un chiste", "Rosa", DIA), prov)
+    assert not r.rechazada
+    assert any(r.texto.startswith(c) for c in CHISTES)
