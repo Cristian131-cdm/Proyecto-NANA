@@ -48,6 +48,7 @@ class _AvisoAyudaState extends State<AvisoAyuda> {
       : AvisoAyuda.segundosBoton;
   late int _restan = _total;
   Timer? _reloj;
+  Timer? _arranque;
   bool _cerrado = false;
   bool _repetido = false;
 
@@ -58,14 +59,30 @@ class _AvisoAyudaState extends State<AvisoAyuda> {
     super.initState();
     HapticFeedback.vibrate();
     _reloj = Timer.periodic(const Duration(seconds: 1), (_) => _tic());
+    _arranque = Timer(const Duration(milliseconds: 800), _empezar);
+  }
+
+  // La pantalla de antes (la plática, NanaEscucha) se termina de cerrar un
+  // momento DESPUÉS de que esta se abre, y al cerrarse calla a NANA y suelta
+  // el micrófono. Si NANA hablara de inmediato, la cortaría: se espera a que
+  // termine la transición (por eso arranca con [_arranque], 0.8 s después).
+  Future<void> _empezar() async {
+    if (_cerrado || !mounted) return;
     if (widget.porVoz) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _conversar());
+      await _conversar();
+    } else {
+      await nanaDice(
+        context,
+        'Voy a avisarle a tu familia. Si fue sin querer, toca: estoy bien.',
+        siempre: true,
+      );
     }
   }
 
   @override
   void dispose() {
     _reloj?.cancel();
+    _arranque?.cancel();
     if (!_cerrado) Servicios.voz.callar();
     _cerrado = true;
     Servicios.voz.dejarDeEscuchar();

@@ -82,7 +82,12 @@ void main() {
       expect(find.text('Voy a avisar a tu familia'), findsOneWidget);
       expect(find.text('20'), findsOneWidget);
 
-      await _esperar(t, 15);
+      await _esperar(t, 2);
+      expect(voz.dicho, contains('Rosa, voy a avisarle a tu familia. Si estás bien, di: estoy bien.'));
+      // Lo de antes se termina de cerrar DESPUÉS: no debe callar el aviso.
+      expect(voz.callado, 0);
+
+      await _esperar(t, 13);
       expect(await alertas(), isEmpty, reason: 'todavía no llega a cero');
       // A la mitad lo vuelve a decir.
       expect(voz.dicho, contains(startsWith('Si estás bien, di')));
@@ -141,6 +146,17 @@ void main() {
       await _esperar(t, 6);
       expect((await alertas()).single.como, 'boton');
       expect(find.text('Listo, ya le avisé a tu familia'), findsOneWidget);
+    });
+
+    testWidgets('con el botón también lo dice en voz alta', (t) async {
+      final voz = VozNula();
+      Servicios.voz = voz;
+      await _abrir(t, porVoz: false);
+      await _esperar(t, 1);
+      expect(
+        voz.dicho,
+        contains('Voy a avisarle a tu familia. Si fue sin querer, toca: estoy bien.'),
+      );
     });
 
     testWidgets('«Estoy bien» deshace el toque', (t) async {
