@@ -1,0 +1,149 @@
+{
+  "hoy": "lunes 24 de noviembre",
+  "hora": "20:15",
+  "medicinas": [
+    {
+      "nombre": "Losartán",
+      "hora": "8:00"
+    },
+    {
+      "nombre": "Metformina",
+      "hora": "14:00"
+    }
+  ],
+  "dias": [
+    {
+      "dia": "martes 18",
+      "medicinas_marcadas": [
+        "Metformina a las 14:05"
+      ],
+      "medicinas_sin_marcar": [
+        "Losartán"
+      ],
+      "comidas": [
+        "Desayuno a las 9:10",
+        "Comida a las 14:30"
+      ],
+      "actividad": [
+        "Caminar 15 minutos"
+      ],
+      "animo": "Bien",
+      "dijo": []
+    },
+    {
+      "dia": "miércoles 19",
+      "medicinas_marcadas": [
+        "Losartán a las 8:02",
+        "Metformina a las 14:20"
+      ],
+      "medicinas_sin_marcar": [],
+      "comidas": [
+        "Desayuno a las 9:00"
+      ],
+      "actividad": [],
+      "animo": "Mal",
+      "dijo": [
+        "Me siento mal a las 18:40"
+      ]
+    },
+    {
+      "dia": "jueves 20",
+      "medicinas_marcadas": [],
+      "medicinas_sin_marcar": [
+        "Losartán",
+        "Metformina"
+      ],
+      "comidas": [],
+      "actividad": [],
+      "animo": null,
+      "dijo": []
+    },
+    {
+      "dia": "viernes 21",
+      "medicinas_marcadas": [
+        "Losartán a las 8:15",
+        "Metformina a las 14:00"
+      ],
+      "medicinas_sin_marcar": [],
+      "comidas": [
+        "Desayuno a las 8:50",
+        "Comida a las 14:10",
+        "Cena a las 20:00"
+      ],
+      "actividad": [
+        "Caminar 15 minutos"
+      ],
+      "animo": "Muy bien",
+      "dijo": []
+    },
+    {
+      "dia": "sábado 22",
+      "medicinas_marcadas": [
+        "Losartán a las 8:30",
+        "Metformina a las 14:45"
+      ],
+      "medicinas_sin_marcar": [],
+      "comidas": [
+        "Desayuno a las 10:00"
+      ],
+      "actividad": [
+        "Caminar 15 minutos"
+      ],
+      "animo": "Bien",
+      "dijo": []
+    },
+    {
+      "dia": "domingo 23",
+      "medicinas_marcadas": [
+        "Losartán a las 8:05",
+        "Metformina a las 14:10"
+      ],
+      "medicinas_sin_marcar": [],
+      "comidas": [
+        "Desayuno a las 9:30",
+        "Comida a las 15:00"
+      ],
+      "actividad": [],
+      "animo": "Bien",
+      "dijo": []
+    },
+    {
+      "dia": "lunes 24 (hoy)",
+      "medicinas_marcadas": [
+        "Losartán a las 8:00",
+        "Metformina a las 14:00"
+      ],
+      "medicinas_sin_marcar": [],
+      "comidas": [
+        "Desayuno a las 9:00"
+      ],
+      "actividad": [
+        "Caminar 15 minutos"
+      ],
+      "animo": "Bien",
+      "dijo": []
+    }
+  ],
+  "alertas_sin_atender": 0,
+  "totales_7_dias": {
+    "medicinas_marcadas": 10,
+    "medicinas_sin_marcar": 4,
+    "medicinas_que_tocaban": 14,
+    "dias_que_dijo_sentirse_mal": [
+      "miércoles 19"
+    ],
+    "dias_con_actividad": 4,
+    "dias_sin_marcar_por_medicina": {
+      "Losartán": [
+        "martes 18",
+        "jueves 20"
+      ],
+      "Metformina": [
+        "jueves 20"
+      ]
+    },
+    "dias_sin_comidas": [
+      "jueves 20"
+    ]
+  }
+}

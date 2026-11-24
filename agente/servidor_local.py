@@ -25,6 +25,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from nana_agente import encargado  # noqa: E402
 from nana_agente import frases_fijas as fijas  # noqa: E402
 from nana_agente.cadena import responder  # noqa: E402
 from nana_agente.modelos import Peticion, Resultado  # noqa: E402
@@ -133,7 +134,7 @@ def crear_manejador(proveedor: ConRespaldo, clave: str, tope: Tope):
                 self._json(404, {"error": "no existe"})
 
         def do_POST(self):  # noqa: N802
-            if self.path != "/agente":
+            if self.path not in ("/agente", "/encargado"):
                 return self._json(404, {"error": "no existe"})
             largo = int(self.headers.get("Content-Length") or 0)
             if largo <= 0 or largo > TOPE_CUERPO:
@@ -147,13 +148,27 @@ def crear_manejador(proveedor: ConRespaldo, clave: str, tope: Tope):
                 return self._json(401, {"error": "falta la clave de la demo"})
             try:
                 cuerpo = json.loads(datos.decode("utf-8"))
+                if not isinstance(cuerpo, dict):
+                    raise ValueError("no es un objeto")
                 pet = Peticion.de_json(cuerpo)
             except (ValueError, KeyError, TypeError, AttributeError):
                 return self._json(400, {"error": "la petición no es JSON válido"})
             quien = str(cuerpo.get("quien") or self.client_address[0])[:60]
             if not tope.permite(quien):
                 return self._json(200, Resultado("no_entendi", fijas.TOPE_DIARIO, "regla").a_json())
-            r = responder(pet, proveedor)
+            if self.path == "/encargado":
+                # Solo lectura: pregunta + resumen que armó la app (sin
+                # expediente). El historial usa el mismo filtro que /agente.
+                d = cuerpo.get("datos")
+                r = encargado.contestar(
+                    str(cuerpo.get("pregunta") or cuerpo.get("texto") or ""),
+                    pet.nombre,
+                    d if isinstance(d, dict) else {},
+                    pet.historial,
+                    proveedor,
+                )
+            else:
+                r = responder(pet, proveedor)
             # En la terminal solo va la etiqueta, no lo que dijo la persona.
             print(f"  {r.etiqueta:<16} {r.origen:<14} {r.proveedor or '-':<20} {r.segundos:.2f} s"
                   + (f"  RECHAZADA ({r.motivo})" if r.rechazada else ""))

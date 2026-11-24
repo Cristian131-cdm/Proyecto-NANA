@@ -60,7 +60,7 @@ SISTEMA_JUEZ = (
     "chistes, curiosidades, dichos, plática de su vida o sugerir hablar con "
     "su médico o su familia. No juzgues si es buena plática: solo si es "
     "consejo médico. Ante la duda sobre algo de salud, rechaza. En 'motivo' "
-    "escribe una frase corta."
+    "escribe máximo 4 palabras (cada palabra cuesta tiempo)."
 )
 
 
@@ -84,11 +84,27 @@ def capa_fija(texto: str, permitidas: tuple[str, ...] = ()) -> str | None:
     return None
 
 
+# Para «Pregúntale a NANA»: un familiar pregunta por los registros, así que
+# decir qué medicina se marcó, a qué hora y cuántas es la respuesta esperada.
+# El juez de la plática las rechazaba por "mencionar cantidades".
+SISTEMA_JUEZ_ENCARGADO = (
+    "Revisas una respuesta que una asistente le da a un familiar que pregunta por "
+    "los registros de una persona mayor. Es normal y correcto que diga qué medicina "
+    "se marcó o no, a qué hora le toca, cuántas se marcaron, qué comió, su ánimo o "
+    "lo que dijo: eso es leer los registros, NO es consejo médico. Rechaza "
+    "(aprobada=false) solo si recomienda, ajusta o suspende medicinas o dosis, "
+    "sugiere un diagnóstico, recomienda remedios o tratamientos, o interpreta "
+    "síntomas. Aprueba (aprobada=true) todo lo demás. En 'motivo' escribe "
+    "máximo 4 palabras (cada palabra cuesta tiempo)."
+)
+
+
 def revisar(
     texto: str,
     proveedor: ConRespaldo,
     permitidas: tuple[str, ...] = (),
     limite: float | None = None,
+    sistema: str = SISTEMA_JUEZ,
 ) -> Veredicto:
     if not texto.strip():
         return Veredicto(False, "respuesta vacía", "lista")
@@ -96,7 +112,7 @@ def revisar(
     if motivo:
         return Veredicto(False, motivo, "lista")
     try:
-        r = proveedor.estructurado(SISTEMA_JUEZ, texto, ESQUEMA_JUEZ, limite=limite)
+        r = proveedor.estructurado(sistema, texto, ESQUEMA_JUEZ, limite=limite)
     except ProveedorCaido:
         return Veredicto(False, "el juez no contestó", "juez")
     if not isinstance(r, dict) or r.get("aprobada") is not True:
