@@ -70,6 +70,15 @@ abstract class Agente {
     required List<Map<String, String>> historial,
   });
 
+  /// «Pregúntale a NANA» del encargado: solo lectura, con el resumen que
+  /// armó la app (core/resumen_encargado.dart). null igual que [preguntar].
+  Future<RespuestaAgente?> preguntarEncargado({
+    required String pregunta,
+    required String nombre,
+    required Map<String, Object?> datos,
+    required List<Map<String, String>> historial,
+  });
+
   /// Para el botón «Probar»: qué modelo contesta, o null si no lo encuentra.
   Future<String?> salud();
 }
@@ -86,6 +95,14 @@ class AgenteNulo implements Agente {
     required String texto,
     required String nombre,
     required List<Map<String, Object?>> dia,
+    required List<Map<String, String>> historial,
+  }) async => null;
+
+  @override
+  Future<RespuestaAgente?> preguntarEncargado({
+    required String pregunta,
+    required String nombre,
+    required Map<String, Object?> datos,
     required List<Map<String, String>> historial,
   }) async => null;
 
@@ -114,6 +131,21 @@ class AgenteFalso implements Agente {
   }) async {
     pedidos.add((texto: texto, dia: dia, historial: historial.length));
     return contestar(texto);
+  }
+
+  /// Lo que se le preguntó como encargado (pregunta y resumen).
+  final List<({String pregunta, Map<String, Object?> datos})>
+  preguntasEncargado = [];
+
+  @override
+  Future<RespuestaAgente?> preguntarEncargado({
+    required String pregunta,
+    required String nombre,
+    required Map<String, Object?> datos,
+    required List<Map<String, String>> historial,
+  }) async {
+    preguntasEncargado.add((pregunta: pregunta, datos: datos));
+    return contestar(pregunta);
   }
 
   @override

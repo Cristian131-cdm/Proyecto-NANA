@@ -164,7 +164,8 @@ class _PlaticaNanaState extends State<PlaticaNana> {
         return true;
       case AccionPlatica.terminar ||
           AccionPlatica.ayuda ||
-          AccionPlatica.familia:
+          AccionPlatica.familia ||
+          AccionPlatica.llamar:
         _cerrar();
         if (r.accion != AccionPlatica.terminar) widget.alAccion?.call(r);
         return false;

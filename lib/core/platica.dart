@@ -24,6 +24,7 @@ enum AccionPlatica {
   ayuda, // cierra y abre «Necesito ayuda» (con su confirmación)
   familia, // cierra y abre Mi familia
   frase, // le cuenta [frase] a la familia y sigue platicando
+  llamar, // cierra y quien cuida le marca a la persona («Pregúntale a NANA»)
 }
 
 class RespuestaPlatica {
@@ -383,6 +384,22 @@ Future<DatosEncargado> cargarDatosEncargado(String folio, String nombre) async {
 }
 
 const _preguntasEncargado = <(String, List<String>)>[
+  // Antes que todo: «márcale a Rosa para ver si se tomó la pastilla» es
+  // una llamada. Sin «llama» suelto: «¿cómo se llama su medicina?».
+  (
+    'llamar',
+    [
+      'marcale',
+      'marca a',
+      'marcar a',
+      'llamale',
+      'llama a',
+      'llamar a',
+      'hablale',
+      'comunicame con',
+      'quiero hablar con',
+    ],
+  ),
   (
     'medica',
     [
@@ -478,6 +495,11 @@ RespuestaPlatica respuestaEncargado(String oido, DatosEncargado d) {
     );
   }
   switch (entender(oido, _preguntasEncargado)) {
+    case 'llamar':
+      return RespuestaPlatica(
+        'Le marco a ${d.nombre}.',
+        accion: AccionPlatica.llamar,
+      );
     case 'medica':
       return const RespuestaPlatica(
         'Eso lo decide su médico. NANA solo registra, recuerda y alerta.',
@@ -500,11 +522,12 @@ RespuestaPlatica respuestaEncargado(String oido, DatosEncargado d) {
           if (t.mal.isNotEmpty)
             'Dijo sentirse mal el ${_lista([for (final x in t.mal) x.nombre])}.',
         ].join(' '),
+        fija: false,
       );
     case 'medicina':
-      return RespuestaPlatica(_medicinasDeHoy(d));
+      return RespuestaPlatica(_medicinasDeHoy(d), fija: false);
     case 'animo':
-      return RespuestaPlatica(_animoDeHoy(d));
+      return RespuestaPlatica(_animoDeHoy(d), fija: false);
     case 'alertas':
       final n = d.alertas.length;
       return RespuestaPlatica(
@@ -513,6 +536,7 @@ RespuestaPlatica respuestaEncargado(String oido, DatosEncargado d) {
             : n == 1
             ? 'Hay 1 alerta sin atender. Está en Inicio.'
             : 'Hay $n alertas sin atender. Están en Inicio.',
+        fija: false,
       );
     case 'sigue':
       final siguiente = _diaDe(d)
@@ -522,6 +546,7 @@ RespuestaPlatica respuestaEncargado(String oido, DatosEncargado d) {
         siguiente == null
             ? '${d.nombre} ya hizo todo lo de hoy.'
             : 'Lo que sigue: ${siguiente.titulo}, a las ${siguiente.hora}.',
+        fija: false,
       );
     case 'hoy':
       final dia = _diaDe(d);
@@ -532,7 +557,13 @@ RespuestaPlatica respuestaEncargado(String oido, DatosEncargado d) {
           if (d.meds.isNotEmpty) _medicinasDeHoy(d),
           _animoDeHoy(d),
         ].join(' '),
+        fija: false,
       );
   }
-  return const RespuestaPlatica('Todavía no sé contestar eso. $ayudaEncargado');
+  // Lo de datos (fija: false) puede contestarlo el agente con el resumen
+  // (core/conversacion_encargado.dart); estas respuestas quedan de respaldo.
+  return const RespuestaPlatica(
+    'Todavía no sé contestar eso. $ayudaEncargado',
+    fija: false,
+  );
 }

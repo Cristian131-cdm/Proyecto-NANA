@@ -175,6 +175,10 @@ void main() {
             )
             .first,
       );
+      // Con el campo «Servidor de NANA» el botón queda en la orilla: que se
+      // vea completo antes de tocarlo.
+      await t.ensureVisible(find.text('Cerrar sesión'));
+      await t.pumpAndSettle();
       await t.tap(find.text('Cerrar sesión'));
       await t.pumpAndSettle();
       expect(Servicios.repo.uid, isNull);

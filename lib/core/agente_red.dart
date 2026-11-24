@@ -40,6 +40,21 @@ class AgenteEnRed implements Agente {
   );
 
   @override
+  Future<RespuestaAgente?> preguntarEncargado({
+    required String pregunta,
+    required String nombre,
+    required Map<String, Object?> datos,
+    required List<Map<String, String>> historial,
+  }) async => RespuestaAgente.deJson(
+    await _pedir('POST', '/encargado', {
+      'pregunta': pregunta,
+      'nombre': nombre,
+      'datos': datos,
+      'historial': historial,
+    }),
+  );
+
+  @override
   Future<String?> salud() async {
     final j = await _pedir('GET', '/salud');
     if (j == null || j['ok'] != true) return null;

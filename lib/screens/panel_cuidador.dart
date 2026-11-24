@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../core/avisos.dart';
+import '../core/conversacion_encargado.dart';
+import '../core/platica.dart';
 import '../core/dia.dart';
 import '../core/medicion.dart';
 import '../core/permisos.dart';
-import '../core/platica.dart';
 import '../widgets/espera_oye_nana.dart';
 import 'platica_nana.dart';
 import '../core/servicios.dart';
@@ -175,25 +176,40 @@ class _PanelCuidadorState extends State<PanelCuidador> {
     );
   }
 
-  // «Pregúntale a NANA»: el encargado pregunta por el día o la semana y NANA
-  // contesta con los mismos datos de las pestañas (sin IA, solo datos).
+  // «Pregúntale a NANA»: el encargado pregunta por el día o la semana. Lo
+  // crítico (médico, despedida, «márcale a Rosa») lo resuelve la app; lo de
+  // datos, el agente de la laptop con un resumen de solo lectura
+  // (core/conversacion_encargado.dart), con la respuesta fija de respaldo.
   void _preguntale(Adulto adulto) {
+    final platica = ConversacionEncargado(
+      folio: adulto.folio,
+      nombre: adulto.nombre,
+    );
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => PlaticaNana(
           titulo: 'Pregúntale a NANA',
           saludo: '¿Qué quieres saber de ${adulto.nombre}?',
-          responder: (oido) async => respuestaEncargado(
-            oido,
-            await cargarDatosEncargado(adulto.folio, adulto.nombre),
-          ),
-          sugerencias: const [
+          responder: platica.responder,
+          sugerencias: [
             '¿Cómo va hoy?',
             '¿Ya se tomó la pastilla?',
             '¿Cómo le fue esta semana?',
-            '¿Hay alertas?',
+            'Márcale a ${adulto.nombre}',
           ],
+          alAccion: (r) {
+            if (r.accion != AccionPlatica.llamar || !mounted) return;
+            final telefono = adulto.telefono;
+            if (telefono == null || telefono.isEmpty) {
+              mostrarAviso(
+                context,
+                '${adulto.nombre} no tiene teléfono guardado en NANA',
+              );
+            } else {
+              llamar(context, telefono);
+            }
+          },
         ),
       ),
     );

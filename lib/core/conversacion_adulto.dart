@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../models/actividad.dart';
 import 'agente.dart';
 import 'platica.dart';
@@ -61,6 +63,13 @@ class ConversacionAdulto {
       dia: diaParaAgente(hoy),
       historial: List.of(_historial),
     );
+    // Solo en la versión de pruebas: qué dijo y qué contestó el agente.
+    if (kDebugMode) {
+      debugPrint(
+        'NANA agente: «$oido» → «${r?.texto ?? '(sin agente)'}» '
+        '${r?.etiqueta ?? ''} ${r?.proveedor ?? ''}',
+      );
+    }
     if (r == null) return fija;
     _historial
       ..add({'role': 'user', 'content': oido})

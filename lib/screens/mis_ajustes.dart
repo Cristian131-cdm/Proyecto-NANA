@@ -7,6 +7,7 @@ import '../data/demo.dart';
 import '../models/adulto.dart';
 import '../widgets/ajustes_texto.dart';
 import '../widgets/aviso.dart';
+import '../widgets/campo_servidor_agente.dart';
 import 'alta_adulto.dart';
 import 'arranque.dart';
 import 'como_va_la_prueba.dart';
@@ -109,6 +110,10 @@ class _MisAjustesState extends State<MisAjustes> {
                 ),
             ],
           ),
+          // Para pruebas y la demo: la IP de la laptop donde corre el agente
+          // («Pregúntale a NANA» con IA). Es el mismo ajuste del adulto.
+          const SizedBox(height: 24),
+          const CampoServidorAgente(),
           const SizedBox(height: 24),
           SizedBox(
             height: 56,
