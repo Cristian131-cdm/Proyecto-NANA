@@ -1,3 +1,4 @@
+import '../models/medicina_leida.dart';
 import '../models/actividad.dart';
 
 // El agente de NANA (carpeta agente/ del repo, en Python) corre en la laptop
@@ -58,6 +59,13 @@ class RespuestaAgente {
   }
 }
 
+/// Lo que contesta el botón «Probar»: qué modelo hay y si la clave sirve.
+class SaludAgente {
+  final String modelo;
+  final bool claveOk;
+  const SaludAgente({required this.modelo, this.claveOk = true});
+}
+
 abstract class Agente {
   /// Hay un servidor configurado en este celular.
   bool get disponible;
@@ -80,7 +88,17 @@ abstract class Agente {
   });
 
   /// Para el botón «Probar»: qué modelo contesta, o null si no lo encuentra.
-  Future<String?> salud();
+  Future<SaludAgente?> salud();
+
+  /// Lee el texto de una receta (OCR del celular) y propone las medicinas.
+  /// null si no hay agente o no contestó; lista vacía si no encontró nada.
+  Future<List<MedicinaLeida>?> leerReceta(String texto);
+}
+
+List<MedicinaLeida>? medicinasDeJson(Map<String, dynamic>? j) {
+  final lista = j?['medicinas'];
+  if (lista is! List) return null;
+  return [for (final m in lista) ?MedicinaLeida.deJson(m)];
 }
 
 /// En pruebas y en web: no hay agente y la app contesta como siempre.
@@ -107,7 +125,10 @@ class AgenteNulo implements Agente {
   }) async => null;
 
   @override
-  Future<String?> salud() async => null;
+  Future<SaludAgente?> salud() async => null;
+
+  @override
+  Future<List<MedicinaLeida>?> leerReceta(String texto) async => null;
 }
 
 /// Para las pruebas: contesta lo que diga [contestar] y recuerda qué le
@@ -149,7 +170,17 @@ class AgenteFalso implements Agente {
   }
 
   @override
-  Future<String?> salud() async => 'falso';
+  Future<SaludAgente?> salud() async => const SaludAgente(modelo: 'falso');
+
+  /// Lo que «lee» de una receta (pruebas).
+  List<MedicinaLeida>? receta;
+  final List<String> recetasLeidas = [];
+
+  @override
+  Future<List<MedicinaLeida>?> leerReceta(String texto) async {
+    recetasLeidas.add(texto);
+    return receta;
+  }
 }
 
 /// "192.168.100.3" → "http://192.168.100.3:8787". Respeta el puerto o el
@@ -161,8 +192,11 @@ String? urlDelServidor(String escrito) {
   if (!s.startsWith('http://') && !s.startsWith('https://')) s = 'http://$s';
   final uri = Uri.tryParse(s);
   if (uri == null || uri.host.isEmpty) return null;
-  return uri.hasPort
-      ? '${uri.scheme}://${uri.host}:${uri.port}'
+  if (uri.hasPort) return '${uri.scheme}://${uri.host}:${uri.port}';
+  // https = el túnel de Cloudflare (`https://….trycloudflare.com`): usa el
+  // puerto normal. Solo la laptop en el Wi-Fi va directo al 8787.
+  return uri.scheme == 'https'
+      ? 'https://${uri.host}'
       : '${uri.scheme}://${uri.host}:8787';
 }
 

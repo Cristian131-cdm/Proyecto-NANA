@@ -65,6 +65,11 @@ void main() {
       );
       expect(urlDelServidor('http://laptop.local'), 'http://laptop.local:8787');
       expect(urlDelServidor(''), isNull);
+      // El túnel de Cloudflare va por https sin puerto.
+      expect(
+        urlDelServidor('https://gato-azul.trycloudflare.com/'),
+        'https://gato-azul.trycloudflare.com',
+      );
     });
 
     test('el día lleva id, tipo, título, hora y si ya se hizo', () {
@@ -286,7 +291,32 @@ void main() {
 
     test('«Probar» dice qué modelo contesta', () async {
       atender = (p) => json(p, 200, {'ok': true, 'ollama': 'qwen3:8b'});
-      expect(await agente().salud(), 'qwen3:8b');
+      final s = await agente().salud();
+      expect(s!.modelo, 'qwen3:8b');
+      expect(s.claveOk, isTrue);
+    });
+
+    test('manda la clave de la demo y «Probar» dice si coincide', () async {
+      String? recibida;
+      atender = (p) {
+        recibida = p.headers.value('X-Nana-Demo');
+        return json(p, 200, {
+          'ok': true,
+          'ollama': 'qwen3:8b',
+          'pide_clave': true,
+          'clave_ok': recibida == '482913',
+        });
+      };
+      AgenteEnRed con(String clave) => AgenteEnRed(
+        servidor: () => '127.0.0.1:${servidor.port}',
+        clave: () => clave,
+      );
+      expect((await con('482913').salud())!.claveOk, isTrue);
+      expect(recibida, '482913');
+      expect((await con('000000').salud())!.claveOk, isFalse);
+      // Sin clave no manda el encabezado.
+      await con('').salud();
+      expect(recibida, isNull);
     });
 
     test('sin IP no está disponible y no pregunta', () async {

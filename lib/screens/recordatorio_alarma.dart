@@ -24,6 +24,10 @@ Future<void> abrirDesdeAlarma(String idMedicamento) async {
   final m = meds.where((x) => x.id == idMedicamento).firstOrNull;
   final nav = vigilante.navegador.currentState;
   if (m == null || nav == null) return;
+  // El aviso de «ya se pasó» llega aunque ya se la haya tomado (la alarma se
+  // programó antes): entonces no se le vuelve a preguntar.
+  final hoy = await repo.registrosDeHoy(yo.folio).first;
+  if (hoy.any((r) => r.idMedicamento == m.id)) return;
   final ok = await nav.push<bool>(
     MaterialPageRoute(
       builder: (_) => RecordatorioAlarma(

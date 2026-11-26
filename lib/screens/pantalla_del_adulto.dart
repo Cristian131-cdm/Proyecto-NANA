@@ -211,6 +211,32 @@ class _PantallaDelAdultoState extends State<PantallaDelAdulto> {
                   ),
                   const SizedBox.shrink(),
                 ),
+                const TituloSeccion('Voz de NANA'),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
+                    for (final (valor, nombre) in const [
+                      ('mujer', 'Mujer'),
+                      ('hombre', 'Hombre'),
+                    ])
+                      ChoiceChip(
+                        label: Text(
+                          nombre,
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                        selected: a.vozNana == valor,
+                        showCheckmark: true,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        selectedColor: ColoresNana.moradoClaro,
+                        onSelected: (_) =>
+                            setState(() => _a = _a!.copyWith(vozNana: valor)),
+                      ),
+                  ],
+                ),
                 const TituloSeccion('Qué tan rápido le habla'),
                 Wrap(
                   spacing: 10,

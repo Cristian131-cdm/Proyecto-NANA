@@ -547,6 +547,17 @@ class PantallaPrivacidad extends StatelessWidget {
           'desinstalas NANA.',
     ),
     (
+      Icons.smart_toy_outlined,
+      'Cuando NANA platica o lee una receta',
+      'Para platicar libre, contestar «Pregúntale a NANA» y leer el texto de '
+          'una receta, NANA usa un modelo de IA. Primero intenta con Claude '
+          '(de la empresa Anthropic, por internet) y, si no hay, con un modelo '
+          'en la computadora del equipo. Solo se manda lo necesario: la frase, '
+          'el resumen del día sin dosis ni expediente, o el texto que el '
+          'celular leyó de la receta (nunca la foto). Las alertas y los '
+          'avisos de ayuda nunca dependen de la IA.',
+    ),
+    (
       Icons.group_outlined,
       'Quién lo ve',
       'Solo la persona mayor y la familia que se unió con un código de '

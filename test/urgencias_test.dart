@@ -29,7 +29,11 @@ void main() {
       for (final f in _urgenciasDelAgente())
         if (entender(f, comandosAdulto) != 'Necesito ayuda') f,
     ];
-    expect(faltan, isEmpty, reason: 'Agrégalas a comandosAdulto en platica.dart');
+    expect(
+      faltan,
+      isEmpty,
+      reason: 'Agrégalas a comandosAdulto en platica.dart',
+    );
   });
 
   test('dentro de una frase también cuentan', () {

@@ -21,6 +21,14 @@ class _AlarmasFalsas implements Alarmas {
   Future<void> iniciar(void Function(String) alTocar) async {}
   @override
   Future<void> programar(String nombreAdulto, List<Medicamento> meds) async {}
+  final List<Set<String>> pasadas = [];
+  @override
+  Future<void> programarPasadas(
+    String nombreAdulto,
+    List<Medicamento> meds,
+    Set<String> tomadasHoy,
+  ) async => pasadas.add(tomadasHoy);
+
   @override
   Future<void> posponer(
     String idMedicamento,

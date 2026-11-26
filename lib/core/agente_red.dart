@@ -1,3 +1,5 @@
+import '../models/medicina_leida.dart';
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -15,11 +17,14 @@ Agente crearAgente() => AgenteEnRed();
 class AgenteEnRed implements Agente {
   final Duration limite;
   final String Function() _servidor;
+  final String Function() _clave;
 
   AgenteEnRed({
     this.limite = const Duration(seconds: 6),
     String Function()? servidor,
-  }) : _servidor = servidor ?? (() => Ajustes.servidorAgente.value);
+    String Function()? clave,
+  }) : _servidor = servidor ?? (() => Ajustes.servidorAgente.value),
+       _clave = clave ?? (() => Ajustes.claveAgente.value);
 
   @override
   bool get disponible => urlDelServidor(_servidor()) != null;
@@ -55,19 +60,33 @@ class AgenteEnRed implements Agente {
   );
 
   @override
-  Future<String?> salud() async {
+  Future<SaludAgente?> salud() async {
     final j = await _pedir('GET', '/salud');
     if (j == null || j['ok'] != true) return null;
-    return '${j['ollama'] ?? j['proveedores'] ?? 'agente'}';
+    return SaludAgente(
+      modelo: '${j['ollama'] ?? j['proveedores'] ?? 'agente'}',
+      claveOk: j['clave_ok'] != false,
+    );
   }
+
+  @override
+  Future<List<MedicinaLeida>?> leerReceta(String texto) async =>
+      medicinasDeJson(
+        // Leer una receta toma más que una frase: hasta 20 s.
+        await _pedir('POST', '/receta', {
+          'texto': texto,
+        }, const Duration(seconds: 20)),
+      );
 
   Future<Map<String, dynamic>?> _pedir(
     String metodo,
     String ruta, [
     Map<String, Object?>? cuerpo,
+    Duration? tiempo,
   ]) async {
     final base = urlDelServidor(_servidor());
     if (base == null) return null;
+    final espera = tiempo ?? limite;
     final cliente = HttpClient()..connectionTimeout = limite;
     try {
       return await _hacer(
@@ -75,7 +94,7 @@ class AgenteEnRed implements Agente {
         metodo,
         '$base$ruta',
         cuerpo,
-      ).timeout(limite, onTimeout: () => null);
+      ).timeout(espera, onTimeout: () => null);
     } catch (e) {
       debugPrint('NANA agente: $metodo $ruta falló: $e');
       return null;
@@ -91,6 +110,9 @@ class AgenteEnRed implements Agente {
     Map<String, Object?>? cuerpo,
   ) async {
     final pedido = await cliente.openUrl(metodo, Uri.parse(url));
+    // La clave de la demo (NANA_CLAVE_DEMO en la laptop), si se puso.
+    final clave = _clave().trim();
+    if (clave.isNotEmpty) pedido.headers.set('X-Nana-Demo', clave);
     if (cuerpo != null) {
       final bytes = utf8.encode(jsonEncode(cuerpo));
       pedido.headers.contentType = ContentType.json;

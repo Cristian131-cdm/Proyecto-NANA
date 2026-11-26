@@ -130,6 +130,9 @@ void main() {
     await t.pump();
     await t.pump();
     expect(find.text('Entrar con huella'), findsOneWidget);
+    // Con «Voz de NANA» la hoja creció: hay que bajar para ver el botón.
+    await t.ensureVisible(find.text('Salir de NANA en este celular'));
+    await t.pump();
     await t.tap(find.text('Salir de NANA en este celular'));
     await t.pump();
     expect(salio, 1);

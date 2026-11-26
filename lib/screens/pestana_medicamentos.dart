@@ -1,3 +1,4 @@
+import 'leer_receta.dart';
 import '../models/registro.dart';
 import '../models/actividad.dart';
 import '../core/semana.dart' show horaDe;
@@ -13,7 +14,16 @@ import '../widgets/aviso.dart';
 import '../widgets/con_encargado.dart';
 import '../widgets/tarjeta_dato.dart';
 
-const unidadesDosis = ['mg', 'mcg', 'g', 'ml', 'UI', 'gotas', 'tabletas'];
+const unidadesDosis = [
+  'mg',
+  'mcg',
+  'g',
+  'ml',
+  'UI',
+  'gotas',
+  'tabletas',
+  'cápsulas',
+];
 
 // Reglas para escribir dosis sin que se lean mal: siempre un cero antes del
 // punto (0.5, no .5) y nunca un cero al final (5, no 5.0, que se lee 50).
@@ -66,6 +76,22 @@ class PestanaMedicamentos extends StatefulWidget {
 }
 
 class _PestanaMedicamentosState extends State<PestanaMedicamentos> {
+  Future<void> _leerReceta(BuildContext context) async {
+    final tomas = await Navigator.push<int>(
+      context,
+      MaterialPageRoute(builder: (_) => LeerReceta(folio: widget.folio)),
+    );
+    if (tomas == null || tomas == 0 || !context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          tomas == 1 ? 'NANA agregó 1 toma' : 'NANA agregó $tomas tomas',
+          style: const TextStyle(fontSize: 18),
+        ),
+      ),
+    );
+  }
+
   late final _meds = Servicios.repo.medicamentos(widget.folio);
   String get folio => widget.folio;
 
@@ -153,6 +179,28 @@ class _PestanaMedicamentosState extends State<PestanaMedicamentos> {
             ],
           ),
         ),
+        if (widget.puedeEditar && Servicios.ocr.disponible)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+            child: SizedBox(
+              width: double.infinity,
+              height: 64,
+              child: OutlinedButton.icon(
+                onPressed: () => _leerReceta(context),
+                icon: const Icon(Icons.document_scanner, size: 28),
+                label: const Text('Leer una receta con la cámara'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: ColoresNana.morado,
+                  side: const BorderSide(color: ColoresNana.morado, width: 2),
+                  shape: const StadiumBorder(),
+                  textStyle: const TextStyle(
+                    fontSize: 19,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ),
         if (widget.puedeEditar)
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),

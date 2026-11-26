@@ -62,6 +62,10 @@ dependencies:
       url: https://github.com/alphacep/vosk-flutter.git
       ref: e655a96f0ce0dadb5ea8900aa1ba23260c3ec904
   path_provider: ^2.1.6
+  firebase_messaging: ^17.1.0
+  image_picker: ^1.2.4
+  google_mlkit_text_recognition: ^1.0.3
+  image: ^4.13.1
 
 dev_dependencies:
   flutter_test:

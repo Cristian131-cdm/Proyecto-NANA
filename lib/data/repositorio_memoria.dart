@@ -669,6 +669,14 @@ class RepositorioMemoria implements RepositorioNana {
     _avisar();
   }
 
+  // Tokens de push guardados (para pruebas).
+  final List<String> tokensPush = [];
+
+  @override
+  Future<void> guardarTokenPush(String token) async {
+    if (!tokensPush.contains(token)) tokensPush.add(token);
+  }
+
   @override
   Future<void> atenderAlerta(String folio, String id) async {
     final lista = _alertas[folio] ?? [];

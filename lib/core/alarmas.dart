@@ -13,6 +13,14 @@ abstract class Alarmas {
   Future<void> iniciar(void Function(String idMedicamento) alTocar);
   Future<void> programar(String nombreAdulto, List<Medicamento> meds);
 
+  // «Ya se pasó»: al terminar la ventana de cada medicina que todavía no se
+  // toma hoy, NANA vuelve a preguntar (una sola vez). Las ya tomadas se quitan.
+  Future<void> programarPasadas(
+    String nombreAdulto,
+    List<Medicamento> meds,
+    Set<String> tomadasHoy,
+  );
+
   // "Al rato": la misma alarma suena otra vez dentro de [en] (una sola vez).
   Future<void> posponer(String idMedicamento, String texto, Duration en);
 
@@ -37,6 +45,48 @@ int idNotificacion(String idMedicamento) {
 int idPospuesta(String idMedicamento) =>
     idNotificacion('pospuesta-$idMedicamento');
 
+int idPasada(String idMedicamento) => idNotificacion('pasada-$idMedicamento');
+
+String textoPasada(String nombre, Medicamento m) =>
+    '$nombre, ya pasó la hora de tu ${m.nombre}. ¿Ya te la tomaste?';
+
+// Cuándo NANA pregunta si ya se la tomó: la hora más la ventana de espera.
+DateTime cuandoPasada(Medicamento m, DateTime ahora) => DateTime(
+  ahora.year,
+  ahora.month,
+  ahora.day,
+  m.hora.hour,
+  m.hora.minute,
+).add(Duration(minutes: m.ventanaMin));
+
+// Con la app abierta: la medicina cuya hora (o cuya ventana) se cumplió en
+// el último minuto, que no se ha tomado y de la que NANA todavía no avisó.
+// Anota en [yaAvisado] para no repetir.
+Medicamento? medicinaQueAvisar(
+  List<Medicamento> meds,
+  Set<String> tomadasHoy,
+  DateTime ahora,
+  Set<String> yaAvisado,
+) {
+  for (final m in meds) {
+    final id = m.id;
+    if (id == null || tomadasHoy.contains(id)) continue;
+    final hora = DateTime(
+      ahora.year,
+      ahora.month,
+      ahora.day,
+      m.hora.hour,
+      m.hora.minute,
+    );
+    for (final cuando in [hora, cuandoPasada(m, ahora)]) {
+      final desde = ahora.difference(cuando);
+      if (desde.isNegative || desde > const Duration(minutes: 1)) continue;
+      if (yaAvisado.add('$id@${cuando.hour}:${cuando.minute}')) return m;
+    }
+  }
+  return null;
+}
+
 class AlarmasLocales implements Alarmas {
   final _plugin = FlutterLocalNotificationsPlugin();
   bool _listo = false;
@@ -54,6 +104,10 @@ class AlarmasLocales implements Alarmas {
       importance: Importance.max,
       priority: Priority.high,
       category: AndroidNotificationCategory.alarm,
+      // Con el celular bloqueado prende la pantalla y abre el recordatorio,
+      // donde NANA lo dice con su voz (como la alarma de un despertador).
+      fullScreenIntent: true,
+      audioAttributesUsage: AudioAttributesUsage.alarm,
     ),
     iOS: DarwinNotificationDetails(
       presentSound: true,
@@ -99,6 +153,12 @@ class AlarmasLocales implements Alarmas {
           AndroidFlutterLocalNotificationsPlugin
         >()
         ?.requestNotificationsPermission();
+    // Android 14+: abrir la pantalla completa con el celular bloqueado.
+    await _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >()
+        ?.requestFullScreenIntentPermission();
     await _plugin
         .resolvePlatformSpecificImplementation<
           IOSFlutterLocalNotificationsPlugin
@@ -131,10 +191,11 @@ class AlarmasLocales implements Alarmas {
           >();
       // Si no dan permiso de alarma exacta, suena unos minutos tarde.
       final exacta = await android?.canScheduleExactNotifications() ?? true;
-      // Quita las diarias de antes, pero deja las de "al rato".
+      // Quita las diarias de antes, pero deja las de "al rato" y las de
+      // "ya se pasó" (esas las maneja programarPasadas).
       final pospuestas = {
         for (final m in meds)
-          if (m.id != null) idPospuesta(m.id!),
+          if (m.id != null) ...{idPospuesta(m.id!), idPasada(m.id!)},
       };
       for (final p in await _plugin.pendingNotificationRequests()) {
         if (!pospuestas.contains(p.id)) await _plugin.cancel(id: p.id);
@@ -156,6 +217,36 @@ class AlarmasLocales implements Alarmas {
       }
     } catch (e) {
       debugPrint('No se pudieron programar las alarmas: $e');
+    }
+  }
+
+  @override
+  Future<void> programarPasadas(
+    String nombreAdulto,
+    List<Medicamento> meds,
+    Set<String> tomadasHoy,
+  ) async {
+    if (!_listo) return;
+    try {
+      final ahora = tz.TZDateTime.now(tz.local);
+      for (final m in meds) {
+        if (m.id == null) continue;
+        await _plugin.cancel(id: idPasada(m.id!));
+        if (tomadasHoy.contains(m.id)) continue;
+        final cuando = cuandoPasada(m, ahora);
+        if (!cuando.isAfter(ahora)) continue;
+        await _plugin.zonedSchedule(
+          id: idPasada(m.id!),
+          scheduledDate: tz.TZDateTime.from(cuando, tz.local),
+          notificationDetails: _detalles,
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+          title: 'NANA te pregunta',
+          body: textoPasada(nombreAdulto, m),
+          payload: m.id,
+        );
+      }
+    } catch (e) {
+      debugPrint('No se pudieron programar los avisos de "ya se pasó": $e');
     }
   }
 

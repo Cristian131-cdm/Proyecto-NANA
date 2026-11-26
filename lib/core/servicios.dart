@@ -7,6 +7,8 @@ import 'biometria.dart';
 import 'despertador.dart';
 import 'fotos_locales.dart';
 import 'lector_expediente.dart';
+import 'ocr_receta.dart';
+import 'push.dart';
 import 'senas/catalogo.dart';
 import 'senas/ojo.dart';
 import 'voz.dart';
@@ -18,6 +20,10 @@ class Servicios {
   static Biometria biometria = BiometriaLocal();
   static Alarmas alarmas = AlarmasLocales();
   static Avisos avisos = const AvisosNulos();
+  // Push con la app cerrada (Worker de Cloudflare). main() pone el real.
+  static Push push = PushNulo();
+  // Foto de la receta + OCR dentro del celular. main() pone el real.
+  static OcrReceta ocr = const OcrNulo();
   static LectorExpediente lector = const LectorSimulado();
   static Voz voz = VozNula();
   // «Oye NANA». main() pone el de verdad; en pruebas no escucha nada.

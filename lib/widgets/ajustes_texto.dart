@@ -244,6 +244,14 @@ class _HojaAjustesAdultoState extends State<HojaAjustesAdulto> {
                   ),
                 ),
               ),
+              const SizedBox(height: 14),
+              ElegirVozNana(
+                actual: Ajustes.vozNana.value,
+                onElegir: (genero) {
+                  Ajustes.vozNana.value = genero;
+                  _decir('Hola, así suena mi voz');
+                },
+              ),
               if (Ajustes.queMeHable.value) ...[
                 const SizedBox(height: 14),
                 _Velocidad(
@@ -488,6 +496,73 @@ class _Velocidad extends StatelessWidget {
   }
 }
 
+// «Voz de NANA»: mujer u hombre. Al elegir, NANA habla con la voz nueva.
+class ElegirVozNana extends StatelessWidget {
+  final String actual;
+  final void Function(String genero) onElegir;
+  const ElegirVozNana({
+    super.key,
+    required this.actual,
+    required this.onElegir,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    Widget opcion(String genero, String nombre, IconData icono) {
+      final elegida = actual == genero;
+      return Expanded(
+        child: Semantics(
+          button: true,
+          selected: elegida,
+          label: 'Voz de $nombre',
+          child: ChoiceChip(
+            avatar: Icon(icono, color: ColoresNana.morado),
+            label: Text(
+              nombre,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            selected: elegida,
+            showCheckmark: false,
+            selectedColor: ColoresNana.moradoClaro,
+            side: BorderSide(
+              color: elegida ? ColoresNana.morado : const Color(0xFFD9D2EA),
+              width: elegida ? 3 : 2,
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+            onSelected: (_) => onElegir(genero),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: const Color(0xFFD9D2EA), width: 2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'Voz de NANA',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              opcion('mujer', 'Mujer', Icons.face_3),
+              const SizedBox(width: 8),
+              opcion('hombre', 'Hombre', Icons.face),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 // «Aa» de quien cuida, como hoja (se sigue usando en pruebas y donde haga
 // falta); el contenido es el mismo de «Mis ajustes».
 class _HojaCuidador extends StatelessWidget {
@@ -613,6 +688,18 @@ class AjustesLecturaCuidador extends StatelessWidget {
               onChanged: (v) => m.$4.value = v,
             ),
           ),
+        const SizedBox(height: 8),
+        ValueListenableBuilder<String>(
+          valueListenable: Ajustes.vozNana,
+          builder: (context, voz, _) => ElegirVozNana(
+            actual: voz,
+            onElegir: (genero) {
+              Ajustes.vozNana.value = genero;
+              nanaDice(context, 'Hola, así suena mi voz', siempre: true);
+            },
+          ),
+        ),
+        const SizedBox(height: 8),
         const InterruptorHuella(),
       ],
     );

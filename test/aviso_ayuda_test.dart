@@ -83,7 +83,12 @@ void main() {
       expect(find.text('20'), findsOneWidget);
 
       await _esperar(t, 2);
-      expect(voz.dicho, contains('Rosa, voy a avisarle a tu familia. Si estás bien, di: estoy bien.'));
+      expect(
+        voz.dicho,
+        contains(
+          'Rosa, voy a avisarle a tu familia. Si estás bien, di: estoy bien.',
+        ),
+      );
       // Lo de antes se termina de cerrar DESPUÉS: no debe callar el aviso.
       expect(voz.callado, 0);
 
@@ -128,7 +133,10 @@ void main() {
       await _abrir(t);
       await _esperar(t, 2);
 
-      expect(voz.dicho, contains('¿Estás bien? Di: estoy bien. O di: avísales.'));
+      expect(
+        voz.dicho,
+        contains('¿Estás bien? Di: estoy bien. O di: avísales.'),
+      );
       expect((await alertas()).single.como, 'voz');
     });
   });
@@ -155,7 +163,9 @@ void main() {
       await _esperar(t, 1);
       expect(
         voz.dicho,
-        contains('Voy a avisarle a tu familia. Si fue sin querer, toca: estoy bien.'),
+        contains(
+          'Voy a avisarle a tu familia. Si fue sin querer, toca: estoy bien.',
+        ),
       );
     });
 
@@ -178,7 +188,10 @@ void main() {
       await _abrir(t, porVoz: false);
       await t.tap(find.text('Avisar ya'));
       await _esperar(t, 1);
-      expect(find.text('No hay internet. Lo mando en cuanto haya'), findsOneWidget);
+      expect(
+        find.text('No hay internet. Lo mando en cuanto haya'),
+        findsOneWidget,
+      );
     });
   });
 
@@ -195,10 +208,16 @@ void main() {
     });
 
     test('la notificación dice cómo la pidió', () {
-      final (t1, d1) = textoAviso('Rosa', Alerta(id: 'b', fecha: hora, como: 'sin_respuesta'));
+      final (t1, d1) = textoAviso(
+        'Rosa',
+        Alerta(id: 'b', fecha: hora, como: 'sin_respuesta'),
+      );
       expect(t1, 'Rosa necesita ayuda y no contesta');
       expect(d1, contains('no contestó'));
-      final (t2, d2) = textoAviso('Rosa', Alerta(id: 'a', fecha: hora, como: 'voz'));
+      final (t2, d2) = textoAviso(
+        'Rosa',
+        Alerta(id: 'a', fecha: hora, como: 'voz'),
+      );
       expect(t2, 'Rosa necesita ayuda');
       expect(d2, startsWith('Pidió ayuda con la voz'));
     });

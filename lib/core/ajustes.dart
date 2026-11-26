@@ -13,6 +13,8 @@ class Ajustes {
       (escalaTexto.value * sistema).clamp(0.85, escalaMaxima);
   // Qué tan rápido habla NANA: 0.6 despacio, 1 normal, 1.4 rápido.
   static final ValueNotifier<double> velocidadVoz = ValueNotifier(1.0);
+  // Voz de NANA: 'mujer' u 'hombre' (core/voz.dart elige la del celular).
+  static final ValueNotifier<String> vozNana = ValueNotifier('mujer');
 
   // La encuesta de apariencia solo se muestra la primera vez
   static final ValueNotifier<bool> encuestaHecha = ValueNotifier(false);
@@ -49,6 +51,8 @@ class Ajustes {
   // La IP de la laptop donde corre el agente (pruebas y demo), por ejemplo
   // "192.168.100.3". Vacío = sin agente: NANA contesta como siempre.
   static final ValueNotifier<String> servidorAgente = ValueNotifier('');
+  // La clave de la demo que muestra «Arrancar NANA» en la laptop.
+  static final ValueNotifier<String> claveAgente = ValueNotifier('');
 
   // Huella o Face ID: si está activada y si ya se le ofreció una vez.
   static final ValueNotifier<bool> huellaActivada = ValueNotifier(false);
@@ -89,10 +93,12 @@ class Ajustes {
 
     escalaTexto.value = prefs.getDouble('escala_texto') ?? 1.0;
     velocidadVoz.value = prefs.getDouble('velocidad_voz') ?? 1.0;
+    vozNana.value = prefs.getString('voz_nana') ?? 'mujer';
     discapacidadesAplicadas.value =
         prefs.getString('discapacidades_aplicadas') ?? '';
     aparienciaAplicada.value = prefs.getString('apariencia_aplicada') ?? '';
     servidorAgente.value = prefs.getString('servidor_agente') ?? '';
+    claveAgente.value = prefs.getString('clave_agente') ?? '';
     for (final MapEntry(key: clave, value: n) in _interruptores.entries) {
       n.value = prefs.getBool(clave) ?? false;
     }
@@ -104,6 +110,7 @@ class Ajustes {
     velocidadVoz.addListener(
       () => _prefs?.setDouble('velocidad_voz', velocidadVoz.value),
     );
+    vozNana.addListener(() => _prefs?.setString('voz_nana', vozNana.value));
     discapacidadesAplicadas.addListener(
       () => _prefs?.setString(
         'discapacidades_aplicadas',
@@ -115,6 +122,9 @@ class Ajustes {
     );
     servidorAgente.addListener(
       () => _prefs?.setString('servidor_agente', servidorAgente.value),
+    );
+    claveAgente.addListener(
+      () => _prefs?.setString('clave_agente', claveAgente.value),
     );
     for (final MapEntry(key: clave, value: n) in _interruptores.entries) {
       n.addListener(() => _prefs?.setBool(clave, n.value));

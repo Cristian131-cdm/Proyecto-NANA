@@ -2,6 +2,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+import 'core/ocr_sin_camara.dart' if (dart.library.io) 'core/ocr_celular.dart';
+import 'core/push_sin_red.dart' if (dart.library.io) 'core/push_celular.dart';
 import 'core/agente_sin_red.dart' if (dart.library.io) 'core/agente_red.dart';
 import 'core/ajustes.dart';
 import 'core/avisos.dart';
@@ -35,6 +37,8 @@ Future<void> main() async {
   Servicios.despertador = crearDespertador();
   Servicios.fotos = crearFotos();
   Servicios.agente = crearAgente();
+  Servicios.push = crearPush();
+  Servicios.ocr = crearOcr();
   Servicios.crearOjo = crearOjoCamara;
   await Ajustes.cargar();
   // Al minimizar la app se manda lo que el estudio de uso tenga pendiente.

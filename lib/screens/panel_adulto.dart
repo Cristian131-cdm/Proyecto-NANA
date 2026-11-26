@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 
 import '../core/conversacion_adulto.dart';
 import '../core/ajustes.dart';
+import '../models/medicamento.dart';
+import '../core/alarmas.dart';
 import '../core/dia.dart';
 import '../core/frases.dart';
 import '../core/lector.dart';
@@ -48,6 +50,12 @@ class _PanelAdultoState extends State<PanelAdulto> {
   StreamSubscription? _alarmas;
   StreamSubscription? _salud;
   StreamSubscription<Object?>? _apariencia;
+  StreamSubscription? _tomadas;
+  Timer? _reloj;
+  List<Medicamento> _meds = const [];
+  Set<String> _tomadasHoy = const {};
+  // Lo que NANA ya avisó con la app abierta ('id@hora'), para no repetirlo.
+  final Set<String> _yaAvisado = {};
 
   @override
   void initState() {
@@ -70,9 +78,25 @@ class _PanelAdultoState extends State<PanelAdulto> {
     // Cada vez que la familia cambia las medicinas, se reprograman las alarmas.
     if (yo != null) {
       final nombre = yo.nombre;
-      _alarmas = Servicios.repo
-          .medicamentos(_folio)
-          .listen((meds) => Servicios.alarmas.programar(nombre, meds));
+      _alarmas = Servicios.repo.medicamentos(_folio).listen((meds) {
+        _meds = meds;
+        Servicios.alarmas.programar(nombre, meds);
+        Servicios.alarmas.programarPasadas(nombre, meds, _tomadasHoy);
+      });
+      // Lo que ya se tomó hoy: a esas ya no se les pregunta «¿ya te la tomaste?».
+      _tomadas = Servicios.repo.registrosDeHoy(_folio).listen((regs) {
+        _tomadasHoy = {
+          for (final r in regs)
+            if (r.idMedicamento != null) r.idMedicamento!,
+        };
+        Servicios.alarmas.programarPasadas(nombre, _meds, _tomadasHoy);
+      });
+      // Con la app abierta la notificación no abre nada: NANA misma revisa
+      // cada 30 s si toca una medicina (o ya se pasó) y lo dice en voz alta.
+      _reloj = Timer.periodic(
+        const Duration(seconds: 30),
+        (_) => _revisarHora(),
+      );
       // Si la familia anota una discapacidad, el celular se adapta solo.
       _salud = Servicios.repo
           .salud(_folio)
@@ -93,7 +117,26 @@ class _PanelAdultoState extends State<PanelAdulto> {
     _alarmas?.cancel();
     _salud?.cancel();
     _apariencia?.cancel();
+    _tomadas?.cancel();
+    _reloj?.cancel();
     super.dispose();
+  }
+
+  void _revisarHora() {
+    if (!mounted) return;
+    final enPantalla =
+        WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
+    if (!enPantalla) return; // afuera avisa la alarma del sistema
+    final m = medicinaQueAvisar(
+      _meds,
+      _tomadasHoy,
+      Servicios.reloj(),
+      _yaAvisado,
+    );
+    if (m == null) return;
+    // Solo si no hay otra pantalla encima (plática, recordatorio, ajustes…).
+    if (!(ModalRoute.of(context)?.isCurrent ?? false)) return;
+    abrirDesdeAlarma(m.id!).ignore();
   }
 
   String get _folio => _yo?.folio ?? '';

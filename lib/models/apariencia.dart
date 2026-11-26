@@ -12,6 +12,8 @@ class Apariencia {
   final bool contestarTocando;
   // Qué tan rápido habla NANA: 0.7 despacio, 1 normal, 1.3 rápido.
   final double velocidadVoz;
+  // Voz de NANA: 'mujer' u 'hombre'.
+  final String vozNana;
   final DateTime? actualizado;
 
   const Apariencia({
@@ -22,6 +24,7 @@ class Apariencia {
     this.oyeNana = false,
     this.contestarTocando = false,
     this.velocidadVoz = 1.0,
+    this.vozNana = 'mujer',
     this.actualizado,
   });
 
@@ -33,6 +36,7 @@ class Apariencia {
     bool? oyeNana,
     bool? contestarTocando,
     double? velocidadVoz,
+    String? vozNana,
     DateTime? actualizado,
   }) => Apariencia(
     escalaTexto: escalaTexto ?? this.escalaTexto,
@@ -42,6 +46,7 @@ class Apariencia {
     oyeNana: oyeNana ?? this.oyeNana,
     contestarTocando: contestarTocando ?? this.contestarTocando,
     velocidadVoz: velocidadVoz ?? this.velocidadVoz,
+    vozNana: vozNana ?? this.vozNana,
     actualizado: actualizado ?? this.actualizado,
   );
 
@@ -53,6 +58,7 @@ class Apariencia {
     'oyeNana': oyeNana,
     'contestarTocando': contestarTocando,
     'velocidadVoz': velocidadVoz,
+    'vozNana': vozNana,
     'actualizado': actualizado?.millisecondsSinceEpoch,
   };
 
@@ -67,6 +73,7 @@ class Apariencia {
       oyeNana: m['oyeNana'] == true,
       contestarTocando: m['contestarTocando'] == true,
       velocidadVoz: (m['velocidadVoz'] as num?)?.toDouble() ?? 1.0,
+      vozNana: m['vozNana'] == 'hombre' ? 'hombre' : 'mujer',
       actualizado: ms is int ? DateTime.fromMillisecondsSinceEpoch(ms) : null,
     );
   }

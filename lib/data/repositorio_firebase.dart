@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../core/servicios.dart';
 import '../core/codigo.dart';
 import '../core/medicion.dart';
 import '../models/actividad.dart';
@@ -760,6 +761,8 @@ class RepositorioFirebase implements RepositorioNana {
     // cola y se manda solo después; aquí solo decimos la verdad sobre eso.
     try {
       await escrito.timeout(const Duration(seconds: 8));
+      // Que el Worker mande el push ya, sin esperar a su revisión del minuto.
+      Servicios.push.avisarAhora(folio).ignore();
       return true;
     } on TimeoutException {
       return false;
@@ -768,14 +771,25 @@ class RepositorioFirebase implements RepositorioNana {
 
   @override
   Future<void> avisarFrase(String folio, String frase) async => unawaited(
-    _de(folio, 'alertas').add({
-      'tipo': 'frase',
-      'texto': frase,
-      'fecha': Timestamp.now(),
-      'atendida': false,
-      'creadaPor': uid,
-    }),
+    _de(folio, 'alertas')
+        .add({
+          'tipo': 'frase',
+          'texto': frase,
+          'fecha': Timestamp.now(),
+          'atendida': false,
+          'creadaPor': uid,
+        })
+        .then((_) => Servicios.push.avisarAhora(folio)),
   );
+
+  @override
+  Future<void> guardarTokenPush(String token) async {
+    final u = uid;
+    if (u == null) return;
+    await _usuarios.doc(u).set({
+      'tokensPush': FieldValue.arrayUnion([token]),
+    }, SetOptions(merge: true));
+  }
 
   @override
   Future<void> atenderAlerta(String folio, String id) async => unawaited(

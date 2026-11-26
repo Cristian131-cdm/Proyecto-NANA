@@ -254,7 +254,10 @@ class _AvisoAyudaState extends State<AvisoAyuda> {
                         child: FilledButton.icon(
                           onPressed: () =>
                               _avisar(widget.porVoz ? 'voz' : 'boton'),
-                          icon: const Icon(Icons.notifications_active, size: 34),
+                          icon: const Icon(
+                            Icons.notifications_active,
+                            size: 34,
+                          ),
                           label: const Text('Avisar ya'),
                           style: FilledButton.styleFrom(
                             backgroundColor: Colors.white,

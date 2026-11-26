@@ -136,6 +136,10 @@ abstract class RepositorioNana {
   Future<void> responderAlerta(String folio, String id, String estado);
   // El adulto dijo algo preocupante ("Me duele algo"): le llega a la familia.
   Future<void> avisarFrase(String folio, String frase);
+
+  // Token de push de este celular (usuarios/{uid}.tokensPush) para que el
+  // Worker de avisos le pueda escribir con la app cerrada.
+  Future<void> guardarTokenPush(String token);
   Stream<ReglasAlerta> reglasAlerta(String folio);
   Future<void> guardarReglasAlerta(String folio, ReglasAlerta r);
 

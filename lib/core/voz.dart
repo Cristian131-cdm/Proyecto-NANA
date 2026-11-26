@@ -103,12 +103,86 @@ class VozCelular implements Voz {
   Future<void> _prepararTts() async {
     if (_ttsListo) return;
     _ttsListo = true;
+    // Se usa el motor de voz que tenga puesto el celular. (2026-11-25: forzar
+    // el de Google dejó muda a NANA en el A72: sus voces en español aparecían
+    // en la lista pero sin descargar, y el motor «hablaba» en silencio.)
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      try {
+        _motorDelCelular = '${await _tts.getDefaultEngine}';
+        _motorActual = _motorDelCelular;
+        debugPrint('NANA voz: motor $_motorDelCelular');
+      } catch (_) {}
+    }
     await _tts.setLanguage('es-MX');
     await _tts.awaitSpeakCompletion(true);
     _tts.setStartHandler(() => _hablando.value = true);
     _tts.setCompletionHandler(() => _hablando.value = false);
     _tts.setCancelHandler(() => _hablando.value = false);
     _tts.setErrorHandler((_) => _hablando.value = false);
+    Ajustes.vozNana.addListener(() => _vozAplicada = null);
+  }
+
+  String? _vozAplicada;
+  String? _motorDelCelular;
+  String? _motorActual;
+  static const _motorGoogle = 'com.google.android.tts';
+
+  Future<List<Map<String, String>>> _voces() async {
+    final voces = [
+      for (final v in (await _tts.getVoices as List? ?? const []))
+        if (v is Map) v.map((k, valor) => MapEntry('$k', '$valor')),
+    ];
+    debugPrint(
+      'NANA voces ($_motorActual): ${voces.where(esVozEnEspanol).map((v) => '${v['name']}(${generoDeVoz(v) ?? '?'}${vozDescargada(v) ? '' : ', sin descargar'})').join(', ')}',
+    );
+    return voces;
+  }
+
+  Future<void> _usarMotor(String? motor) async {
+    if (motor == null || motor == _motorActual) return;
+    await _tts.setEngine(motor);
+    await _tts.awaitSpeakCompletion(true);
+    _motorActual = motor;
+    debugPrint('NANA voz: cambio al motor $motor');
+  }
+
+  // Pone la voz de mujer u hombre que eligió la persona. Primero busca en el
+  // motor del celular; si ahí no hay (Samsung no da su lista de voces), prueba
+  // el de Google, pero solo con una voz YA DESCARGADA. Si tampoco, regresa al
+  // motor del celular y cambia el tono.
+  Future<void> _aplicarVoz() async {
+    final genero = Ajustes.vozNana.value;
+    if (_vozAplicada == genero) return;
+    _vozAplicada = genero;
+    try {
+      // Primero el motor en el que ya está (no brinca de motor en cada cambio).
+      var voz = elegirVoz(await _voces(), genero);
+      if (voz == null &&
+          defaultTargetPlatform == TargetPlatform.android &&
+          ((await _tts.getEngines as List?)?.contains(_motorGoogle) ?? false)) {
+        final otro = _motorActual == _motorGoogle
+            ? _motorDelCelular
+            : _motorGoogle;
+        if (otro != null && otro != _motorActual) {
+          final antes = _motorActual;
+          await _usarMotor(otro);
+          voz = elegirVoz(await _voces(), genero);
+          if (voz == null) await _usarMotor(antes);
+        }
+      }
+      if (voz != null) {
+        await _tts.setVoice({'name': voz['name']!, 'locale': voz['locale']!});
+        debugPrint('NANA voz: uso ${voz['name']} ($genero)');
+      } else {
+        await _tts.setLanguage('es-MX');
+        debugPrint('NANA voz: no hay voz de $genero, solo cambio el tono');
+      }
+      // Con voz de verdad el tono queda normal (bajarlo la hacía sonar
+      // robotizada). Solo sin voz de ese género se baja un poco.
+      await _tts.setPitch(voz != null ? 1.0 : tonoDe(genero));
+    } catch (e) {
+      debugPrint('NANA voz: no pude cambiar la voz ($e)');
+    }
   }
 
   @override
@@ -116,6 +190,7 @@ class VozCelular implements Voz {
     if (texto.trim().isEmpty) return;
     try {
       await _prepararTts();
+      await _aplicarVoz();
       // Ajustes.velocidadVoz va de 0.5 (despacio) a 1.5 (rápido); el plugin
       // usa 0.5 como velocidad "normal" en Android y iOS.
       await _tts.setSpeechRate(0.5 * Ajustes.velocidadVoz.value);
@@ -394,3 +469,72 @@ const respuestasRecordatorio = <(RespuestaRecordatorio, List<String>)>[
     ],
   ),
 ];
+
+// ---------- Elegir la voz de NANA (mujer u hombre) ----------
+
+bool esVozEnEspanol(Map<String, String> v) =>
+    (v['locale'] ?? '').toLowerCase().startsWith('es');
+
+// Solo cuando el celular no tiene voz de ese género (ej. Samsung sin Google):
+// hombre un poco más grave. Más bajo de 0.8 suena robotizado.
+double tonoDe(String genero) => genero == 'hombre' ? 0.8 : 1.0;
+
+// Android marca con «notInstalled» las voces que existen pero no se han
+// descargado: con esas el motor «habla» sin sonido.
+bool vozDescargada(Map<String, String> v) =>
+    !(v['features'] ?? '').toLowerCase().contains('notinstalled');
+
+// Códigos de las voces de Google en español (nombre «es-us-x-sfb-local»).
+// Revisar en el A72 con la línea «NANA voces:» del log.
+// Solo lo confirmado de oído por Cris en el A72 (2026-11-25): sfb suena a
+// mujer y esf a hombre. esc/esd (y las de España) no se confirmaron, así que
+// no se usan: elegir mal es peor que no elegir.
+const _vocesGoogle = {'sfb': 'mujer', 'esf': 'hombre'};
+
+// 'mujer', 'hombre' o null si el nombre no lo dice.
+String? generoDeVoz(Map<String, String> v) {
+  final nombre = (v['name'] ?? '').toLowerCase();
+  final rasgos = (v['features'] ?? '').toLowerCase();
+  for (final t in [rasgos, nombre]) {
+    if (t.contains('female')) return 'mujer';
+    if (RegExp(r'(^|[^e])male').hasMatch(t)) return 'hombre';
+  }
+  // Samsung: «es-MX-SMTf00» (mujer) / «es-MX-SMTm00» (hombre).
+  final samsung = RegExp(r'smt([fm])\d').firstMatch(nombre);
+  if (samsung != null) return samsung.group(1) == 'f' ? 'mujer' : 'hombre';
+  final google = RegExp(r'-x-([a-z]{3})').firstMatch(nombre);
+  if (google != null) return _vocesGoogle[google.group(1)];
+  return null;
+}
+
+// La mejor voz en español del género pedido: primero de México, luego de
+// Estados Unidos y Latinoamérica, al final de España; las que funcionan sin
+// internet antes que las de red.
+Map<String, String>? elegirVoz(List<Map<String, String>> voces, String genero) {
+  const orden = ['es-mx', 'es-us', 'es-419', 'es-es'];
+  int lugar(Map<String, String> v) {
+    final l = (v['locale'] ?? '').toLowerCase().replaceAll('_', '-');
+    final i = orden.indexWhere(l.startsWith);
+    return i < 0 ? orden.length : i;
+  }
+
+  bool deRed(Map<String, String> v) =>
+      (v['network_required'] ?? '') == '1' ||
+      (v['network_required'] ?? '').toLowerCase() == 'true' ||
+      (v['name'] ?? '').toLowerCase().contains('network');
+
+  final candidatas =
+      [
+        for (final v in voces)
+          if (esVozEnEspanol(v) &&
+              vozDescargada(v) &&
+              v['name'] != null &&
+              generoDeVoz(v) == genero)
+            v,
+      ]..sort((a, b) {
+        final porLugar = lugar(a).compareTo(lugar(b));
+        if (porLugar != 0) return porLugar;
+        return (deRed(a) ? 1 : 0).compareTo(deRed(b) ? 1 : 0);
+      });
+  return candidatas.isEmpty ? null : candidatas.first;
+}

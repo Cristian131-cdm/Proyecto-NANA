@@ -54,6 +54,20 @@ class AvisosLocales implements Avisos {
     if (kIsWeb || _permisoPedido) return;
     _permisoPedido = true;
     try {
+      // El canal debe existir antes del primer push: con la app cerrada,
+      // Android usa este canal (sonido y prioridad máxima) para el del Worker.
+      await _plugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >()
+          ?.createNotificationChannel(
+            const AndroidNotificationChannel(
+              'alertas_familia',
+              'Alertas de tu familiar',
+              description: 'Cuando pide ayuda o dice que se siente mal',
+              importance: Importance.max,
+            ),
+          );
       await _plugin
           .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin
@@ -107,11 +121,21 @@ class AvisosLocales implements Avisos {
         );
 }
 
+// Lo que NANA dice en voz alta a quien cuida.
+String textoVozAlerta(String nombre, Alerta a) => a.esFrase
+    ? '$nombre dijo: ${a.texto ?? ''}'
+    : a.noContesto
+    ? 'Atención. $nombre pidió ayuda y no contesta. Llámale ya.'
+    : 'Atención. $nombre necesita ayuda. Llámale.';
+
 // Escucha las alertas de un adulto y avisa solo de las nuevas: las que ya
 // estaban cuando se abrió el panel no se vuelven a notificar.
 class VigilanteAlertas {
   final Avisos avisos;
   final String nombre;
+  // NANA lo dice en voz alta (con la app abierta o minimizada). Así quien
+  // cuida lo oye aunque no esté viendo el celular.
+  final Future<void> Function(String texto)? decir;
   // Firestore a veces manda primero lo guardado en el celular y luego lo del
   // servidor; para que una alerta vieja no parezca nueva, solo se avisa de
   // las creadas después de abrir el panel (con un minuto de margen).
@@ -123,6 +147,7 @@ class VigilanteAlertas {
     required this.avisos,
     required this.nombre,
     required DateTime ahora,
+    this.decir,
   }) : desde = ahora.subtract(const Duration(minutes: 1));
 
   void escuchar(Stream<List<Alerta>> alertas) {
@@ -142,6 +167,7 @@ class VigilanteAlertas {
           final (titulo, cuerpo) = textoAviso(nombre, a);
           // Con el prefijo no choca con el id de una alarma de medicina.
           avisos.mostrar(idNotificacion('alerta:${a.id}'), titulo, cuerpo);
+          decir?.call(textoVozAlerta(nombre, a));
         }
       }
     });

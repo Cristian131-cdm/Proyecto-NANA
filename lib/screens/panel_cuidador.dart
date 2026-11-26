@@ -151,11 +151,16 @@ class _PanelCuidadorState extends State<PanelCuidador> {
             Servicios.repo.compartirMiTelefono(a.folio).ignore();
           }
           if (!_vigilantes.containsKey(a.folio)) {
-            if (_vigilantes.isEmpty) Servicios.avisos.pedirPermiso().ignore();
+            if (_vigilantes.isEmpty) {
+              Servicios.avisos.pedirPermiso().ignore();
+              // Push con la app cerrada (encargado, suplente y familiar).
+              Servicios.push.registrar().ignore();
+            }
             _vigilantes[a.folio] = VigilanteAlertas(
               avisos: Servicios.avisos,
               nombre: a.nombre,
               ahora: Servicios.reloj(),
+              decir: Servicios.voz.decir,
             )..escuchar(Servicios.repo.alertasSinAtender(a.folio));
           }
         }

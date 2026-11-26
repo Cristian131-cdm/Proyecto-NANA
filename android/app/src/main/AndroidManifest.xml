@@ -4,6 +4,9 @@
     <!-- Alarma de la medicina (flutter_local_notifications) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
+    <!-- La alarma de la medicina prende la pantalla y abre el recordatorio
+         aunque el celular esté bloqueado; ahí NANA lo dice con su voz. -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.VIBRATE"/>
     <!-- Escuchar "ya me la tomé" o "al rato" (speech_to_text). Solo cuando
@@ -22,6 +25,8 @@
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
             android:taskAffinity=""
             android:theme="@style/LaunchTheme"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
