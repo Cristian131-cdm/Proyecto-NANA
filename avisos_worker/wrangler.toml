@@ -1,0 +1,24 @@
+# Worker de avisos de NANA. Desplegar: npx wrangler deploy
+# Secreto (una vez): npx wrangler secret put CUENTA_SERVICIO  (pega el JSON de Firebase)
+name = "nana-avisos"
+main = "src/index.ts"
+compatibility_date = "2025-11-01"
+# Solo la dirección principal; sin direcciones de vista previa.
+preview_urls = false
+
+[vars]
+DESFASE_MIN = "-360" # México centro, UTC-6 todo el año
+
+[triggers]
+# Cada 5 min: medicinas olvidadas y «sin noticias». «Pidió ayuda» no espera:
+# la app llama a /ahora. (Cada minuto se acabaría la cuota gratis de Firestore.)
+crons = ["*/5 * * * *"]
+
+# Registros de cada ejecución (gratis: 200 mil eventos al día). Para ver en el
+# panel por qué falló algo en la demo. Los textos que se registran no llevan
+# datos de salud (solo «Push enviados: N» y errores).
+[observability]
+enabled = true
+
+[observability.logs]
+invocation_logs = true
