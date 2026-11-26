@@ -185,3 +185,192 @@
 {"frase": "Quién te hizo", "etiqueta": "compania", "autor": "arranque"}
 {"frase": "Cuéntame una curiosidad", "etiqueta": "compania", "autor": "arranque"}
 {"frase": "Dime un dicho bonito", "etiqueta": "compania", "autor": "arranque"}
+{"frase": "Ay mija, vieras qué aburrida está la tarde, nomás viendo pasar las moscas", "etiqueta": "compania", "autor": "Alan"}
+{"frase": "Oye nena, platícame algo bonito que hoy amanecí medio chipil", "etiqueta": "compania", "autor": "Alan"}
+{"frase": "Oye NANA, ¿qué me toca hacer ahorita en la tarde?", "etiqueta": "mi_dia", "autor": "Alan"}
+{"frase": "¿Sigues ahí despierto o ya te dormiste? Nomás quería echar un ratito de chal", "etiqueta": "compania", "autor": "Alan"}
+{"frase": "Recuérdame a qué hora me toca mi pastilla de la presión porfa", "etiqueta": "mi_dia", "autor": "Alan"}
+{"frase": "Ayúdame NANA, me resbalé en el patio y no me puedo levantar", "etiqueta": "urgencia", "autor": "Alan"}
+{"frase": "Ya me tomé mi pastilla de la mañana NANA, apúntale ahí", "etiqueta": "registro", "autor": "Alan"}
+{"frase": "Oye nena, ya desayuné mis huevitos y mi té de manzanilla", "etiqueta": "registro", "autor": "Alan"}
+{"frase": "Me está dando un dolor bien fuerte en el pecho y me falta el aire", "etiqueta": "urgencia", "autor": "Alan"}
+{"frase": "este pues... la de ayer que te dije del... ay ya se me fue", "etiqueta": "no_entendi", "autor": "Alan"}
+{"frase": "Oye NANA, márcale a mi hijo por favor que quiero saber si ya llegó", "etiqueta": "familia", "autor": "Alan"}
+{"frase": "Oye NANA, ¿tú crees que me pueda tomar dos pastillas si me sigue doliendo?", "etiqueta": "pregunta_medica", "autor": "Alan"}
+{"frase": "¿Ya hice todo lo de hoy o todavía me falta algo pendiente?", "etiqueta": "mi_dia", "autor": "Alan"}
+{"frase": "Fíjate que hoy vino el señor del gas y me dejó el cilindro bien pesado", "etiqueta": "compania", "autor": "Alan"}
+{"frase": "¿Qué medicina es buena para quitar este dolor de cabeza tan necio?", "etiqueta": "pregunta_medica", "autor": "Alan"}
+{"frase": "Dime qué tengo anotado para hoy porque ya se me fue el avión", "etiqueta": "mi_dia", "autor": "Alan"}
+{"frase": "¿Puedo dejar de tomarme la pastilla de la presión hoy que me siento bien?", "etiqueta": "pregunta_medica", "autor": "Alan"}
+{"frase": "mmm... pssss... no sé cómo... el aparato este...", "etiqueta": "no_entendi", "autor": "Alan"}
+{"frase": "Avísale a mi hija que hoy no voy a poder ir a su casa", "etiqueta": "familia", "autor": "Alan"}
+{"frase": "Ya fui a dar mi vuelta al parque como veinte minutos", "etiqueta": "registro", "autor": "Alan"}
+{"frase": "Me mareé bien feo y me caí aquí junto a la cama, avisa por favor", "etiqueta": "urgencia", "autor": "Alan"}
+{"frase": "Quiero hablar con mi nieta, ¿le puedes llamar porfa?", "etiqueta": "familia", "autor": "Alan"}
+{"frase": "No puedo respirar bien, siento que me ahogo", "etiqueta": "urgencia", "autor": "Alan"}
+{"frase": "A veces me pongo a pensar en los tiempos de antes cuando vivía mi mamá", "etiqueta": "compania", "autor": "Alan"}
+{"frase": "Me corté bien profundo en la cocina y me está saliendo mucha sangre", "etiqueta": "urgencia", "autor": "Alan"}
+{"frase": "¿Me hará daño tomarme el medicamento con café en vez de agua?", "etiqueta": "pregunta_medica", "autor": "Alan"}
+{"frase": "Hoy amanecí bien descansado y con buen ánimo gracias a Dios", "etiqueta": "registro", "autor": "Alan"}
+{"frase": "Buenas tardes NANA, aquí nomás tomándome mi cafecito con un pan dulce", "etiqueta": "compania", "autor": "Cris"}
+{"frase": "NANA ayuda, me tropecé con el tapete y me lastimé la cadera", "etiqueta": "urgencia", "autor": "Cris"}
+{"frase": "¿A qué hora dijimos que tenía que salir a caminar?", "etiqueta": "mi_dia", "autor": "Cris"}
+{"frase": "NANA, ¿me puedo tomar un paracetamol aparte de mis medicinas de diario?", "etiqueta": "pregunta_medica", "autor": "Cris"}
+{"frase": "Oye NANA, ¿tú qué opinas de este airecito tan fresco que está haciendo?", "etiqueta": "compania", "autor": "Cris"}
+{"frase": "Siento un piquete muy fuerte en el corazón y se me duerme el brazo", "etiqueta": "urgencia", "autor": "Cris"}
+{"frase": "Ando bien agüitado porque mis nietos dijeron que venían y nomás no llegaron", "etiqueta": "compania", "autor": "Cris"}
+{"frase": "Oye nena, fíjate en mi lista qué medicina me toca después de comer", "etiqueta": "mi_dia", "autor": "Cris"}
+{"frase": "Me estoy sintiendo muy mal, me da vueltas todo y me voy a desmayar", "etiqueta": "urgencia", "autor": "Cris"}
+{"frase": "Si se me olvidó la pastilla de la mañana, ¿me tomo doble ahorita?", "etiqueta": "pregunta_medica", "autor": "Cris"}
+{"frase": "Anótame por favor que ya me tomé el lozartan", "etiqueta": "registro", "autor": "Cris"}
+{"frase": "Ya comí bien sabroso hace ratito, me hice un caldito de pollo", "etiqueta": "registro", "autor": "Cris"}
+{"frase": "NANA, llámale a mi esposa que se me olvidó decirle algo", "etiqueta": "familia", "autor": "Cris"}
+{"frase": "¿Tengo alguna cita con el doctor esta semana o hasta la otra?", "etiqueta": "mi_dia", "autor": "Cris"}
+{"frase": "¿Qué me falta por tomarme hoy antes de irme a acostar?", "etiqueta": "mi_dia", "autor": "Cris"}
+{"frase": "Hoy dormí de corrido y amanecí sin dolor de espalda", "etiqueta": "registro", "autor": "Cris"}
+{"frase": "Qué bueno que estás aquí haciéndome plática, porque la tele ya me aburrió", "etiqueta": "compania", "autor": "Cris"}
+{"frase": "oye... este... la bolsa azul encima de la... bueno ya", "etiqueta": "no_entendi", "autor": "Cris"}
+{"frase": "Mándale un aviso a mi familia de que ya estoy bien en la casa", "etiqueta": "familia", "autor": "Cris"}
+{"frase": "así como te digo... trrr... no se oye nada...", "etiqueta": "no_entendi", "autor": "Cris"}
+{"frase": "Hoy me acordé de cuando iba al mercado de la Merced a comprar la fruta", "etiqueta": "compania", "autor": "Cris"}
+{"frase": "Quiero platicar un ratito con mi hermano, márcale por favor", "etiqueta": "familia", "autor": "Cris"}
+{"frase": "¿Qué jarabe me recomiendas para esta tos seca que traigo?", "etiqueta": "pregunta_medica", "autor": "Cris"}
+{"frase": "¿Puedo partir la pastilla a la mitad porque está muy grandota?", "etiqueta": "pregunta_medica", "autor": "Cris"}
+{"frase": "Ayuda por favor, me caí en las escaleras y no alcanzo el teléfono", "etiqueta": "urgencia", "autor": "Cris"}
+{"frase": "Me duele muchísimo la cabeza como si me fuera a estallar y veo borroso", "etiqueta": "urgencia", "autor": "Cris"}
+{"frase": "Ya hice mis estiramientos de la mañana para no entumirme", "etiqueta": "registro", "autor": "Cris"}
+{"frase": "Hola NANA, ¿cómo amaneciste hoy? Yo aquí regando mis macetas del patio", "etiqueta": "compania", "autor": "Dulce"}
+{"frase": "Vieras qué risa me dio el perrito del vecino, se quiso brincar la barda y no pudo", "etiqueta": "compania", "autor": "Dulce"}
+{"frase": "Me caí en la sala y me duele mucho el tobillo, no me puedo parar", "etiqueta": "urgencia", "autor": "Dulce"}
+{"frase": "NANA me siento muy mal, me falta mucho el aire y estoy sudando frío", "etiqueta": "urgencia", "autor": "Dulce"}
+{"frase": "Oye mija, ¿qué me tomo para las agruras que traigo desde ayer?", "etiqueta": "pregunta_medica", "autor": "Dulce"}
+{"frase": "¿Será que ya me quito la pastilla del colesterol o le sigo?", "etiqueta": "pregunta_medica", "autor": "Dulce"}
+{"frase": "Oye mija, comunícame con mi hija la mayor por favor", "etiqueta": "familia", "autor": "Dulce"}
+{"frase": "ay... es que... bueno cuando venga el... mmm...", "etiqueta": "no_entendi", "autor": "Dulce"}
+{"frase": "Me pegué bien duro en la frente cuando me agaché y me siento mareada", "etiqueta": "urgencia", "autor": "Dulce"}
+{"frase": "Mija, ya me tomé la medicina que me tocaba ahorita", "etiqueta": "registro", "autor": "Dulce"}
+{"frase": "NANA, dime qué tengo pendiente para hoy en la mañana", "etiqueta": "mi_dia", "autor": "Dulce"}
+{"frase": "¿A qué hora me toca el lozartan que me dejó el doctor?", "etiqueta": "mi_dia", "autor": "Dulce"}
+{"frase": "Ya se me olvidó si hoy me tocaba hacer ejercicios o descansar", "etiqueta": "mi_dia", "autor": "Dulce"}
+{"frase": "Checa mi agenda de hoy por favor, no vaya a ser que se me pase algo", "etiqueta": "mi_dia", "autor": "Dulce"}
+{"frase": "Hoy la casa está bien silenciosa, se siente feo cuando todos se van a trabajar", "etiqueta": "compania", "autor": "Dulce"}
+{"frase": "Oye mija, ¿no te sabes una adivinanza o algo para pasar el rato?", "etiqueta": "compania", "autor": "Dulce"}
+{"frase": "Ayúdame por favor, tengo un dolor insoportable en la boca del estómago", "etiqueta": "urgencia", "autor": "Dulce"}
+{"frase": "Avísale a mi sobrino que ya tengo lista la comida por si viene", "etiqueta": "familia", "autor": "Dulce"}
+{"frase": "Ya cené ligero, nomás un vasito de leche y unas galletas", "etiqueta": "registro", "autor": "Dulce"}
+{"frase": "Ya terminé de hacer mi quehacer y me senté tantito a descansar los pies", "etiqueta": "compania", "autor": "Dulce"}
+{"frase": "Hoy amanecí un poco cansada porque no pude dormir bien", "etiqueta": "registro", "autor": "Dulce"}
+{"frase": "No me puedo mover de la silla, me dio un tirón horrible en la espalda", "etiqueta": "urgencia", "autor": "Dulce"}
+{"frase": "Ya salí a caminar un rato al sol como me dijo el doctor", "etiqueta": "registro", "autor": "Dulce"}
+{"frase": "¿Cuántas gotas me tengo que poner si me arden los ojos?", "etiqueta": "pregunta_medica", "autor": "Dulce"}
+{"frase": "Márcale a mi'jo porque le quiero encargar unas cosas de la tienda", "etiqueta": "familia", "autor": "Dulce"}
+{"frase": "Me siento medio mareada, ¿me tomo otra pastilla para la presión?", "etiqueta": "pregunta_medica", "autor": "Dulce"}
+{"frase": "no pues... la cosa esa que... ay qué barbaridad...", "etiqueta": "no_entendi", "autor": "Dulce"}
+{"frase": "¿Qué onda NANA? Aquí andamos echándole ganas aunque me duela un poco la rodilla", "etiqueta": "compania", "autor": "Dylan"}
+{"frase": "NANA, ¿qué pastilla me puedo tomar para el dolor de muela?", "etiqueta": "pregunta_medica", "autor": "Dylan"}
+{"frase": "Apunta que ya me tomé mis dos pastillas de la comida", "etiqueta": "registro", "autor": "Dylan"}
+{"frase": "ehhh... psss... allá en la esquina donde...", "etiqueta": "no_entendi", "autor": "Dylan"}
+{"frase": "Oye NANA auxilio, me caí aquí en el cuarto y me duele el hombro", "etiqueta": "urgencia", "autor": "Dylan"}
+{"frase": "Ya desayuné fruta picada y un pan tostado", "etiqueta": "registro", "autor": "Dylan"}
+{"frase": "Siento una opresión muy fea en el pecho, avísale a mi hijo rápido", "etiqueta": "urgencia", "autor": "Dylan"}
+{"frase": "NANA, quiero hablar con mi hijo, hazme el favor de marcarle", "etiqueta": "familia", "autor": "Dylan"}
+{"frase": "¿Qué sigue en mi rutina de hoy NANA?", "etiqueta": "mi_dia", "autor": "Dylan"}
+{"frase": "Hoy me siento con mucha energía, amanecí muy bien", "etiqueta": "registro", "autor": "Dylan"}
+{"frase": "Me quemé el brazo con el agua hirviendo y me duele muchísimo", "etiqueta": "urgencia", "autor": "Dylan"}
+{"frase": "¿Puedo cambiar mi medicina por un té de hierbas que me dio mi comadre?", "etiqueta": "pregunta_medica", "autor": "Dylan"}
+{"frase": "Fíjate que hoy me preparé unos huevitos con ejotes que me quedaron bien sabrosos", "etiqueta": "compania", "autor": "Dylan"}
+{"frase": "Me estoy ahogando, no me entra el aire, pide ayuda", "etiqueta": "urgencia", "autor": "Dylan"}
+{"frase": "Oye mija, ¿a qué hora me toca mi siguiente medicina?", "etiqueta": "mi_dia", "autor": "Dylan"}
+{"frase": "Oye nena, ¿tú nunca te cansas de estar ahí metida en el teléfono?", "etiqueta": "compania", "autor": "Dylan"}
+{"frase": "Qué bonito se puso el cielo ahorita que se está metiendo el sol", "etiqueta": "compania", "autor": "Dylan"}
+{"frase": "Dime qué actividades tengo apuntadas para el día de hoy", "etiqueta": "mi_dia", "autor": "Dylan"}
+{"frase": "¿Me toca tomar algo ahorita a las dos o hasta más tarde?", "etiqueta": "mi_dia", "autor": "Dylan"}
+{"frase": "Si hoy no comí casi nada, ¿de todos modos me tomo la del azúcar?", "etiqueta": "pregunta_medica", "autor": "Dylan"}
+{"frase": "Ya hice mi caminata de la tarde aquí en la cuadra", "etiqueta": "registro", "autor": "Dylan"}
+{"frase": "Avísale a mi familia que hoy me siento un poco cansado", "etiqueta": "familia", "autor": "Dylan"}
+{"frase": "Llámale a mi nuera para preguntarle cómo sigue el niño", "etiqueta": "familia", "autor": "Dylan"}
+{"frase": "Ando medio nostálgico hoy, me encontré unas fotos viejas en el ropero", "etiqueta": "compania", "autor": "Dylan"}
+{"frase": "bueno... este... déjame ver si... ah no...", "etiqueta": "no_entendi", "autor": "Dylan"}
+{"frase": "Me dio un mareo bien fuerte y ya estoy tirado en el piso", "etiqueta": "urgencia", "autor": "Dylan"}
+{"frase": "¿Tú sabes si esta medicina me da sueño si me la tomo ahorita?", "etiqueta": "pregunta_medica", "autor": "Dylan"}
+{"frase": "Oye nena, ¿me puedo tomar un diclofenaco para el dolor de rodilla?", "etiqueta": "pregunta_medica", "autor": "Edgar"}
+{"frase": "¿Qué dosis me toca si siento que la pastilla no me está haciendo efecto?", "etiqueta": "pregunta_medica", "autor": "Edgar"}
+{"frase": "NANA, ¿qué me toca hacer hoy? Es que amanecí bien desmemoriado", "etiqueta": "mi_dia", "autor": "Edgar"}
+{"frase": "¿A qué hora es mi pastilla del azúcar?", "etiqueta": "mi_dia", "autor": "Edgar"}
+{"frase": "cómo se llama... el... la de los lentes...", "etiqueta": "no_entendi", "autor": "Edgar"}
+{"frase": "NANA, ya me tomé la pastilla del azúcar con un vaso de agua", "etiqueta": "registro", "autor": "Edgar"}
+{"frase": "Oye nena, márcale a mi hija que hace mucho que no sé de ella", "etiqueta": "familia", "autor": "Edgar"}
+{"frase": "NANA por favor ayuda, me fui de boca en la entrada y no me levanto", "etiqueta": "urgencia", "autor": "Edgar"}
+{"frase": "Ya comí mi sopita de verduras y un pedazo de pechuga", "etiqueta": "registro", "autor": "Edgar"}
+{"frase": "Me duele mucho el pecho del lado izquierdo y siento hormigueo", "etiqueta": "urgencia", "autor": "Edgar"}
+{"frase": "Buenos días NANA, hoy sí me levanté con ganas de escuchar mis canciones de antes", "etiqueta": "compania", "autor": "Edgar"}
+{"frase": "Pues aquí nomás, esperando a que dé la hora de la novela para entretenerme", "etiqueta": "compania", "autor": "Edgar"}
+{"frase": "¿Puedo suspender las pastillas el fin de semana para descansar el estómago?", "etiqueta": "pregunta_medica", "autor": "Edgar"}
+{"frase": "No veo bien de repente y se me traba la lengua, ayúdame", "etiqueta": "urgencia", "autor": "Edgar"}
+{"frase": "¿Qué vitamina me recomiendas para tener más fuerza en las piernas?", "etiqueta": "pregunta_medica", "autor": "Edgar"}
+{"frase": "Avísale a mi nieto que ya se me acabó el saldo del celular", "etiqueta": "familia", "autor": "Edgar"}
+{"frase": "mmm... sí pero no... o sea que...", "etiqueta": "no_entendi", "autor": "Edgar"}
+{"frase": "Fíjate si ya completé mis cosas de hoy o qué me falta", "etiqueta": "mi_dia", "autor": "Edgar"}
+{"frase": "Me caí del banquito y creo que me lastimé la muñeca bien feo", "etiqueta": "urgencia", "autor": "Edgar"}
+{"frase": "Amanecí medio adolorido del cuerpo por el frío de anoche", "etiqueta": "registro", "autor": "Edgar"}
+{"frase": "Me siento fatal, siento que se me baja la presión y me voy a caer", "etiqueta": "urgencia", "autor": "Edgar"}
+{"frase": "Oye NANA, tú eres bien buena compañía, nunca me pones mala cara", "etiqueta": "compania", "autor": "Edgar"}
+{"frase": "¿Qué tengo programado para hoy en la noche?", "etiqueta": "mi_dia", "autor": "Edgar"}
+{"frase": "Quiero hablar con mi hermana por teléfono, ¿le marcas?", "etiqueta": "familia", "autor": "Edgar"}
+{"frase": "Hoy pasó el de los tamales pero se me fue bien rápido y no alcancé", "etiqueta": "compania", "autor": "Edgar"}
+{"frase": "Ya cumplí con mi ejercicio de mover los brazos y las piernas", "etiqueta": "registro", "autor": "Edgar"}
+{"frase": "A veces siento que los días se pasan volando y otras veces ni avanzan", "etiqueta": "compania", "autor": "Edgar"}
+{"frase": "Auxilio NANA, me resbalé saliendo de bañar y me pegué en la espalda", "etiqueta": "urgencia", "autor": "Elias"}
+{"frase": "Oye NANA, recuérdame qué me toca tomarme ahorita", "etiqueta": "mi_dia", "autor": "Elias"}
+{"frase": "NANA, ¿me tomo otra cápsula si todavía tengo temperatura?", "etiqueta": "pregunta_medica", "autor": "Elias"}
+{"frase": "¿Puedo tomarme las medicinas juntas o me espero un rato entre cada una?", "etiqueta": "pregunta_medica", "autor": "Elias"}
+{"frase": "Oye NANA, ya me tomé la medicina de las ocho", "etiqueta": "registro", "autor": "Elias"}
+{"frase": "¿A qué hora quedamos que tenía que checarme la presión?", "etiqueta": "mi_dia", "autor": "Elias"}
+{"frase": "Ya merendé mi cafecito con un bolillo", "etiqueta": "registro", "autor": "Elias"}
+{"frase": "¿Qué me recomiendas tomar para poder dormir toda la noche?", "etiqueta": "pregunta_medica", "autor": "Elias"}
+{"frase": "NANA, llámale por favor a mi hijo el de en medio", "etiqueta": "familia", "autor": "Elias"}
+{"frase": "¿Le bajo a la dosis de la insulina porque hoy comí poquito?", "etiqueta": "pregunta_medica", "autor": "Elias"}
+{"frase": "Me falta la respiración y me late el corazón bien acelerado", "etiqueta": "urgencia", "autor": "Elias"}
+{"frase": "Mándale mensaje a mi familia diciendo que todo está tranquilo por acá", "etiqueta": "familia", "autor": "Elias"}
+{"frase": "Me caí en el jardín y no tengo fuerzas para pararme solo", "etiqueta": "urgencia", "autor": "Elias"}
+{"frase": "Hola NANA, nomás te hablaba para saludarte y que no pienses que me olvidé de ti", "etiqueta": "compania", "autor": "Elias"}
+{"frase": "Comunícame con mi cuñada que me urge preguntarle una receta", "etiqueta": "familia", "autor": "Elias"}
+{"frase": "este... pues... ya ves que...", "etiqueta": "no_entendi", "autor": "Elias"}
+{"frase": "Hoy me dio por limpiar el cajón de los recuerdos y encontré mis cartas", "etiqueta": "compania", "autor": "Elias"}
+{"frase": "Oye mija, está haciendo un friazo que hasta cala en los huesos", "etiqueta": "compania", "autor": "Elias"}
+{"frase": "Hoy amanecí de muy buen humor y bien tranquilo", "etiqueta": "registro", "autor": "Elias"}
+{"frase": "ah... sí... el martes o el... bueno...", "etiqueta": "no_entendi", "autor": "Elias"}
+{"frase": "Dime qué pendientes tengo hoy porque no traigo mis lentes", "etiqueta": "mi_dia", "autor": "Elias"}
+{"frase": "¿Hoy me toca ir al seguro o qué tengo anotado?", "etiqueta": "mi_dia", "autor": "Elias"}
+{"frase": "Ya di mis pasos del día aquí en el patio de la casa", "etiqueta": "registro", "autor": "Elias"}
+{"frase": "Qué gusto oír tu voz, ya llevaba toda la mañana sin cruzar palabra con nadie", "etiqueta": "compania", "autor": "Elias"}
+{"frase": "Vieras qué buen sazón tenía mi abuela, nadie hace el mole como ella", "etiqueta": "compania", "autor": "Elias"}
+{"frase": "Tengo un dolor muy agudo en el abdomen que no me deja ni enderezarme", "etiqueta": "urgencia", "autor": "Elias"}
+{"frase": "Ayúdame, me tropecé y me di un golpe bien fuerte en la rodilla", "etiqueta": "urgencia", "autor": "Elias"}
+{"frase": "Oye NANA, ¿qué medicina me tomo para este ardor de garganta?", "etiqueta": "pregunta_medica", "autor": "Valeria"}
+{"frase": "NANA ayúdame, me caí en la cocina y no me puedo incorporar", "etiqueta": "urgencia", "autor": "Valeria"}
+{"frase": "Oye NANA, márcale a mi hija para que venga por mí más tarde", "etiqueta": "familia", "autor": "Valeria"}
+{"frase": "Ay NANA, hoy ando de buenas porque salió el solecito bien rico", "etiqueta": "compania", "autor": "Valeria"}
+{"frase": "NANA, dime por favor qué me toca hacer en un rato", "etiqueta": "mi_dia", "autor": "Valeria"}
+{"frase": "Platicame un chiste blanco pero que sí dé risa eh, no me salgas con cosas tristes", "etiqueta": "compania", "autor": "Valeria"}
+{"frase": "Avísale a mi familia que ya me tomé mis medicinas y ya comí", "etiqueta": "familia", "autor": "Valeria"}
+{"frase": "Ya me tomé la metformina ahorita que terminé de comer", "etiqueta": "registro", "autor": "Valeria"}
+{"frase": "ay... mmm... es que se me lengua la traba...", "etiqueta": "no_entendi", "autor": "Valeria"}
+{"frase": "Quiero hablar con mi nieto por teléfono, ponme la llamada", "etiqueta": "familia", "autor": "Valeria"}
+{"frase": "Siento que me falta el aire y me duele mucho el pecho", "etiqueta": "urgencia", "autor": "Valeria"}
+{"frase": "Ya desayuné mis chilaquiles y mi jugo de naranja", "etiqueta": "registro", "autor": "Valeria"}
+{"frase": "Hoy amanecí un poco desganada pero ahí la llevamos", "etiqueta": "registro", "autor": "Valeria"}
+{"frase": "Me dio un vértigo horrible y me fui al suelo, avisa a mi familia", "etiqueta": "urgencia", "autor": "Valeria"}
+{"frase": "Ya fui a caminar a la plaza con mi vecina", "etiqueta": "registro", "autor": "Valeria"}
+{"frase": "Aquí estoy tejiendo una bufanda pero ya se me enredó todo el estambre", "etiqueta": "compania", "autor": "Valeria"}
+{"frase": "¿A qué hora me toca la pastilla blanca chiquita?", "etiqueta": "mi_dia", "autor": "Valeria"}
+{"frase": "Me duele muchísimo la cabeza y siento que se me adormece la cara", "etiqueta": "urgencia", "autor": "Valeria"}
+{"frase": "¿Ya no tengo nada pendiente para hoy verdad?", "etiqueta": "mi_dia", "autor": "Valeria"}
+{"frase": "Por favor pide ayuda, me caí y me lastimé muy feo el brazo", "etiqueta": "urgencia", "autor": "Valeria"}
+{"frase": "Oye nena, ¿a ti te gusta la lluvia? A mí me da un montón de sueño", "etiqueta": "compania", "autor": "Valeria"}
+{"frase": "¿Puedo dejar de tomarme el tratamiento si ya me siento curada?", "etiqueta": "pregunta_medica", "autor": "Valeria"}
+{"frase": "Si me duele mucho la cintura, ¿me puedo tomar dos juntas?", "etiqueta": "pregunta_medica", "autor": "Valeria"}
+{"frase": "¿Qué pastilla es mejor para la gripa que no me suba la presión?", "etiqueta": "pregunta_medica", "autor": "Valeria"}
+{"frase": "Recuérdame mi lista de hoy porque tengo memoria de teflón", "etiqueta": "mi_dia", "autor": "Valeria"}
+{"frase": "Hoy vino mi comadre a tomarse un té y nos pasamos toda la tarde chismeando", "etiqueta": "compania", "autor": "Valeria"}
+{"frase": "pues... ahí déjalo... que luego...", "etiqueta": "no_entendi", "autor": "Valeria"}

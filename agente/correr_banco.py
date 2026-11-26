@@ -18,6 +18,7 @@ from nana_agente import banco, encargado  # noqa: E402
 from nana_agente.guardian import capa_fija  # noqa: E402
 from nana_agente.propio import ProveedorPropio  # noqa: E402
 from nana_agente.proveedor import ConRespaldo, ProveedorGuion, ProveedorOllama  # noqa: E402
+from nana_agente.proveedor_claude import ProveedorClaude  # noqa: E402
 from nana_agente.reglas import normalizar  # noqa: E402
 
 CARPETA = Path(__file__).resolve().parent / "banco"
@@ -75,7 +76,7 @@ def correr_encargado(proveedor, limite: float) -> int:
 def main() -> int:
     sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser()
-    ap.add_argument("--proveedor", choices=["propio", "guion", "ollama"], default="propio")
+    ap.add_argument("--proveedor", choices=["propio", "guion", "ollama", "claude"], default="propio")
     ap.add_argument("--modelo", default="qwen3:8b")
     ap.add_argument("--limite", type=float, default=5.0)
     ap.add_argument("--encargado", action="store_true", help="banco de «Pregúntale a NANA»")
@@ -85,6 +86,8 @@ def main() -> int:
         "propio": ProveedorPropio,
         "guion": ProveedorGuion,
         "ollama": lambda: ProveedorOllama(a.modelo),
+        # Claude solo platica: lo demás lo deciden Qwen y el propio, como en la demo.
+        "claude": lambda: ConRespaldo([ProveedorClaude(), ProveedorOllama(a.modelo), ProveedorPropio()]),
     }[a.proveedor]()
     if a.encargado:
         return correr_encargado(proveedor, a.limite)

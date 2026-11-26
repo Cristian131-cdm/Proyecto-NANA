@@ -46,3 +46,7 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Clave de la demo del agente (la genera Arrancar NANA.bat)
+agente/clave_demo.txt
+agente/tunel.log

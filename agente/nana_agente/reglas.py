@@ -44,6 +44,10 @@ URGENCIA = (
     "no siento el brazo",
     "huele a gas",
     "no me puedo mover",
+    "dolor en el corazon",
+    "me duele el corazon",
+    "se me duerme el brazo",
+    "brazo izquierdo",
 )
 
 MI_DIA = (
@@ -92,6 +96,15 @@ PREGUNTA_MEDICA = (
     "para que sirve",
     "para que es",
     "que me recetas",
+    "es buena para",
+    "es bueno para",
+    "dejar de tomarme",
+    "me recomiendas",
+    "jarabe",
+    "cambiar mi medicina",
+    "cambiar la medicina",
+    "cambiar mi pastilla",
+    "en vez de mi medicina",
 )
 
 

@@ -87,8 +87,13 @@ class ConRespaldo(ProveedorModelo):
             if resto <= 0:
                 break
             # El tiempo se reparte: un principal colgado no se come el turno
-            # del respaldo. El último se queda con todo lo que sobre.
-            resto /= len(self.proveedores) - i
+            # del respaldo. El último se queda con todo lo que sobre. Un
+            # proveedor con `parte` (ej. Claude, que va por internet) se lleva
+            # esa fracción en vez de la parte pareja.
+            if i < len(self.proveedores) - 1 and getattr(p, "parte", None):
+                resto *= p.parte
+            else:
+                resto /= len(self.proveedores) - i
             caja: queue.Queue = queue.Queue(maxsize=1)
 
             def trabajo(p=p, caja=caja):

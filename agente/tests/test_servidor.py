@@ -17,8 +17,22 @@ from nana_agente.proveedor import ConRespaldo, ProveedorOllama
 def test_por_defecto_qwen_primero_y_el_propio_de_respaldo(monkeypatch):
     monkeypatch.delenv("NANA_PROVEEDORES", raising=False)
     monkeypatch.delenv("NANA_OLLAMA", raising=False)
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     p = sl.armar_proveedor()
     assert p.nombre == "ollama:qwen3:8b > propio"
+
+
+def test_con_llave_claude_va_primero(monkeypatch):
+    monkeypatch.delenv("NANA_PROVEEDORES", raising=False)
+    monkeypatch.delenv("NANA_OLLAMA", raising=False)
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "llave-de-prueba")
+    p = sl.armar_proveedor()
+    assert p.nombre == "claude:claude-haiku-5-5 > ollama:qwen3:8b > propio"
+    # Para recetas, Claude sí puede devolver JSON y no entra el propio.
+    r = sl.proveedor_receta(p)
+    assert [x.nombre for x in r.proveedores] == ["claude:claude-haiku-5-5", "ollama:qwen3:8b"]
+    assert "estructurado" in r.proveedores[0].usos
+    assert "estructurado" not in p.proveedores[0].usos
 
 
 def test_se_puede_elegir_solo_el_propio(monkeypatch):
@@ -120,3 +134,47 @@ def test_con_clave_rechaza_a_quien_no_la_trae(servidor):
         _post(url, {"texto": "hola"})
     assert e.value.code == 401
     assert _post(url, {"texto": "hola"}, clave="nana123")["etiqueta"]
+
+
+def _salud(url, clave=None):
+    pedido = urllib.request.Request(f"{url}/salud", headers={"X-Nana-Demo": clave} if clave else {})
+    with urllib.request.urlopen(pedido, timeout=10) as r:
+        return json.loads(r.read())
+
+
+def test_salud_dice_si_la_clave_coincide_sin_revelarla(servidor):
+    url = servidor(clave="482913")
+    sin = _salud(url)
+    assert sin["pide_clave"] is True and sin["clave_ok"] is False
+    assert "482913" not in json.dumps(sin)
+    assert _salud(url, "000000")["clave_ok"] is False
+    assert _salud(url, "482913")["clave_ok"] is True
+
+
+def test_salud_sin_clave_configurada(servidor):
+    s = _salud(servidor())
+    assert s["pide_clave"] is False and s["clave_ok"] is True
+
+
+def test_encargado_tambien_pide_la_clave(servidor):
+    url = servidor(clave="482913")
+    pedido = urllib.request.Request(
+        f"{url}/encargado", data=json.dumps({"pregunta": "¿Comió?", "datos": {}}).encode("utf-8"),
+        headers={"Content-Type": "application/json"})
+    with pytest.raises(urllib.error.HTTPError) as e:
+        urllib.request.urlopen(pedido, timeout=10)
+    assert e.value.code == 401
+
+
+def test_receta_sin_modelo_usa_patrones(servidor):
+    url = servidor()
+    pedido = urllib.request.Request(
+        f"{url}/receta",
+        data=json.dumps({"texto": "Losartán 50 mg cada 12 horas"}).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+    )
+    with urllib.request.urlopen(pedido, timeout=10) as r:
+        cuerpo = json.loads(r.read())
+    assert cuerpo["proveedor"] == "patrones"
+    [m] = cuerpo["medicinas"]
+    assert (m["nombre"], m["dosis"], m["horas"]) == ("Losartán", "50", ["08:00", "20:00"])

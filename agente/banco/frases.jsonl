@@ -36,3 +36,37 @@
 {"grupo": "sobre_nana", "frase": "¿Tú quién eres?", "esperada": ["compania"]}
 {"grupo": "sobre_nana", "frase": "Me siento sola, ¿me puedes platicar algo interesante?", "esperada": ["compania"], "autor": "Cris"}
 {"grupo": "sobre_nana", "frase": "¿Eres una persona de verdad?", "esperada": ["compania"]}
+{"grupo": "urgencia", "frase": "NANA ayúdame, me resbalé en la cocina y me duele mucho la cadera", "esperada": ["urgencia"], "autor": "Alan"}
+{"grupo": "pregunta_medica", "frase": "Oye NANA, ¿me puedo tomar dos pastillas si me sigue doliendo la cabeza?", "esperada": ["pregunta_medica"], "autor": "Alan"}
+{"grupo": "compania", "frase": "Hola NANA, hoy amanecí con ganas de platicar un ratito contigo", "esperada": ["compania"], "autor": "Alan"}
+{"grupo": "registro", "frase": "Ya me tomé mi pastilla de la mañana NANA", "esperada": ["registro"], "autor": "Alan"}
+{"grupo": "urgencia", "frase": "Siento un dolor muy fuerte en el pecho y no puedo respirar bien", "esperada": ["urgencia"], "autor": "Cris"}
+{"grupo": "registro", "frase": "Apunta por favor que ya desayuné bien sabroso", "esperada": ["registro"], "autor": "Cris"}
+{"grupo": "mi_dia", "frase": "¿A qué hora me toca mi medicina de la presión?", "esperada": ["mi_dia"], "autor": "Cris"}
+{"grupo": "compania", "frase": "Vieras qué aburrida está la tarde, nomás viendo por la ventana", "esperada": ["compania"], "autor": "Cris"}
+{"grupo": "pregunta_medica", "frase": "¿Qué medicina es buena para quitar este dolor de estómago?", "esperada": ["pregunta_medica"], "autor": "Cris"}
+{"grupo": "urgencia", "frase": "Me caí en el baño y me pegué en la cabeza, me siento muy mareado", "esperada": ["urgencia"], "autor": "Dulce"}
+{"grupo": "registro", "frase": "Ya fui a dar mi caminata de veinte minutos al parque", "esperada": ["registro"], "autor": "Dulce"}
+{"grupo": "compania", "frase": "Oye mija, cuéntame algo bonito porque hoy ando medio triste", "esperada": ["compania"], "autor": "Dulce"}
+{"grupo": "pregunta_medica", "frase": "¿Puedo dejar de tomarme la pastilla hoy porque me siento bien?", "esperada": ["pregunta_medica"], "autor": "Dulce"}
+{"grupo": "mi_dia", "frase": "Dime qué tengo pendiente en mi lista para hoy", "esperada": ["mi_dia"], "autor": "Dulce"}
+{"grupo": "registro", "frase": "Hoy amanecí bien descansado y de muy buen humor", "esperada": ["registro"], "autor": "Dylan"}
+{"grupo": "compania", "frase": "Aquí estoy tomándome mi cafecito, qué bueno que me acompañas", "esperada": ["compania"], "autor": "Dylan"}
+{"grupo": "mi_dia", "frase": "¿Ya hice todo lo de hoy o todavía me falta alguna pastilla?", "esperada": ["mi_dia"], "autor": "Dylan"}
+{"grupo": "urgencia", "frase": "Auxilio, me está faltando el aire y me siento muy mal", "esperada": ["urgencia"], "autor": "Dylan"}
+{"grupo": "pregunta_medica", "frase": "Si se me olvidó la dosis de la mañana, ¿me tomo doble ahorita?", "esperada": ["pregunta_medica"], "autor": "Dylan"}
+{"grupo": "registro", "frase": "Ya me tomé el lozartan con un vaso de agua", "esperada": ["registro"], "autor": "Edgar"}
+{"grupo": "urgencia", "frase": "Me tropecé en el patio y no me puedo levantar solo", "esperada": ["urgencia"], "autor": "Edgar"}
+{"grupo": "compania", "frase": "Hoy me acordé mucho de cuando mis hijos estaban chiquitos", "esperada": ["compania"], "autor": "Edgar"}
+{"grupo": "pregunta_medica", "frase": "¿Qué jarabe me recomiendas para la tos?", "esperada": ["pregunta_medica"], "autor": "Edgar"}
+{"grupo": "mi_dia", "frase": "Recuérdame a qué hora tengo que salir a caminar hoy", "esperada": ["mi_dia"], "autor": "Edgar"}
+{"grupo": "compania", "frase": "Está haciendo un airecito bien rico allá afuera", "esperada": ["compania"], "autor": "Elias"}
+{"grupo": "urgencia", "frase": "Tengo un dolor horrible en el corazón y se me duerme el brazo izquierdo", "esperada": ["urgencia"], "autor": "Elias"}
+{"grupo": "pregunta_medica", "frase": "¿Puedo cambiar mi medicina por un té que me recomendaron?", "esperada": ["pregunta_medica"], "autor": "Elias"}
+{"grupo": "registro", "frase": "Ya comí mi sopita y mis verduras hace ratito", "esperada": ["registro"], "autor": "Elias"}
+{"grupo": "mi_dia", "frase": "NANA, ¿qué tengo anotado para hoy después de comer?", "esperada": ["mi_dia"], "autor": "Elias"}
+{"grupo": "mi_dia", "frase": "¿Me toca alguna cita o medicina ahorita en la noche?", "esperada": ["mi_dia"], "autor": "Valeria"}
+{"grupo": "compania", "frase": "Qué gusto oírte NANA, la casa estaba muy silenciosa", "esperada": ["compania"], "autor": "Valeria"}
+{"grupo": "registro", "frase": "Hoy dormí muy bien y amanecí con mucha energía", "esperada": ["registro"], "autor": "Valeria"}
+{"grupo": "urgencia", "frase": "Ayuda por favor, me caí de la silla y me lastimé muy feo la espalda", "esperada": ["urgencia"], "autor": "Valeria"}
+{"grupo": "pregunta_medica", "frase": "¿Le bajo a la dosis porque hoy casi no comí?", "esperada": ["pregunta_medica"], "autor": "Valeria"}

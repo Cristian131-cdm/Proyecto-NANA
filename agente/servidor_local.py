@@ -3,7 +3,9 @@
     python agente/servidor_local.py
 
 Variables de entorno:
-    NANA_PROVEEDORES  lista en orden, separada por comas  (por defecto: ollama,propio)
+    NANA_PROVEEDORES  lista en orden, separada por comas  (por defecto: claude,ollama,propio
+                      si hay ANTHROPIC_API_KEY; si no, ollama,propio)
+                      claude = Haiku 5.5 por internet, solo para platicar
                       ollama = Qwen en esta laptop · propio = clasificador sin modelo
                       guion = simulado por palabras clave (solo para ensayar)
     NANA_OLLAMA       modelo de Ollama (por defecto: qwen3:8b)
@@ -25,7 +27,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from nana_agente import encargado  # noqa: E402
+from nana_agente import encargado, receta  # noqa: E402
 from nana_agente import frases_fijas as fijas  # noqa: E402
 from nana_agente.cadena import responder  # noqa: E402
 from nana_agente.modelos import Peticion, Resultado  # noqa: E402
@@ -33,18 +35,22 @@ from nana_agente.propio import ProveedorPropio  # noqa: E402
 from nana_agente.proveedor import (  # noqa: E402
     ConRespaldo, ProveedorCaido, ProveedorGuion, ProveedorOllama,
 )
+from nana_agente.proveedor_claude import TODOS_LOS_USOS, ProveedorClaude, hay_llave  # noqa: E402
 
 TOPE_DIARIO = 40
 TOPE_CUERPO = 20_000
 
 
 PROVEEDORES = "ollama,propio"
+PROVEEDORES_CON_LLAVE = "claude,ollama,propio"
 MODELO_OLLAMA = "qwen3:8b"
 
 
 def armar_proveedor() -> ConRespaldo:
-    nombres = [n.strip() for n in os.environ.get("NANA_PROVEEDORES", PROVEEDORES).split(",") if n.strip()]
+    defecto = PROVEEDORES_CON_LLAVE if hay_llave() else PROVEEDORES
+    nombres = [n.strip() for n in os.environ.get("NANA_PROVEEDORES", defecto).split(",") if n.strip()]
     disponibles = {
+        "claude": ProveedorClaude,
         "propio": ProveedorPropio,
         "guion": ProveedorGuion,
         "ollama": lambda: ProveedorOllama(os.environ.get("NANA_OLLAMA", MODELO_OLLAMA)),
@@ -53,6 +59,19 @@ def armar_proveedor() -> ConRespaldo:
     if desconocidos:
         raise SystemExit(f"Proveedor desconocido: {', '.join(desconocidos)}")
     return ConRespaldo([disponibles[n]() for n in nombres])
+
+
+def proveedor_receta(proveedor: ConRespaldo) -> ConRespaldo | None:
+    """Para leer recetas: los mismos modelos, pero Claude sí puede devolver
+    JSON (copiar datos de una receta no es platicar). Sin propio ni guion: si
+    no hay modelo, receta.leer usa sus patrones."""
+    modelos = []
+    for p in proveedor.proveedores:
+        if isinstance(p, ProveedorClaude):
+            modelos.append(ProveedorClaude(p.modelo, usos=TODOS_LOS_USOS, max_tokens=1500))
+        elif isinstance(p, ProveedorOllama):
+            modelos.append(p)
+    return ConRespaldo(modelos, limite=15.0) if modelos else None
 
 
 def calentar(proveedor: ConRespaldo) -> list[str]:
@@ -111,6 +130,8 @@ class Tope:
 
 
 def crear_manejador(proveedor: ConRespaldo, clave: str, tope: Tope):
+    lector_receta = proveedor_receta(proveedor)
+
     class Manejador(BaseHTTPRequestHandler):
         def _json(self, codigo: int, cuerpo: dict):
             datos = json.dumps(cuerpo, ensure_ascii=False).encode("utf-8")
@@ -122,10 +143,19 @@ def crear_manejador(proveedor: ConRespaldo, clave: str, tope: Tope):
 
         def do_GET(self):  # noqa: N802
             if self.path == "/salud":
-                salud = {"ok": True, "proveedores": proveedor.nombre}
+                salud = {
+                    "ok": True,
+                    "proveedores": proveedor.nombre,
+                    # Para el botón «Probar» de la app: dice si se pide clave y
+                    # si la que mandó coincide, nunca cuál es.
+                    "pide_clave": bool(clave),
+                    "clave_ok": not clave or self.headers.get("X-Nana-Demo") == clave,
+                }
                 for p in proveedor.proveedores:
                     if isinstance(p, ProveedorOllama):
                         salud["ollama"] = p.modelo
+                    if isinstance(p, ProveedorClaude):
+                        salud["claude"] = p.modelo
                     if isinstance(p, ProveedorPropio):
                         # Qué modelo está contestando: se ve en la demo.
                         salud["modelo"] = {k: p.info[k] for k in ("entrenado", "huella", "frases")}
@@ -134,7 +164,7 @@ def crear_manejador(proveedor: ConRespaldo, clave: str, tope: Tope):
                 self._json(404, {"error": "no existe"})
 
         def do_POST(self):  # noqa: N802
-            if self.path not in ("/agente", "/encargado"):
+            if self.path not in ("/agente", "/encargado", "/receta"):
                 return self._json(404, {"error": "no existe"})
             largo = int(self.headers.get("Content-Length") or 0)
             if largo <= 0 or largo > TOPE_CUERPO:
@@ -146,6 +176,16 @@ def crear_manejador(proveedor: ConRespaldo, clave: str, tope: Tope):
             datos = self.rfile.read(largo)
             if clave and self.headers.get("X-Nana-Demo") != clave:
                 return self._json(401, {"error": "falta la clave de la demo"})
+            if self.path == "/receta":
+                # Solo el texto que leyó el OCR del celular; la foto no sale de ahí.
+                try:
+                    cuerpo = json.loads(datos.decode("utf-8"))
+                    texto = str(cuerpo.get("texto") or "")
+                except (ValueError, AttributeError):
+                    return self._json(400, {"error": "la petición no es JSON válido"})
+                meds, quien = receta.leer(texto, lector_receta)
+                print(f"  receta           {quien:<20} {len(meds)} medicinas")
+                return self._json(200, {"medicinas": [m.a_json() for m in meds], "proveedor": quien})
             try:
                 cuerpo = json.loads(datos.decode("utf-8"))
                 if not isinstance(cuerpo, dict):
