@@ -12,6 +12,7 @@ import servidor_local as sl
 from nana_agente import proveedor as prov_mod
 from nana_agente.propio import ProveedorPropio
 from nana_agente.proveedor import ConRespaldo, ProveedorOllama
+from nana_agente.proveedor_claude import ProveedorClaude
 
 
 def test_por_defecto_qwen_primero_y_el_propio_de_respaldo(monkeypatch):
@@ -70,6 +71,33 @@ def test_calentar_con_ollama(monkeypatch):
     monkeypatch.setattr(prov_mod.urllib.request, "urlopen", lambda *a, **k: R())
     lineas = sl.calentar(ConRespaldo([ProveedorOllama("qwen3:8b")]))
     assert lineas[0].startswith("ollama:qwen3:8b listo")
+
+
+def test_calentar_tambien_calienta_claude():
+    # Importar el paquete anthropic tarda ~4 s la primera vez: si no se hace al
+    # arrancar, la primera plática se pasa del tiempo de Claude y contesta Qwen.
+    from types import SimpleNamespace
+
+    class Cliente:
+        def __init__(self):
+            self.pedidos = []
+            self.messages = self
+
+        def create(self, **kw):
+            self.pedidos.append(kw)
+            return SimpleNamespace(content=[SimpleNamespace(type="text", text="hola")],
+                                   stop_reason="end_turn")
+
+    c = Cliente()
+    lineas = sl.calentar(ConRespaldo([ProveedorClaude(cliente=c), ProveedorPropio()]))
+    assert len(c.pedidos) == 1
+    assert lineas[0].startswith("claude:claude-haiku-5-5 listo")
+
+
+def test_calentar_claude_sin_llave_avisa_pero_no_truena(monkeypatch):
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    lineas = sl.calentar(ConRespaldo([ProveedorClaude(), ProveedorPropio()]))
+    assert lineas[0].startswith("AVISO: claude:claude-haiku-5-5 no contestó")
 
 
 def test_ips_locales_sin_127():

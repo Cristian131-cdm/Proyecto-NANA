@@ -1,6 +1,8 @@
 """Platica con el agente de NANA en la terminal, para verlo funcionar en vivo.
 
-    python platicar.py                      (Ollama qwen3:8b, con el propio de respaldo)
+    python platicar.py                      (Claude → Qwen → propio si hay ANTHROPIC_API_KEY;
+                                             si no, Qwen → propio; igual que el servidor)
+    python platicar.py --proveedores ollama,propio  (sin Claude)
     python platicar.py --proveedores propio (solo el clasificador propio, sin modelo)
 
 Escribe como si fueras Rosa. Debajo de cada respuesta sale qué decidió el
@@ -19,6 +21,8 @@ from nana_agente.cadena import responder  # noqa: E402
 from nana_agente.modelos import Peticion  # noqa: E402
 from nana_agente.propio import ProveedorPropio  # noqa: E402
 from nana_agente.proveedor import ConRespaldo, ProveedorOllama  # noqa: E402
+from nana_agente.proveedor_claude import ProveedorClaude, hay_llave  # noqa: E402
+from servidor_local import PROVEEDORES, PROVEEDORES_CON_LLAVE, calentar  # noqa: E402
 
 GRIS, MORADO, VERDE, ROJO, FIN = "\033[90m", "\033[95m", "\033[92m", "\033[91m", "\033[0m"
 
@@ -27,22 +31,19 @@ def main() -> int:
     sys.stdout.reconfigure(encoding="utf-8")
     sys.stdin.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser()
-    ap.add_argument("--proveedores", default="ollama,propio")
+    ap.add_argument("--proveedores", default=PROVEEDORES_CON_LLAVE if hay_llave() else PROVEEDORES)
     ap.add_argument("--modelo", default="qwen3:8b")
     a = ap.parse_args()
 
-    hay = {"ollama": lambda: ProveedorOllama(a.modelo), "propio": ProveedorPropio}
+    hay = {"claude": ProveedorClaude, "ollama": lambda: ProveedorOllama(a.modelo),
+           "propio": ProveedorPropio}
     prov = ConRespaldo([hay[n.strip()]() for n in a.proveedores.split(",")])
 
     print(f"{MORADO}NANA en vivo{FIN} · {prov.nombre}")
     print(f"{GRIS}El día de Rosa: " + " · ".join(f"{p.hora} {p.titulo}" for p in DIA) + FIN)
-    if "ollama" in a.proveedores:
-        print(f"{GRIS}Calentando el modelo (la primera vez puede tardar)…{FIN}")
-        try:
-            ProveedorOllama(a.modelo).conversar("Contesta en una palabra.",
-                                                [{"role": "user", "content": "hola"}])
-        except Exception as e:  # noqa: BLE001
-            print(f"{ROJO}Ollama no contestó ({e}). Contestará el respaldo.{FIN}")
+    print(f"{GRIS}Calentando los modelos (la primera vez puede tardar)…{FIN}")
+    for linea in calentar(prov):
+        print(f"{ROJO if linea.startswith('AVISO') else GRIS}{linea}{FIN}")
     print(f"{GRIS}Escribe como si fueras Rosa. «salir» para terminar.{FIN}\n")
 
     historial: list[dict] = []

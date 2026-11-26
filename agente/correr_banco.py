@@ -89,6 +89,12 @@ def main() -> int:
         # Claude solo platica: lo demás lo deciden Qwen y el propio, como en la demo.
         "claude": lambda: ConRespaldo([ProveedorClaude(), ProveedorOllama(a.modelo), ProveedorPropio()]),
     }[a.proveedor]()
+    if isinstance(proveedor, ConRespaldo):
+        # Sin calentar, las primeras frases miden la carga del modelo o la
+        # importación de `anthropic`, no la respuesta.
+        from servidor_local import calentar
+        for linea in calentar(proveedor):
+            print(linea)
     if a.encargado:
         return correr_encargado(proveedor, a.limite)
     casos = banco.leer()

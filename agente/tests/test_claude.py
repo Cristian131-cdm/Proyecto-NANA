@@ -122,3 +122,32 @@ def test_historial_se_acomoda_para_la_api():
     ])
     assert [x["role"] for x in m] == ["user", "assistant", "user"]
     assert m[0]["content"] == "hola\n¿cómo estás?"
+
+
+def test_la_cadena_dice_quien_escribio_la_respuesta_no_quien_la_reviso():
+    # Claude platica; Qwen clasifica y el guardián revisa después. El campo
+    # `proveedor` debe decir Claude: antes decía el último que habló (el juez).
+    from nana_agente.banco import DIA
+    from nana_agente.cadena import responder
+    from nana_agente.modelos import Peticion
+
+    def qwen_estructurado(sistema, texto, esquema):
+        if "aprobada" in esquema["properties"]:
+            return {"aprobada": True, "motivo": ""}
+        return {"etiqueta": "compania"}
+
+    claude = ProveedorFalso(conversaciones="Qué gusto platicar contigo, Rosa.", nombre="claude")
+    qwen = ProveedorFalso(estructurados=qwen_estructurado, nombre="qwen")
+    r = responder(Peticion("Vieras qué aburrida está la tarde", "Rosa", DIA), ConRespaldo([claude, qwen]))
+    assert r.texto == "Qué gusto platicar contigo, Rosa."
+    assert r.proveedor == "claude"
+
+
+def test_las_instrucciones_no_confunden_a_nana_con_la_persona():
+    # Con "Se llama Rosa." a secas, Claude y Qwen contestaban «Hola, soy Rosa».
+    from nana_agente.compania import _sistema
+
+    s = _sistema("Rosa")
+    assert "Tú te llamas NANA" in s
+    assert "La persona con quien platicas se llama Rosa" in s
+    assert ".Si " not in s and ".No " not in s  # frases pegadas

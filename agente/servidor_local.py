@@ -75,21 +75,27 @@ def proveedor_receta(proveedor: ConRespaldo) -> ConRespaldo | None:
 
 
 def calentar(proveedor: ConRespaldo) -> list[str]:
-    """Carga en la GPU los modelos de Ollama para que la primera frase no tarde.
+    """Deja listos los modelos para que la primera frase no tarde: carga Qwen en
+    la GPU y, con Claude, importa el paquete `anthropic` (~4 s la primera vez,
+    más que el tiempo que le toca a Claude en la cadena) y abre la conexión.
 
-    Regresa una línea por modelo para imprimirla. Si Ollama no contesta no
+    Regresa una línea por modelo para imprimirla. Si alguno no contesta no
     detiene nada: contestará el siguiente proveedor de la lista.
     """
     lineas = []
     for p in proveedor.proveedores:
-        if not isinstance(p, ProveedorOllama):
+        if isinstance(p, ProveedorOllama):
+            pista = "¿Está abierto Ollama?"
+        elif isinstance(p, ProveedorClaude):
+            pista = "¿Hay internet y ANTHROPIC_API_KEY? ¿Queda saldo?"
+        else:
             continue
         inicio = time.monotonic()
         try:
             p.conversar("Contesta en una palabra.", [{"role": "user", "content": "hola"}])
             lineas.append(f"{p.nombre} listo ({time.monotonic() - inicio:.1f} s)")
         except ProveedorCaido as e:
-            lineas.append(f"AVISO: {p.nombre} no contestó ({e}). ¿Está abierto Ollama? "
+            lineas.append(f"AVISO: {p.nombre} no contestó ({e}). {pista} "
                           "Mientras tanto contesta el respaldo.")
     return lineas
 

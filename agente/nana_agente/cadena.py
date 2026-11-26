@@ -47,6 +47,9 @@ def responder(
     prov = proveedor if isinstance(proveedor, ConRespaldo) else ConRespaldo([proveedor])
     prov.usado = None
     prov.fallas = []
+    # Quién escribió la respuesta (compañía o registro). `prov.usado` se
+    # queda con el último que habló, que suele ser el guardián al revisarla.
+    autor = ""
 
     def resto() -> float:
         r = limite - (time.monotonic() - inicio)
@@ -56,7 +59,7 @@ def responder(
 
     def fin(r: Resultado) -> Resultado:
         r.segundos = round(time.monotonic() - inicio, 3)
-        r.proveedor = prov.usado or ""
+        r.proveedor = autor or prov.usado or ""
         r.fallas = list(prov.fallas)
         return r
 
@@ -88,7 +91,9 @@ def responder(
             return fin(Resultado(etiqueta, mi_dia.contestar(pet), origen, "abrir_mi_dia"))
 
         if etiqueta == "registro":
+            prov.usado = None
             propuesta, texto = registro.proponer(pet, prov, resto())
+            autor = prov.usado or ""
             if propuesta is not None:
                 return fin(Resultado(etiqueta, propuesta.pregunta, origen, propuesta=propuesta))
             if registro.es_del_codigo(texto):
@@ -98,7 +103,9 @@ def responder(
             # guardián (el juez de Qwen llegó a rechazar uno por "creativo").
             if compania.pide_chiste(pet):
                 return fin(Resultado(etiqueta, compania.chiste(pet), origen))
+            prov.usado = None
             texto = compania.platicar(pet, prov, resto())
+            autor = prov.usado or ""
 
         if not texto.strip():
             return fin(Resultado(etiqueta, fijas.NO_ENTENDI, origen))
