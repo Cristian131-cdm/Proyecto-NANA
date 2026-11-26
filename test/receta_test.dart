@@ -136,7 +136,7 @@ void main() {
       await abrir(t);
       expect(find.text('¿Está bien así?'), findsOneWidget);
       expect(agente.recetasLeidas, ['Losartán 50 mg cada 12 horas']);
-      expect(find.text('8:00'), findsOneWidget);
+      expect(find.text('8:00 am'), findsOneWidget);
       expect(find.textContaining('cada 12 h'), findsOneWidget);
       expect(await repo.medicamentos('F1').first, isEmpty);
 

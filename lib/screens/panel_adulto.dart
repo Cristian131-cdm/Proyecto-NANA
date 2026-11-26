@@ -127,6 +127,9 @@ class _PanelAdultoState extends State<PanelAdulto> {
     final enPantalla =
         WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
     if (!enPantalla) return; // afuera avisa la alarma del sistema
+    // Con un recordatorio, el aviso de ayuda o la plática abiertos se espera
+    // (sin gastar el aviso: si se cierran dentro del minuto, sale).
+    if (pantallasOcupadas > 0) return;
     final m = medicinaQueAvisar(
       _meds,
       _tomadasHoy,
@@ -134,8 +137,8 @@ class _PanelAdultoState extends State<PanelAdulto> {
       _yaAvisado,
     );
     if (m == null) return;
-    // Solo si no hay otra pantalla encima (plática, recordatorio, ajustes…).
-    if (!(ModalRoute.of(context)?.isCurrent ?? false)) return;
+    // Abre aunque esté en «Mi día», «Mi familia», etc. (antes solo en el
+    // inicio y por eso no sonó a las 8:05 pm, Cris 2026-11-25).
     abrirDesdeAlarma(m.id!).ignore();
   }
 

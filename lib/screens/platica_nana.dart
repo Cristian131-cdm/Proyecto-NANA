@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/alarmas.dart' show pantallasOcupadas;
 import '../core/lector.dart';
 import '../core/platica.dart';
 import '../core/servicios.dart';
@@ -49,6 +50,7 @@ class _PlaticaNanaState extends State<PlaticaNana> {
   @override
   void initState() {
     super.initState();
+    pantallasOcupadas++;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       await _nanaDice(widget.saludo);
@@ -62,6 +64,7 @@ class _PlaticaNanaState extends State<PlaticaNana> {
     Servicios.voz.dejarDeEscuchar();
     Servicios.voz.callar();
     _lista.dispose();
+    pantallasOcupadas--;
     super.dispose();
   }
 

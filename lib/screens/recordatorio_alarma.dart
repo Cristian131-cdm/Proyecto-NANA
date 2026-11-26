@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/alarmas.dart' show pantallasOcupadas;
 import '../core/ajustes.dart';
 import '../core/dia.dart';
 import '../core/lector.dart';
@@ -85,6 +86,7 @@ class _RecordatorioAlarmaState extends State<RecordatorioAlarma>
   @override
   void initState() {
     super.initState();
+    pantallasOcupadas++;
     WidgetsBinding.instance.addPostFrameCallback((_) => _conversar());
   }
 
@@ -96,6 +98,7 @@ class _RecordatorioAlarmaState extends State<RecordatorioAlarma>
     _cerrado = true;
     Servicios.voz.dejarDeEscuchar();
     _pulso.dispose();
+    pantallasOcupadas--;
     super.dispose();
   }
 

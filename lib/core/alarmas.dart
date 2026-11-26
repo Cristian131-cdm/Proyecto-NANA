@@ -59,6 +59,34 @@ DateTime cuandoPasada(Medicamento m, DateTime ahora) => DateTime(
   m.hora.minute,
 ).add(Duration(minutes: m.ventanaMin));
 
+// Para una medicina con último día: cada toma que falta, de la próxima hasta
+// [hasta] (máximo 60). La alarma diaria de Android se repite para siempre, así
+// que estas se programan una por una. Sin [hasta]: lista vacía (va la diaria).
+List<DateTime> tomasHastaElFin(Medicamento m, DateTime ahora) {
+  final fin = m.hasta;
+  if (fin == null) return const [];
+  final salida = <DateTime>[];
+  var dia = DateTime(ahora.year, ahora.month, ahora.day);
+  while (salida.length < 60) {
+    final cuando = DateTime(
+      dia.year,
+      dia.month,
+      dia.day,
+      m.hora.hour,
+      m.hora.minute,
+    );
+    if (!m.vigente(cuando)) break;
+    if (cuando.isAfter(ahora) && m.empezo(cuando)) salida.add(cuando);
+    dia = DateTime(dia.year, dia.month, dia.day + 1);
+  }
+  return salida;
+}
+
+// Pantallas que no se deben tapar con un recordatorio: otro recordatorio, el
+// aviso de ayuda, la plática y NanaEscucha (se pelearían la voz y el micro).
+// Cada una suma al abrir y resta al cerrar.
+int pantallasOcupadas = 0;
+
 // Con la app abierta: la medicina cuya hora (o cuya ventana) se cumplió en
 // el último minuto, que no se ha tomado y de la que NANA todavía no avisó.
 // Anota en [yaAvisado] para no repetir.
@@ -70,7 +98,7 @@ Medicamento? medicinaQueAvisar(
 ) {
   for (final m in meds) {
     final id = m.id;
-    if (id == null || tomadasHoy.contains(id)) continue;
+    if (id == null || tomadasHoy.contains(id) || !m.tocaEl(ahora)) continue;
     final hora = DateTime(
       ahora.year,
       ahora.month,
@@ -89,6 +117,11 @@ Medicamento? medicinaQueAvisar(
 
 class AlarmasLocales implements Alarmas {
   final _plugin = FlutterLocalNotificationsPlugin();
+  bool _exactaPedida = false;
+  bool _exacta = true;
+  AndroidScheduleMode get _modo => _exacta
+      ? AndroidScheduleMode.exactAllowWhileIdle
+      : AndroidScheduleMode.inexactAllowWhileIdle;
   bool _listo = false;
   bool _permisoPedido = false;
   String? _abiertaDesde;
@@ -189,8 +222,16 @@ class AlarmasLocales implements Alarmas {
           .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin
           >();
-      // Si no dan permiso de alarma exacta, suena unos minutos tarde.
-      final exacta = await android?.canScheduleExactNotifications() ?? true;
+      // Sin permiso de alarma exacta Android la atrasa (minutos o más). En
+      // Android 14 no viene dado: se pide una vez (abre «Alarmas y
+      // recordatorios» para prender NANA).
+      var exacta = await android?.canScheduleExactNotifications() ?? true;
+      if (!exacta && !_exactaPedida) {
+        _exactaPedida = true;
+        await android?.requestExactAlarmsPermission();
+        exacta = await android?.canScheduleExactNotifications() ?? false;
+      }
+      _exacta = exacta;
       // Quita las diarias de antes, pero deja las de "al rato" y las de
       // "ya se pasó" (esas las maneja programarPasadas).
       final pospuestas = {
@@ -200,21 +241,42 @@ class AlarmasLocales implements Alarmas {
       for (final p in await _plugin.pendingNotificationRequests()) {
         if (!pospuestas.contains(p.id)) await _plugin.cancel(id: p.id);
       }
+      var total = 0;
+      final ahora = DateTime.now();
       for (final m in meds) {
         if (m.id == null) continue;
-        await _plugin.zonedSchedule(
-          id: idNotificacion(m.id!),
-          scheduledDate: _proxima(m),
-          notificationDetails: _detalles,
-          androidScheduleMode: exacta
-              ? AndroidScheduleMode.exactAllowWhileIdle
-              : AndroidScheduleMode.inexactAllowWhileIdle,
-          title: 'Hora de tu medicina',
-          body: textoAlarma(nombreAdulto, m),
-          payload: m.id,
-          matchDateTimeComponents: DateTimeComponents.time,
-        );
+        final dias = tomasHastaElFin(m, ahora);
+        if (m.hasta == null) {
+          await _plugin.zonedSchedule(
+            id: idNotificacion(m.id!),
+            scheduledDate: _proxima(m),
+            notificationDetails: _detalles,
+            androidScheduleMode: _modo,
+            title: 'Hora de tu medicina',
+            body: textoAlarma(nombreAdulto, m),
+            payload: m.id,
+            matchDateTimeComponents: DateTimeComponents.time,
+          );
+          total++;
+        }
+        for (final cuando in dias) {
+          await _plugin.zonedSchedule(
+            id: idNotificacion(
+              '${m.id}@${cuando.year}-${cuando.month}-${cuando.day}',
+            ),
+            scheduledDate: tz.TZDateTime.from(cuando, tz.local),
+            notificationDetails: _detalles,
+            androidScheduleMode: _modo,
+            title: 'Hora de tu medicina',
+            body: textoAlarma(nombreAdulto, m),
+            payload: m.id,
+          );
+          total++;
+        }
       }
+      debugPrint(
+        'NANA alarmas: $total programadas · exacta: ${exacta ? 'sí' : 'no'}',
+      );
     } catch (e) {
       debugPrint('No se pudieron programar las alarmas: $e');
     }
@@ -232,14 +294,14 @@ class AlarmasLocales implements Alarmas {
       for (final m in meds) {
         if (m.id == null) continue;
         await _plugin.cancel(id: idPasada(m.id!));
-        if (tomadasHoy.contains(m.id)) continue;
+        if (tomadasHoy.contains(m.id) || !m.tocaEl(ahora)) continue;
         final cuando = cuandoPasada(m, ahora);
         if (!cuando.isAfter(ahora)) continue;
         await _plugin.zonedSchedule(
           id: idPasada(m.id!),
           scheduledDate: tz.TZDateTime.from(cuando, tz.local),
           notificationDetails: _detalles,
-          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+          androidScheduleMode: _modo,
           title: 'NANA te pregunta',
           body: textoPasada(nombreAdulto, m),
           payload: m.id,
@@ -258,7 +320,7 @@ class AlarmasLocales implements Alarmas {
         id: idPospuesta(idMedicamento),
         scheduledDate: tz.TZDateTime.now(tz.local).add(en),
         notificationDetails: _detalles,
-        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        androidScheduleMode: _modo,
         title: 'Hora de tu medicina',
         body: texto,
         payload: idMedicamento,

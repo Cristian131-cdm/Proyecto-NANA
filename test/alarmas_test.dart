@@ -52,7 +52,7 @@ void main() {
   test('La alarma dice la hora y la medicina', () {
     expect(
       textoAlarma('Rosa', _losartan),
-      'Rosa, son las 8:00. Te toca tu Losartán de 50 mg.',
+      'Rosa, son las 8:00 am. Te toca tu Losartán de 50 mg.',
     );
   });
 

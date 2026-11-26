@@ -120,7 +120,7 @@ def validar(crudo: dict) -> list[MedicinaLeida]:
         if not horas:
             horas = horas_por_frecuencia(int(m.get("cada_horas") or 0))
             if horas:
-                dudas.append(f"La receta dice cada {int(m['cada_horas'])} h; puse la primera a las 8:00.")
+                dudas.append(f"La receta dice cada {int(m['cada_horas'])} h; puse la primera a las 8:00 am.")
         if not horas:
             horas = [f"{PRIMERA_TOMA:02d}:00"]
             dudas.append("La receta no dice la hora: revisa a qué hora la toma.")

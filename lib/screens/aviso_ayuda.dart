@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../core/alarmas.dart' show pantallasOcupadas;
 import '../core/ajustes.dart';
 import '../core/lector.dart';
 import '../core/medicion.dart';
@@ -57,6 +58,7 @@ class _AvisoAyudaState extends State<AvisoAyuda> {
   @override
   void initState() {
     super.initState();
+    pantallasOcupadas++;
     HapticFeedback.vibrate();
     _reloj = Timer.periodic(const Duration(seconds: 1), (_) => _tic());
     _arranque = Timer(const Duration(milliseconds: 800), _empezar);
@@ -86,6 +88,7 @@ class _AvisoAyudaState extends State<AvisoAyuda> {
     if (!_cerrado) Servicios.voz.callar();
     _cerrado = true;
     Servicios.voz.dejarDeEscuchar();
+    pantallasOcupadas--;
     super.dispose();
   }
 

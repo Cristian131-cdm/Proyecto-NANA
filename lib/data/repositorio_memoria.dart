@@ -572,9 +572,10 @@ class RepositorioMemoria implements RepositorioNana {
 
   @override
   Stream<List<Medicamento>> medicamentos(String folio) => _vigilar(
-    () =>
-        List.of(_medicamentos[folio] ?? const <Medicamento>[])
-          ..sort((a, b) => a.horaTexto.compareTo(b.horaTexto)),
+    () => [
+      for (final m in _medicamentos[folio] ?? const <Medicamento>[])
+        if (m.vigente(reloj())) m,
+    ]..sort((a, b) => a.horaTexto.compareTo(b.horaTexto)),
   );
 
   @override

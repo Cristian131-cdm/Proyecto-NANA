@@ -59,13 +59,21 @@ class MedicinaLeida {
   }
 
   // Una medicina de NANA por cada hora (así funciona la alarma de cada toma).
-  List<Medicamento> comoMedicamentos({int ventanaMin = 30}) => [
-    for (final h in horas)
-      Medicamento(
-        nombre: nombre,
-        dosis: '$dosis $unidad',
-        hora: h,
-        ventanaMin: ventanaMin,
-      ),
-  ];
+  // Si la receta dice «por 7 días», todas terminan el mismo día.
+  List<Medicamento> comoMedicamentos({int ventanaMin = 30, DateTime? desde}) {
+    final fin = dias > 0 && desde != null
+        ? Medicamento.ultimoDia(desde, dias)
+        : null;
+    return [
+      for (final h in horas)
+        Medicamento(
+          nombre: nombre,
+          dosis: '$dosis $unidad',
+          hora: h,
+          ventanaMin: ventanaMin,
+          hasta: fin,
+          desde: desde == null ? null : Medicamento.primerDia(h, desde),
+        ),
+    ];
+  }
 }

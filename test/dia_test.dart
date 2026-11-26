@@ -53,7 +53,7 @@ void main() {
     );
     expect(linea.single.estado, EstadoActividad.hecha);
     expect(linea.single.titulo, 'Tomó Losartán 50 mg');
-    expect(linea.single.hora, '8:05');
+    expect(linea.single.hora, '8:05 am');
   });
 
   test('El día de Rosa va en orden y marca lo que toca ahora', () {

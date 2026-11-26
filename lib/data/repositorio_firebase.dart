@@ -634,16 +634,22 @@ class RepositorioFirebase implements RepositorioNana {
           .orderBy('hora')
           .snapshots()
           .map(
-            (q) => [
-              for (final s in q.docs)
-                Medicamento(
-                  id: s.id,
-                  nombre: s['nombre'],
-                  dosis: s['dosis'],
-                  hora: Medicamento.leerHora(s['hora']),
-                  ventanaMin: s['ventanaMin'],
-                ),
-            ],
+            (q) =>
+                [
+                      for (final s in q.docs)
+                        Medicamento(
+                          id: s.id,
+                          nombre: s['nombre'],
+                          dosis: s['dosis'],
+                          hora: Medicamento.leerHora(s['hora']),
+                          ventanaMin: s['ventanaMin'],
+                          hasta: (s.data()['hasta'] as Timestamp?)?.toDate(),
+                          desde: (s.data()['desde'] as Timestamp?)?.toDate(),
+                        ),
+                    ]
+                    // Las que ya terminaron no cuentan en ningún lado (alarmas, día…).
+                    .where((m) => m.vigente(Servicios.reloj()))
+                    .toList(),
           );
 
   @override
@@ -655,6 +661,8 @@ class RepositorioFirebase implements RepositorioNana {
           'hora': m.horaTexto,
           'ventanaMin': m.ventanaMin,
           'estado': 'activo',
+          if (m.hasta != null) 'hasta': Timestamp.fromDate(m.hasta!),
+          if (m.desde != null) 'desde': Timestamp.fromDate(m.desde!),
         };
         final col = _de(folio, 'medicamentos');
         // Sin await: con mala señal Firestore lo guarda y lo manda después.

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/alarmas.dart' show pantallasOcupadas;
 import '../core/ajustes.dart';
 import '../core/lector.dart';
 import '../core/platica.dart';
@@ -68,6 +69,7 @@ class _NanaEscuchaState extends State<NanaEscucha>
   @override
   void initState() {
     super.initState();
+    pantallasOcupadas++;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       await nanaDice(
@@ -92,6 +94,7 @@ class _NanaEscuchaState extends State<NanaEscucha>
       _parar();
     }
     _pulso.dispose();
+    pantallasOcupadas--;
     super.dispose();
   }
 

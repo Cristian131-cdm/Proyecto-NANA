@@ -14,6 +14,9 @@ void mostrarAviso(
       SnackBar(
         content: Text(texto, style: const TextStyle(fontSize: 20)),
         duration: Duration(seconds: onDeshacer == null ? 4 : 5),
+        // Desde Flutter 3.4x un aviso con botón («Deshacer») se queda hasta que
+        // lo quitan a mano. En NANA siempre se va solo (Cris, 2026-11-25).
+        persist: false,
         action: onDeshacer == null
             ? null
             : SnackBarAction(

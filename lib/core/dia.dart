@@ -25,12 +25,116 @@ const rutinasDelDia = [
   (TimeOfDay(hour: 18, minute: 0), 'Caminar 15 min', TipoActividad.ejercicio),
 ];
 
-// 8:00, 2:00 pm — como ya se escribía en la app
+// 8:00 am, 2:00 pm, 12:00 pm (mediodía), 12:00 am (medianoche). Antes las
+// de la mañana salían sin «am» y la medianoche como «0:00»: no se sabía si
+// «8:00» era de la mañana o de la noche (Cris, 2026-11-25).
 String horaCorta(TimeOfDay t) {
   final m = t.minute.toString().padLeft(2, '0');
-  if (t.hour < 12) return '${t.hour}:$m';
-  final h = t.hour == 12 ? 12 : t.hour - 12;
-  return '$h:$m pm';
+  final h = t.hour % 12 == 0 ? 12 : t.hour % 12;
+  return '$h:$m ${t.hour < 12 ? 'am' : 'pm'}';
+}
+
+// Las tomas de una misma medicina (mismo nombre, dosis y último día). En la
+// lista del encargado se ven en UNA tarjeta: «Loratadina · cada 8 horas» con
+// sus 3 horas, en vez de 3 tarjetas que parecían repetidas (Cris, 2026-11-25).
+class GrupoMedicina {
+  final String nombre;
+  final String dosis;
+  final List<Medicamento> tomas; // ordenadas por hora
+  const GrupoMedicina(this.nombre, this.dosis, this.tomas);
+
+  DateTime? get hasta => tomas.first.hasta;
+
+  // «Una vez al día», «Cada 8 horas» o «3 veces al día» si no van parejas.
+  String get frecuencia {
+    final n = tomas.length;
+    if (n == 1) return 'Una vez al día';
+    if (24 % n == 0) {
+      final cada = 24 ~/ n;
+      int min(Medicamento m) => m.hora.hour * 60 + m.hora.minute;
+      final parejas = [
+        for (var i = 1; i < n; i++) min(tomas[i]) - min(tomas[i - 1]),
+      ].every((d) => d == cada * 60);
+      if (parejas) return 'Cada $cada horas';
+    }
+    return '$n veces al día';
+  }
+}
+
+List<GrupoMedicina> agruparMedicinas(List<Medicamento> meds) {
+  int min(Medicamento m) => m.hora.hour * 60 + m.hora.minute;
+  final grupos = <String, List<Medicamento>>{};
+  for (final m in meds) {
+    final h = m.hasta;
+    final clave = [
+      m.nombre.trim().toLowerCase(),
+      m.dosis.trim().toLowerCase(),
+      h == null ? '' : '${h.year}-${h.month}-${h.day}',
+    ].join('|');
+    grupos.putIfAbsent(clave, () => []).add(m);
+  }
+  return [
+    for (final tomas in grupos.values)
+      GrupoMedicina(
+        tomas.first.nombre,
+        tomas.first.dosis,
+        [...tomas]..sort((a, b) => min(a).compareTo(min(b))),
+      ),
+  ]..sort((a, b) => min(a.tomas.first).compareTo(min(b.tomas.first)));
+}
+
+// «martes 2 dic»
+String diaCorto(DateTime d) {
+  const dias = [
+    'lunes',
+    'martes',
+    'miércoles',
+    'jueves',
+    'viernes',
+    'sábado',
+    'domingo',
+  ];
+  const meses = [
+    'ene',
+    'feb',
+    'mar',
+    'abr',
+    'may',
+    'jun',
+    'jul',
+    'ago',
+    'sep',
+    'oct',
+    'nov',
+    'dic',
+  ];
+  return '${dias[d.weekday - 1]} ${d.day} ${meses[d.month - 1]}';
+}
+
+// La hora con que empieza el formulario: la de ahora, redondeada a los
+// siguientes 5 minutos (6:42 pm → 6:45 pm).
+TimeOfDay horaSugerida(DateTime ahora) {
+  final total = ((ahora.hour * 60 + ahora.minute + 4) ~/ 5) * 5;
+  return TimeOfDay(hour: (total ~/ 60) % 24, minute: total % 60);
+}
+
+// La misma hora en la mañana (am) o en la tarde/noche (pm): 8:00 → 20:00.
+TimeOfDay conMitad(TimeOfDay t, {required bool pm}) =>
+    TimeOfDay(hour: t.hour % 12 + (pm ? 12 : 0), minute: t.minute);
+
+// «Cada 8 horas» empezando a las 8:00 am → 8:00 am, 4:00 pm, 12:00 am.
+// [cadaHoras] debe dividir 24 (24, 12, 8, 6); si no, solo la primera toma.
+List<TimeOfDay> horasPorFrecuencia(TimeOfDay primera, int cadaHoras) {
+  if (cadaHoras <= 0 || cadaHoras >= 24 || 24 % cadaHoras != 0) {
+    return [primera];
+  }
+  return [
+    for (var i = 0; i < 24 ~/ cadaHoras; i++)
+      TimeOfDay(
+        hour: (primera.hour + i * cadaHoras) % 24,
+        minute: primera.minute,
+      ),
+  ];
 }
 
 int _minutos(TimeOfDay t) => t.hour * 60 + t.minute;
@@ -44,8 +148,9 @@ List<Actividad> diaDelAdulto({
   List<(TimeOfDay, String, TipoActividad)> otras = rutinasDelDia,
   DateTime? ahora,
 }) {
+  final fecha = ahora ?? DateTime.now();
   final filas = <(TimeOfDay, Actividad)>[
-    for (final m in meds)
+    for (final m in meds.where((m) => m.tocaEl(fecha)))
       (
         m.hora,
         Actividad(
@@ -140,7 +245,10 @@ List<Medicamento> sinConfirmar({
   final minutoActual = ahora.hour * 60 + ahora.minute;
   return [
     for (final m in meds)
-      if (!_tomada(m, hoy) && minutoActual > _minutos(m.hora) + m.ventanaMin) m,
+      if (m.tocaEl(ahora) &&
+          !_tomada(m, hoy) &&
+          minutoActual > _minutos(m.hora) + m.ventanaMin)
+        m,
   ];
 }
 
@@ -163,7 +271,7 @@ List<Actividad> lineaDelCuidador({
         ),
       ),
     for (final m in meds)
-      if (!_tomada(m, hoy))
+      if (m.tocaEl(ahora) && !_tomada(m, hoy))
         (
           _minutos(m.hora),
           Actividad(

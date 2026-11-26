@@ -85,7 +85,9 @@ DiaSemana _dia(
   final minuto = ahora.hour * 60 + ahora.minute;
   bool yaPaso(TimeOfDay h, int margen) =>
       !esHoy || h.hour * 60 + h.minute + margen < minuto;
+  // Un día antes del alta (o después del último día) no cuenta como «faltó».
   final medsDelDia = meds
+      .where((m) => m.tocaEl(fecha))
       .where((m) => tomadas.contains(m.id) || yaPaso(m.hora, m.ventanaMin))
       .toList();
   final ejercicio = rutinas

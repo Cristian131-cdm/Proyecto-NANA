@@ -145,7 +145,7 @@ void main() {
         (await p.responder('qué pastilla me tomo')).texto,
         startsWith('Eso pregúntaselo'),
       );
-      expect((await p.responder('qué hora es')).texto, 'Son las 10:00.');
+      expect((await p.responder('qué hora es')).texto, 'Son las 10:00 am.');
       expect(agente.pedidos, isEmpty);
     });
 

@@ -83,7 +83,7 @@ void main() {
     await tester.pumpWidget(_envolver(const PanelCuidador()));
     await tester.pumpAndSettle();
 
-    expect(find.text('Losartán · 8:00'), findsOneWidget);
+    expect(find.text('Losartán · 8:00 am'), findsOneWidget);
     expect(find.text('Sin confirmar'), findsOneWidget);
     await tester.tap(find.text('Ya la tomó'));
     await tester.pumpAndSettle();

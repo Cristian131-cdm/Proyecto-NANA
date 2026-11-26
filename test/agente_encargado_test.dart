@@ -88,7 +88,7 @@ void main() {
       final hoy = (resumenParaAgente(_datos())['dias']! as List).last as Map;
       expect(hoy['dia'], 'lunes 23 (hoy)');
       expect(hoy['medicinas_sin_marcar'], isEmpty); // Metformina es a las 9 pm
-      expect(hoy['medicinas_marcadas'], ['Losartán a las 8:05']);
+      expect(hoy['medicinas_marcadas'], ['Losartán a las 8:05 am']);
     });
 
     test('no lleva dosis, expediente ni teléfonos', () {

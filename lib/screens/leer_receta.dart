@@ -109,7 +109,7 @@ class _LeerRecetaState extends State<LeerReceta> {
         nombre: f.nombre.text.trim(),
         dosis: f.dosis.text.trim(),
       );
-      for (final med in m.comoMedicamentos()) {
+      for (final med in m.comoMedicamentos(desde: Servicios.reloj())) {
         await Servicios.repo.guardarMedicamento(widget.folio, med);
         tomas++;
       }
