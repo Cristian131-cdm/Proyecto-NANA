@@ -8,6 +8,16 @@ export interface Medicina {
   nombre: string;
   hora: string; // 'HH:mm'
   ventanaMin: number;
+  hasta?: Date | null; // último día del tratamiento (inclusive); null = siempre
+  desde?: Date | null; // primer día que cuenta esta toma; null = desde siempre
+}
+
+// ¿Todavía se toma hoy (día local)? El último día sí cuenta.
+export function vigente(m: Medicina, ahora: Date, desfaseMin: number): boolean {
+  const hoy = diaLocal(ahora, desfaseMin);
+  if (m.desde && diaLocal(m.desde, desfaseMin) > hoy) return false; // empieza después
+  if (!m.hasta) return true;
+  return diaLocal(m.hasta, desfaseMin) >= hoy;
 }
 
 export interface ReglasAlerta {
@@ -117,7 +127,7 @@ export function pushDeMedicinas(
   const dia = diaLocal(ahora, desfaseMin);
   const salida: Push[] = [];
   for (const m of meds) {
-    if (tomadasHoy.has(m.id)) continue;
+    if (tomadasHoy.has(m.id) || !vigente(m, ahora, desfaseMin)) continue;
     const vence = minutoDe(m.hora, 2 * Math.max(m.ventanaMin, 5));
     // Se revisa cada minuto; con 10 de margen no se pierde si un cron falla.
     if (minutoAhora < vence || minutoAhora > vence + 10) continue;

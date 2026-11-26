@@ -196,6 +196,8 @@ export class NubeGoogle implements Nube {
       nombre: String(d.datos.nombre ?? ''),
       hora: String(d.datos.hora ?? '00:00'),
       ventanaMin: Number(d.datos.ventanaMin ?? 30),
+      hasta: (d.datos.hasta as Date | null | undefined) ?? null,
+      desde: (d.datos.desde as Date | null | undefined) ?? null,
     }));
   }
 

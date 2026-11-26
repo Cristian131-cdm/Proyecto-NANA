@@ -53,6 +53,24 @@ describe('reglas', () => {
     expect(pushDeMedicinas('Rosa', [losartan], new Set(), r, mx(9, 30), MX)).toEqual([]);
   });
 
+  it('medicina que ya terminó: no avisa; el último día sí', () => {
+    const r = reglasDeFabrica;
+    // La app guarda «hasta» como medianoche local (México) del último día.
+    const fin = new Date(Date.UTC(2026, 10, 25, 6, 0));
+    const conFin = { ...losartan, hasta: fin };
+    expect(pushDeMedicinas('Rosa', [conFin], new Set(), r, mx(9, 0), MX)).toHaveLength(1);
+    const ayer = { ...losartan, hasta: new Date(Date.UTC(2026, 10, 24, 6, 0)) };
+    expect(pushDeMedicinas('Rosa', [ayer], new Set(), r, mx(9, 0), MX)).toEqual([]);
+  });
+
+  it('toma que empieza mañana: hoy no avisa', () => {
+    const manana = new Date(Date.UTC(2026, 10, 26, 6, 0)); // medianoche local del 26
+    const nueva = { ...losartan, desde: manana };
+    expect(pushDeMedicinas('Rosa', [nueva], new Set(), reglasDeFabrica, mx(9, 0), MX)).toEqual([]);
+    const hoy = { ...losartan, desde: new Date(Date.UTC(2026, 10, 25, 6, 0)) };
+    expect(pushDeMedicinas('Rosa', [hoy], new Set(), reglasDeFabrica, mx(9, 0), MX)).toHaveLength(1);
+  });
+
   it('sin noticias: solo si pasaron las horas y la regla está prendida', () => {
     expect(pushSinNoticias('Rosa', mx(1), reglasDeFabrica, mx(10), MX)).toEqual([]);
     const [p] = pushSinNoticias('Rosa', mx(1), { ...reglasDeFabrica, horasSinNoticias: 6 }, mx(10), MX);
